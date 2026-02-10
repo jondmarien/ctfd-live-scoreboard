@@ -23,5 +23,19 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "framer-motion": ["framer-motion", "motion"],
+          gsap: ["gsap", "@gsap/react"],
+          particles: [
+            "@tsparticles/engine",
+            "@tsparticles/react",
+            "@tsparticles/slim",
+          ],
+          vendor: ["react", "react-dom"],
+        },
+      },
+    },
   },
 });
