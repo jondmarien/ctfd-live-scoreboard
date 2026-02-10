@@ -6,6 +6,10 @@ A high-fantasy themed live scoreboard for CTFd, built for **ISSessions Fantasy C
 
 ![ISSessions Fantasy CTF](public/img/fantasy-ctf-banner.png)
 
+---
+
+https://github.com/user-attachments/assets/a80b40eb-f692-4377-9147-d56b85102945
+
 ### 🏰 Features
 
 - **Animated Tavern Background** - Layered WebGL aurora, floating fireflies, drifting fog, and film grain
