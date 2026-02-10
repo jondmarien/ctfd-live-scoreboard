@@ -50,38 +50,62 @@ export default function TeamCard({ team }: TeamCardProps) {
           {team.name}
         </span>
 
-        {/* Quest count */}
-        {team.members && (
-          <span className="flex-shrink-0 text-xs text-amber-600/40 font-medievalsharp hidden sm:inline">
-            ■ {team.members.length} quest{team.members.length !== 1 ? "s" : ""}
+        {/* Right-aligned stats: quests | score GP — fixed total width keeps pipe aligned */}
+        <div className="shrink-0 hidden sm:flex items-center ml-auto w-[250px]">
+          {/* Quest count — fills left half, text pushed toward pipe */}
+          <span className="flex-1 text-xs text-amber-600/40 font-medievalsharp text-right">
+            ■ {team.members ? team.members.length : 0} quest{team.members && team.members.length !== 1 ? "s" : ""}
           </span>
-        )}
 
-        {/* Separator */}
-        <span className="flex-shrink-0 text-amber-700/20 hidden sm:inline">
-          │
-        </span>
+          {/* Separator — fixed in center of the 250px container */}
+          <span className="shrink-0 text-amber-700/20 mx-3">│</span>
 
-        {/* Score */}
-        <span
-          className={`
-          flex-shrink-0 font-quintessential font-bold tabular-nums
-          ${isTopRank ? "text-amber-400" : "text-amber-400/70"}
-        `}
-        >
-          <Counter
-            value={team.score}
-            fontSize={22}
-            padding={8}
-            gap={2}
-            textColor="inherit"
-            fontWeight="bold"
-            gradientHeight={0}
-          />
-        </span>
-        <span className="flex-shrink-0 text-xs text-amber-600/50 font-medievalsharp">
-          GP
-        </span>
+          {/* Score + GP — fills right half, content pushed right */}
+          <span className="flex-1 flex items-center justify-end gap-1">
+            <span
+              className={`
+                font-quintessential font-bold tabular-nums
+                ${isTopRank ? "text-amber-400" : "text-amber-400/70"}
+              `}
+            >
+              <Counter
+                value={team.score}
+                fontSize={22}
+                padding={8}
+                horizontalPadding={0}
+                gap={2}
+                textColor="inherit"
+                fontWeight="bold"
+                gradientHeight={0}
+              />
+            </span>
+            <span className="text-xs text-amber-600/50 font-medievalsharp">
+              GP
+            </span>
+          </span>
+        </div>
+
+        {/* Mobile — score only, no pipe */}
+        <div className="shrink-0 flex items-center gap-1 ml-auto sm:hidden">
+          <span
+            className={`
+              font-quintessential font-bold tabular-nums
+              ${isTopRank ? "text-amber-400" : "text-amber-400/70"}
+            `}
+          >
+            <Counter
+              value={team.score}
+              fontSize={22}
+              padding={8}
+              horizontalPadding={0}
+              gap={2}
+              textColor="inherit"
+              fontWeight="bold"
+              gradientHeight={0}
+            />
+          </span>
+          <span className="text-xs text-amber-600/50 font-medievalsharp">GP</span>
+        </div>
       </div>
 
       {/* Expanded members — compact sub-list */}
@@ -97,7 +121,7 @@ export default function TeamCard({ team }: TeamCardProps) {
                 <span className="text-amber-200/60 font-medievalsharp truncate">
                   🗡️ {member.name}
                 </span>
-                <span className="text-amber-400/50 font-quintessential ml-2 flex-shrink-0">
+                <span className="text-amber-400/50 font-quintessential ml-2 shrink-0">
                   {member.score} GP
                 </span>
               </div>

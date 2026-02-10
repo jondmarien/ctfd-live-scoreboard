@@ -1,19 +1,22 @@
-# Use official lightweight NGINX image
-FROM nginx:1.25-alpine
+# Stage 1: Build the React app
+FROM oven/bun:1 AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy all project files
-COPY index.html .
-COPY assets/ /app/assets/
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile
 
-# Ensure CSS files have correct permissions
-RUN chmod -R 755 /app
+COPY . .
+RUN bun run build
+
+# Stage 2: Serve with NGINX
+FROM nginx:1.27-alpine
+
+# Copy built assets from build stage
+COPY --from=build /app/dist /usr/share/nginx/html
 
 # Copy NGINX configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
-COPY . /usr/share/nginx/html
 
 # Expose port 80 for web traffic
 EXPOSE 80
