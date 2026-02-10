@@ -45,34 +45,37 @@ bun run dev
 
 Open `http://localhost:8000` - the Vite dev server proxies `/api/*` to `issessionsctf.ctfd.io` automatically.
 
-### 🐳 Docker
+### � Deployment (Vercel — Recommended)
+
+1. Push the repo to GitHub
+2. Import the project at [vercel.com/new](https://vercel.com/new)
+3. Add the environment variable `CTFD_API_TOKEN` in **Settings → Environment Variables**
+   - Generate a token at your CTFd instance under Settings → API Tokens
+4. Deploy — Vercel auto-detects Vite, installs with Bun, and builds
+
+The included `vercel.json` handles API proxying via a serverless function that injects the auth token server-side.
+
+**Custom domain:** Add your domain in Vercel project Settings → Domains, then create a CNAME record pointing to `cname.vercel-dns.com`.
+
+### 🐳 Docker (Deprecated — Supported for Self-Hosting)
+
+> **Note:** Docker deployment is deprecated in favor of Vercel. The Dockerfile is kept for self-hosting scenarios. If using Docker, you'll need to configure the CTFd API token separately (e.g. via nginx proxy headers).
 
 ```bash
-# Pull from GHCR
-docker pull ghcr.io/jondmarien/ctfd-scoreboard:latest
-docker run -p 80:80 ghcr.io/jondmarien/ctfd-scoreboard:latest
-
-# Or build locally
+# Build locally
 docker build -t fantasy-ctf-scoreboard .
-docker run -p 8080:80 fantasy-ctf-scoreboard
+docker run -p 80:80 fantasy-ctf-scoreboard
 ```
 
 ### 📜 Configuration
 
-The API endpoint is configured in `vite.config.ts`:
+**Environment Variables:**
 
-```typescript
-server: {
-  proxy: {
-    "/api": {
-      target: "https://issessionsctf.ctfd.io",
-      changeOrigin: true,
-    },
-  },
-}
-```
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CTFD_API_TOKEN` | Yes | API token for your CTFd instance (private scoreboards) |
 
-No separate config file needed - just update the target URL if using a different CTFd instance.
+**Dev proxy** is configured in `vite.config.ts` — the Vite dev server proxies `/api/*` to `issessionsctf.ctfd.io` automatically. No separate config file needed.
 
 ### 📁 Project Structure
 
