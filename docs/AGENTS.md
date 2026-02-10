@@ -6,165 +6,226 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 **ISSessions Fantasy CTF - Guild Quest Board** (2026)
 
-A high-fantasy themed real-time scoreboard for CTFd competitions. Built for ISSessions Fantasy CTF 2026 with D&D/Baldur's Gate 3 inspired visuals. Features floating magical runes, medieval styling, and immersive RPG terminology.
+A high-fantasy themed real-time scoreboard for CTFd competitions. Built for ISSessions Fantasy CTF 2026 with D&D/Baldur's Gate 3 inspired visuals. Features animated tavern background, floating fireflies, aurora effects, and immersive RPG terminology.
 
-**Live CTFd Instance:** https://issessionsctf.ctfd.io  
-**Planned Deployment:** https://scoreboard.issessions.ca
+**Live CTFd Instance:** <https://issessionsctf.ctfd.io>  
+**Planned Deployment:** <https://scoreboard.issessions.ca>
 
 ## Tech Stack
 
-- **Frontend:** Vanilla JavaScript (ES6+), HTML5, CSS3
-- **Styling:** Press Start 2P font, CSS animations (torch flicker, floating particles)
+- **Framework:** React 19 + TypeScript
+- **Build:** Vite 7
+- **Styling:** Tailwind CSS 4 with custom `@theme`
+- **Animations:** Framer Motion, GSAP, tsparticles
+- **UI Components:** Radix UI, shadcn/ui, Lucide icons
+- **Fonts:** Quintessential (headers), MedievalSharp (body)
 - **Server:** NGINX (production via Docker)
-- **CI/CD:** GitHub Actions → GitHub Container Registry (GHCR)
+- **CI/CD:** GitHub Actions → GHCR
 - **API:** CTFd REST API
-- **Local Dev:** Bun dev server with API proxy
 
 ## Development Commands
 
 ```bash
-# Local development (with API proxy)
-bun dev-server.ts
+# Install dependencies
+bun install
 
-# Simple static server (no API, uses mock data)
-python -m http.server 8000
+# Local dev server (port 8000, proxies /api to CTFd)
+bun run dev
 
-# Docker build & run
+# Type check
+tsc -b
+
+# Lint
+bun run lint
+
+# Production build
+bun run build
+
+# Preview production build
+bun run preview
+
+# Docker
 docker build -t fantasy-ctf-scoreboard .
 docker run -p 8080:80 fantasy-ctf-scoreboard
 ```
 
-## Configuration
+## Project Structure
 
-Create `assets/js/config.js` (gitignored):
-
-```javascript
-window.CONFIG = {
-    API_URL: '/api/v1/scoreboard',      // Proxied through nginx/bun
-    API_TOKEN: 'ctfd_xxx',               // CTFd Admin API token
-    UPDATE_INTERVAL: 300000,             // 5 minutes (use 10000 for testing)
-    MAX_TEAMS: 200,
-    FONT_FAMILY: "'Press Start 2P', cursive",
-};
 ```
+├── src/
+│   ├── components/
+│   │   ├── AnimatedContent.tsx   # Scroll-triggered animations
+│   │   ├── AnimatedList.tsx      # Staggered list animations
+│   │   ├── Aurora.tsx            # WebGL aurora background
+│   │   ├── ClickSpark.tsx        # Gold spark effect on click
+│   │   ├── Counter.tsx           # Animated number counter
+│   │   ├── Fireflies.tsx         # Floating ember particles
+│   │   ├── Fog.tsx               # Drifting fog layer
+│   │   ├── Header.tsx            # Banner + title with SplitText
+│   │   ├── Noise.tsx             # Film grain texture overlay
+│   │   ├── Scoreboard.tsx        # Main scoreboard container
+│   │   ├── ShinyText.tsx         # Animated gradient text
+│   │   ├── SplitText.tsx         # GSAP letter-by-letter animation
+│   │   ├── SpotlightCard.tsx     # Hover spotlight effect
+│   │   ├── StarBorder.tsx        # Animated border effect
+│   │   ├── TavernBackground.tsx  # Composites all background layers
+│   │   └── TeamCard.tsx          # Individual team row + expansion
+│   ├── hooks/
+│   │   └── useScoreboard.ts      # Data fetching + XSS sanitization
+│   ├── lib/
+│   │   └── utils.ts              # cn() classname merge utility
+│   ├── App.tsx                   # Root component
+│   ├── main.tsx                  # React entry point
+│   └── index.css                 # Tailwind + custom fonts/colors
+├── public/
+│   └── img/
+│       └── fantasy-ctf-banner.png
+├── docs/
+│   ├── AGENTS.md                 # This file
+│   └── WORK_DONE.md              # Development log
+├── vite.config.ts                # Vite + API proxy config
+├── tailwind via index.css        # Tailwind 4 @theme config
+├── nginx.conf                    # Production server
+└── dockerfile                    # Docker build
+```
+
+## Key Components
+
+### TavernBackground.tsx
+
+Composites the layered background effect:
+
+1. Deep dark base (`#110a00`)
+2. Aurora - warm amber/gold WebGL shader
+3. Fog - drifting fireplace smoke
+4. Fireflies - floating ember particles
+5. Noise - film grain texture
+6. Dark overlay for text readability
+
+### useScoreboard Hook
+
+```typescript
+const { teams, loading, lastUpdate, refresh, escapeHTML } = useScoreboard();
+```
+
+- Fetches from `/api/v1/scoreboard` (proxied)
+- Auto-refreshes every 30 seconds
+- XSS sanitization via `escapeHTML()`
+- Falls back to fantasy-themed mock data on error
+
+### TeamCard.tsx
+
+- Top 3 ranks: gold/silver/bronze gradient badges
+- Expandable member list (sorted by score)
+- Animated counter for scores
+- GP (Gold Pieces) terminology
 
 ## Fantasy Theme
 
-### Terminology Mapping
+### Terminology
 
 | Original | Fantasy |
-|----------|---------|
+|----------|--------|
 | Teams | Adventuring Parties |
-| Score/pts | Gold Pieces (GP) |
+| Score | Gold Pieces (GP) |
 | Solves | Quests |
 | Members | Party Members |
 | Last Update | Last Scrying |
 | Loading | Consulting the Oracle |
-| Error | Arcane Disruption |
 
-### Color Palette (CSS Variables)
+### Color Palette (Tailwind @theme)
 
-| Variable | Hex | Usage |
-|----------|-----|-------|
-| `--gold` | #FFD700 | Primary accent, headers |
-| `--gold-dark` | #B8860B | Borders |
-| `--purple-magic` | #8B5CF6 | Magical highlights |
-| `--stone-dark` | #1a1a2e | Background |
-| `--parchment` | #F4E4BA | Text |
-| `--torch-orange` | #FF6B35 | Glow effects |
-| `--emerald` | #50C878 | Position badges (4+) |
-
-## Architecture
-
-### Core Files
-
-```
-├── index.html              # Entry point, loads fonts/CSS/JS
-├── assets/
-│   ├── css/
-│   │   └── styles.css      # Fantasy theme styling
-│   ├── js/
-│   │   ├── config.js       # API config (gitignored)
-│   │   └── scoreboard.js   # Main Scoreboard class
-│   └── img/
-│       └── fantasy-ctf-banner.png
-├── nginx.conf              # Production server config
-├── dev-server.ts           # Bun local dev server
-└── dockerfile              # Docker build config
+```css
+--color-tavern-dark: #110a00;    /* Background */
+--color-tavern-amber: #8b4513;   /* Borders */
+--color-amber-gold: #ffd700;     /* Accents */
+--color-ember-orange: #ff8c42;   /* Glows */
+--color-parchment: #e8d5b0;      /* Text */
 ```
 
-### Scoreboard Class (scoreboard.js)
+## Configuration
 
-| Method | Description |
-|--------|-------------|
-| `initMagicParticles()` | Canvas animation - Elder Futhark runes floating upward |
-| `fetchScoreboard()` | Fetches from CTFd API with token auth |
-| `renderTeam()` | Generates party HTML with XSS-safe sanitization |
-| `startAutoUpdate()` | Manages periodic refresh interval |
-| `getMockData()` | Fantasy-themed demo parties for fallback |
-| `escapeHTML()` | Sanitizes user input to prevent XSS |
+### Vite Dev Proxy (vite.config.ts)
 
-### Data Flow
-
-1. `Scoreboard` constructor initializes magic particles and starts auto-update
-2. `fetchScoreboard()` calls CTFd API via proxy: `/api/v1/scoreboard`
-3. Response mapped to `{id, name, score, pos, members}` objects
-4. `renderTeam()` generates expandable party cards with GP and quest counts
-5. "Last Scrying" timestamp appended, DOM updated
+```typescript
+server: {
+  port: 8000,
+  proxy: {
+    "/api": {
+      target: "https://issessionsctf.ctfd.io",
+      changeOrigin: true,
+      secure: true,
+    },
+  },
+}
+```
 
 ### API Response Structure
 
-```javascript
+```typescript
 // CTFd returns: { success: true, data: [...teams] }
-// Each team: { account_id, name, score, pos, members: [] }
+interface Team {
+  pos: number;
+  name: string;
+  score: number;
+  members?: { id: number; name: string; score: number }[];
+}
 ```
 
 ## Security
 
 ### XSS Prevention
 
-All user-controlled data is sanitized via `escapeHTML()`:
-```javascript
-function escapeHTML(str) {
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+All user data sanitized in `useScoreboard.ts`:
+
+```typescript
+function escapeHTML(str: string | null | undefined): string {
+  if (str === null || str === undefined) return "";
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
 }
 ```
 
-Applied to: team names, member names, IDs, scores.
-
 ### CORS Handling
 
-- **Production:** NGINX proxies `/api/*` to CTFd (no CORS)
-- **Development:** Bun dev server proxies to CTFd
-- Better error messages when CORS fails
+- **Dev:** Vite proxy handles `/api/*` → CTFd
+- **Prod:** NGINX reverse proxy to CTFd
 
 ### Security Headers (nginx.conf)
 
 - `X-Content-Type-Options: nosniff`
 - `X-Frame-Options: SAMEORIGIN`
-- `X-XSS-Protection: 1; mode=block`
-- `Content-Security-Policy` (restricts connections to self + CTFd)
+- `Content-Security-Policy` (restricts to self + CTFd)
 
-## Docker/Deployment
+## Deployment
 
-- `dockerfile` - NGINX Alpine-based, copies static files to `/app/`
-- `nginx.conf` - Proxies `/api/*` to `issessionsctf.ctfd.io`, serves static files
-- GitHub Actions builds multi-platform images (amd64/arm64) on push to `main`
-- Images tagged with `latest` and commit SHA
+### Docker Build
+
+Builds React app with Vite, serves via NGINX:
+
+```bash
+docker build -t fantasy-ctf-scoreboard .
+docker run -p 80:80 fantasy-ctf-scoreboard
+```
+
+### GitHub Actions
+
+- Triggers on push to `main`
+- Builds multi-platform images (amd64/arm64)
+- Pushes to GHCR with `latest` + SHA tags
 
 ## Branches
 
 | Branch | Description |
 |--------|-------------|
-| `main` | ISSessions Fantasy CTF 2026 (current) |
-| `2025` | Black Hat Bureau Edition (archived) |
+| `main` | React/Vite 2026 version (current) |
+| `2025` | Vanilla JS Black Hat Bureau (archived) |
 
 ## Key Notes
 
-- `config.js` is gitignored - create manually or inject at deploy time
-- Magic particles use Elder Futhark runes: ᚠᚢᚦᚨᚱᚲᚷᚹᚺᚾᛁᛃᛇᛈᛉᛊᛏᛒᛖᛗᛚᛜᛟᛞ
-- Top 3 positions have special styling (gold/silver/bronze gradients)
-- Error handling falls back to fantasy-themed mock data
-- Party interactions (expand/collapse) use event delegation
+- No config file needed - API URL hardcoded in Vite proxy
+- Mock data loads automatically if API fails
+- Top 3 positions have special gradient styling
+- All animations respect `prefers-reduced-motion`
+- Background uses WebGL (Aurora) - falls back gracefully

@@ -1,16 +1,21 @@
 # WORK_DONE.md
 
-## ISSessions Fantasy CTF Scoreboard - 2026 Transformation
+## ISSessions Fantasy CTF Scoreboard - 2026 Development Log
 
-**Date:** February 10, 2026  
 **Project:** CTFd Live Scoreboard  
-**Transformation:** Black Hat Bureau (2025) → ISSessions Fantasy CTF (2026)
+**Transformation:** Black Hat Bureau (2025) → ISSessions Fantasy CTF (2026)  
+**Final Stack:** React 19 + Vite 7 + Tailwind CSS 4
 
 ---
 
-## 🎯 Overview
+## 📜 Commit History
 
-Transformed the cyberpunk/hacker-themed "Black Hat Bureau Mission Board" into a high-fantasy D&D/Baldur's Gate 3 inspired "Guild Quest Board" for ISSessions Fantasy CTF 2026.
+| Commit | Description |
+|--------|-------------|
+| `b672b03` | Implementation of animation libs & component packs (final) |
+| `7d58ab2` | Migrated to Vite + React + Tailwind + ShadCN |
+| `55dcc21` | Initial 2026 fantasy theme (vanilla JS) |
+| `87763fe` | 2025 branch backup (Black Hat Bureau) |
 
 ---
 
@@ -18,221 +23,221 @@ Transformed the cyberpunk/hacker-themed "Black Hat Bureau Mission Board" into a 
 
 | Branch | Description |
 |--------|-------------|
-| `main` | ISSessions Fantasy CTF 2026 (current) |
-| `2025` | Black Hat Bureau Edition (archived backup) |
-
-Created backup branch before transformation:
-```bash
-git branch 2025 main
-git push origin 2025
-```
+| `main` | React/Vite 2026 version (current) |
+| `2025` | Vanilla JS Black Hat Bureau (archived) |
+| `backend-testing` | Backend experiments (archived) |
 
 ---
 
-## 🎨 Theme Transformation
+## 🚀 Phase 1: Theme Transformation (Vanilla JS)
+
+**Commit:** `55dcc21`
+
+Transformed the cyberpunk "Black Hat Bureau Mission Board" into a fantasy "Guild Quest Board".
 
 ### Visual Changes
 
 | Component | Before (2025) | After (2026) |
 |-----------|---------------|--------------|
 | Header | "BLACK HAT BUREAU MISSION BOARD" | "⚔️ GUILD QUEST BOARD 🛡️" |
-| Background | Matrix rain (green/red) | Floating magical runes (gold/purple) |
-| Colors | Red (#ff4d4d), Black | Gold (#FFD700), Purple (#8B5CF6), Parchment (#F4E4BA) |
-| Animations | Glitch effects | Torch flicker, floating particles |
-| Font | Press Start 2P | Press Start 2P (kept for pixel RPG feel) |
+| Background | Matrix rain (red) | Floating Elder Futhark runes |
+| Colors | Red (#ff4d4d), Black | Gold (#FFD700), Purple (#8B5CF6) |
+| Animations | Glitch effects | Torch flicker |
 
-### Terminology Mapping
+### Terminology
 
 | Original | Fantasy |
-|----------|---------|
+|----------|--------|
 | Teams | Adventuring Parties |
-| Score/pts | Gold Pieces (GP) |
+| Score | Gold Pieces (GP) |
 | Solves | Quests |
-| Members | Party Members |
 | Last Update | Last Scrying |
 | Loading | Consulting the Oracle |
-| Error | Arcane Disruption |
+
+### Security Fixes
+
+1. **XSS Prevention** - Added `escapeHTML()` to sanitize team/member names
+2. **CORS Handling** - Nginx reverse proxy + better error messages
+3. **Security Headers** - CSP, X-Frame-Options, X-XSS-Protection
 
 ---
 
-## 📁 Files Modified
+## 🚀 Phase 2: React Migration
 
-### Core Application
+**Commit:** `7d58ab2`
 
-1. **index.html**
-   - Updated title to "ISSessions Fantasy CTF - Guild Quest Board"
-   - Changed canvas from `matrixCanvas` to `particleCanvas`
-   - New header with sword/shield icons
-   - Added MedievalSharp font
+Complete rewrite from vanilla JavaScript to modern React stack.
 
-2. **assets/css/styles.css** (Complete Rewrite)
-   - CSS variables for fantasy color palette
-   - Torch flicker animations (`@keyframes torchFlicker`)
-   - Top 3 position badges (gold, silver, bronze gradients)
-   - Parchment-styled containers with gold borders
-   - Custom scrollbar styling
-   - Responsive breakpoints (968px, 480px)
-   - Security: Content Security Policy ready
+### New Tech Stack
 
-3. **assets/js/scoreboard.js** (Major Updates)
-   - Replaced `initMatrix()` with `initMagicParticles()` - Elder Futhark runes + fantasy symbols
-   - Added `escapeHTML()` function for XSS prevention
-   - Updated all terminology (GP, quests, parties, scrying)
-   - Fantasy-themed mock data (Dragon Slayers United, Arcane Assembly, etc.)
-   - Improved CORS error handling with helpful console messages
-   - Fixed duplicate `startAutoUpdate()` method from 2025 version
+- **React 19** - Latest React with concurrent features
+- **Vite 7** - Fast builds with HMR
+- **TypeScript** - Type safety throughout
+- **Tailwind CSS 4** - Custom `@theme` with tavern colors
+- **shadcn/ui** - Accessible component primitives
+- **Radix UI** - Headless UI components
 
-### Configuration & Deployment
+### New Project Structure
 
-4. **nginx.conf** (Production Ready)
-   - API proxy to `issessionsctf.ctfd.io` (eliminates CORS)
-   - Security headers (X-Content-Type-Options, X-Frame-Options, CSP, etc.)
-   - Asset caching (7 days for static files)
-   - Gzip compression
-   - Server name: `scoreboard.issessions.ca`
+```tree
+src/
+├── components/       # React components
+├── hooks/            # Custom hooks (useScoreboard)
+├── lib/              # Utilities (cn)
+├── App.tsx           # Root component
+├── main.tsx          # Entry point
+└── index.css         # Tailwind + custom styles
+```
 
-5. **dev-server.ts** (New)
-   - Bun-based local development server
-   - API proxy for local testing without CORS issues
-   - Proper MIME type handling
-   - Run with: `bun dev-server.ts`
+### Configuration Changes
 
-### Documentation
-
-6. **README.md**
-   - Updated for ISSessions Fantasy CTF 2026
-   - New feature list
-   - Fantasy-themed installation instructions
-   - Updated configuration example
-
-7. **AGENTS.md**
-   - Updated project overview
-   - Fantasy terminology reference
-   - New architecture documentation
-   - Color palette reference
-   - Branch information
-
-### Cleanup
-
-8. **Removed old assets:**
-   - `assets/img/BHB Mission Board.png`
-   - `assets/img/full_glitch.gif`
-   - `assets/img/full_glitch_mini.gif`
+- **No config.js needed** - API URL in `vite.config.ts` proxy
+- **Vite dev server** - Built-in proxy to CTFd (port 8000)
+- **Auto-refresh** - 30 second interval via `useScoreboard` hook
 
 ---
 
-## 🔒 Security Fixes
+## 🚀 Phase 3: Animation Implementation
 
-### 1. XSS Vulnerability (Critical)
+**Commit:** `b672b03`
 
-**Issue:** Team names containing `<script>` tags were rendered directly into DOM, allowing arbitrary JavaScript execution.
+Added rich animations and visual effects.
 
-**Fix:** Added `escapeHTML()` sanitization function:
-```javascript
-function escapeHTML(str) {
-    if (str === null || str === undefined) return '';
-    const div = document.createElement('div');
-    div.textContent = str;
-    return div.innerHTML;
+### New Dependencies
+
+- **Framer Motion** - React animations
+- **GSAP** - Advanced timeline animations
+- **tsparticles** - Particle effects
+- **OGL** - WebGL for Aurora effect
+
+### New Components
+
+| Component | Description |
+|-----------|-------------|
+| `TavernBackground.tsx` | Composites all background layers |
+| `Aurora.tsx` | WebGL amber/gold aurora shader |
+| `Fireflies.tsx` | Floating ember particles |
+| `Fog.tsx` | Drifting smoke layer |
+| `Noise.tsx` | Film grain texture overlay |
+| `ClickSpark.tsx` | Gold sparks on click |
+| `Counter.tsx` | Animated number rollup |
+| `SplitText.tsx` | GSAP letter-by-letter animation |
+| `ShinyText.tsx` | Animated gradient text |
+| `AnimatedContent.tsx` | Scroll-triggered fade-in |
+| `AnimatedList.tsx` | Staggered list animations |
+| `SpotlightCard.tsx` | Hover spotlight effect |
+| `StarBorder.tsx` | Animated border effect |
+
+### Background Layers (TavernBackground)
+
+1. Deep dark base (`#110a00`)
+2. Aurora - warm amber/gold WebGL shader
+3. Fog - drifting fireplace smoke
+4. Fireflies - 30 floating ember particles
+5. Noise - film grain at 3% opacity
+6. Dark overlay (50%) for text readability
+
+### Fonts
+
+- **Quintessential** - Headers and titles
+- **MedievalSharp** - Body text and labels
+
+---
+
+## 🎨 Final Color Palette
+
+```css
+--color-tavern-dark: #110a00;    /* Deep background */
+--color-tavern-brown: #2a1a0a;   /* Secondary bg */
+--color-tavern-amber: #8b4513;   /* Borders */
+--color-amber-gold: #ffd700;     /* Primary accent */
+--color-ember-orange: #ff8c42;   /* Glows */
+--color-parchment: #e8d5b0;      /* Text */
+```
+
+---
+
+## 🔒 Security (Maintained)
+
+### XSS Prevention
+
+Moved to `useScoreboard.ts` hook:
+
+```typescript
+function escapeHTML(str: string | null | undefined): string {
+  if (str === null || str === undefined) return "";
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
 }
 ```
 
-Applied to all user-controlled data:
-- Team names
-- Member names
-- Team IDs
-- Scores (cast to Number)
+### CORS Handling
 
-### 2. CORS Handling
-
-**Issue:** Cross-origin requests to CTFd API were blocked, causing failures.
-
-**Fix (Development):** Bun dev server with API proxy  
-**Fix (Production):** Nginx reverse proxy to CTFd
-
-Added better error messages:
-```javascript
-if (error.message.includes('Failed to fetch')) {
-    errorMessage = 'CORS blocked or network error...';
-    console.error('CORS Troubleshooting: ...');
-}
-```
-
-### 3. Security Headers (nginx.conf)
-
-```nginx
-add_header X-Content-Type-Options "nosniff" always;
-add_header X-Frame-Options "SAMEORIGIN" always;
-add_header X-XSS-Protection "1; mode=block" always;
-add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-add_header Content-Security-Policy "..." always;
-```
+- **Development:** Vite proxy in `vite.config.ts`
+- **Production:** Nginx reverse proxy to CTFd
 
 ---
 
-## 🚀 Deployment Configuration
+## 🛠️ Development Commands
 
-### Production (scoreboard.issessions.ca)
+```bash
+# Install dependencies
+bun install
 
-**Config file:** `assets/js/config.js`
-```javascript
-window.CONFIG = {
-    API_URL: '/api/v1/scoreboard',  // Proxied through nginx
-    API_TOKEN: 'ctfd_xxx',
-    UPDATE_INTERVAL: 300000,        // 5 minutes
-    MAX_TEAMS: 200,
-    FONT_FAMILY: "'Press Start 2P', cursive",
-};
-```
+# Start dev server (port 8000)
+bun run dev
 
-### Local Development
+# Type check
+tsc -b
 
-```powershell
-# Create config.js first, then:
-bun dev-server.ts
+# Lint
+bun run lint
 
-# Opens at http://localhost:8000
-```
+# Production build
+bun run build
 
-### Docker
-
-```powershell
+# Docker
 docker build -t fantasy-ctf-scoreboard .
-docker run -p 8080:80 fantasy-ctf-scoreboard
+docker run -p 80:80 fantasy-ctf-scoreboard
 ```
 
 ---
 
 ## 🎮 CTFd Instance
 
-- **URL:** https://issessionsctf.ctfd.io
+- **URL:** <https://issessionsctf.ctfd.io>
 - **API Endpoint:** `/api/v1/scoreboard`
-- **Planned Scoreboard URL:** https://scoreboard.issessions.ca
+- **Planned Scoreboard URL:** <https://scoreboard.issessions.ca>
 
 ---
 
-## ✅ Summary
+## ✅ Completed Tasks
 
 | Task | Status |
 |------|--------|
-| Backup 2025 branch | ✅ Complete |
-| Theme transformation | ✅ Complete |
-| Matrix → Magic particles | ✅ Complete |
-| Fantasy terminology | ✅ Complete |
-| XSS fix | ✅ Complete |
-| CORS handling | ✅ Complete |
-| Nginx production config | ✅ Complete |
-| Bun dev server | ✅ Complete |
-| Documentation updates | ✅ Complete |
-| Old assets cleanup | ✅ Complete |
+| Backup 2025 branch | ✅ |
+| Fantasy theme (vanilla JS) | ✅ |
+| XSS vulnerability fix | ✅ |
+| CORS proxy setup | ✅ |
+| Migrate to React + Vite | ✅ |
+| Tailwind CSS 4 setup | ✅ |
+| shadcn/ui integration | ✅ |
+| Animation components | ✅ |
+| TavernBackground layers | ✅ |
+| useScoreboard hook | ✅ |
+| TeamCard with Counter | ✅ |
+| Click spark effects | ✅ |
+| Fantasy banner added | ✅ |
+| Documentation updates | ✅ |
 
 ---
 
 ## 📋 Remaining Tasks
 
-- [ ] Save fantasy CTF banner image to `assets/img/fantasy-ctf-banner.png`
 - [ ] Get Cloudflare access for issessions.ca
 - [ ] Configure DNS: `scoreboard` CNAME/A record
+- [ ] Update Dockerfile for Vite build
 - [ ] Deploy to production
 - [ ] Test with live CTFd data
 
