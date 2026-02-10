@@ -45,7 +45,7 @@ bun run dev
 
 Open `http://localhost:8000` - the Vite dev server proxies `/api/*` to `issessionsctf.ctfd.io` automatically.
 
-### � Deployment (Vercel — Recommended)
+### 🚀 Deployment (Vercel — Recommended)
 
 1. Push the repo to GitHub
 2. Import the project at [vercel.com/new](https://vercel.com/new)
