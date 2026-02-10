@@ -1,26 +1,56 @@
-## CTFd Live Scoreboard - Black Hat Bureau Edition - MISSION BOARD
+## ⚔️ ISSessions Fantasy CTF - Guild Quest Board 🛡️
 
-This is a live scoreboard for CTFd. It updates every 5 minutes and displays the top 200 teams.
+> *"The Quest Giver is watching. The rankings await."*
 
-![CTFd Live Scoreboard](https://github.com/user-attachments/assets/d2f59d43-2b86-4375-9f14-f376a0f724c2)
+A high-fantasy themed live scoreboard for CTFd, built for **ISSessions Fantasy CTF 2026**. Features floating magical runes, medieval styling, and immersive D&D-inspired visuals.
 
-### Installation
+![ISSessions Fantasy CTF](assets/img/fantasy-ctf-banner.png)
 
-1. Clone the repository: `git clone https://github.com/jondmarien/CTFd-Scoreboard.git
-2. Run on a local server or pull from docker to CTFd: 
-`python3 -m http.server 8000`
-OR
-`docker pull ghcr.io/jondmarien/ctfd-scoreboard:latest`
+### 🏰 Features
 
-### Configuration
-1. Create a `config.js` file with the following content:
+- **Floating Rune Particles** - Elder Futhark runes drift upward like magical embers
+- **Fantasy Terminology** - Teams are "Adventuring Parties", points are "Gold Pieces (GP)", solves are "Quests"
+- **Medieval Aesthetic** - Gold, purple, and parchment color scheme with torch-glow effects
+- **Responsive Design** - Works on guild halls of all sizes (mobile-friendly)
+- **Auto-refresh** - Scries the CTFd API at configurable intervals
+
+### 🗡️ Installation
+
+1. Clone the repository:
+```bash
+git clone https://github.com/jondmarien/CTFd-Scoreboard.git
+```
+
+2. Run locally or via Docker:
+```bash
+# Local development
+python -m http.server 8000
+
+# Docker
+docker pull ghcr.io/jondmarien/ctfd-scoreboard:latest
+docker run -p 80:80 ghcr.io/jondmarien/ctfd-scoreboard:latest
+```
+
+### 📜 Configuration
+
+Create `assets/js/config.js` with your CTFd API credentials:
+
 ```javascript
 window.CONFIG = {
-    API_URL: 'YOUR_API_URL',                    // Add your API URL here
-    UPDATE_INTERVAL: 10000,                     // 10s for testing, usually 5 minutes so 300000ms
-    MAX_TEAMS: 200,                             // Modify number of max teams if needed
-    //DEMO_MODE: true,                          // set to false when deploying, true for demo data from CTFd
-    API_TOKEN: 'YOUR_API_TOKEN',                // Add your API token here
-    FONT_FAMILY: "'Press Start 2P', cursive",   // Add font config
+    API_URL: 'YOUR_CTFD_API_URL',              // e.g., https://ctf.example.com/api/v1/scoreboard
+    API_TOKEN: 'YOUR_API_TOKEN',               // CTFd Admin API token
+    UPDATE_INTERVAL: 300000,                   // Refresh interval (5 min = 300000ms)
+    MAX_TEAMS: 200,                            // Max adventuring parties to display
+    FONT_FAMILY: "'Press Start 2P', cursive", // Pixel font for that retro RPG feel
 };
 ```
+
+### 🐉 Credits
+
+- **Theme**: ISSessions Fantasy CTF 2026
+- **Original Scoreboard**: Jonathan Marien
+- **API**: [CTFd](https://docs.ctfd.io/docs/api/getting-started/)
+
+---
+
+*Enter the Realm. Accept the Quest. 👁️✨*
