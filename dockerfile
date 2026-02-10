@@ -1,3 +1,11 @@
+# DEPRECATED: This Dockerfile is no longer used for deployment.
+# The app is now deployed via Vercel (see vercel.json).
+# Keeping this file for reference only — use Docker if self-hosting is needed.
+#
+# Usage (if self-hosting):
+#   docker build -t fantasy-ctf-scoreboard .
+#   docker run -p 80:80 fantasy-ctf-scoreboard
+
 # Stage 1: Build the React app
 FROM oven/bun:1 AS build
 
