@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import type { Team } from "../hooks/useScoreboard";
 import Counter from "./Counter";
 
@@ -12,7 +12,7 @@ interface TeamCardProps {
   team: Team;
 }
 
-export default function TeamCard({ team }: TeamCardProps) {
+function TeamCard({ team }: TeamCardProps) {
   const [expanded, setExpanded] = useState(false);
   const isTopRank = team.pos <= 3;
   const rankClass = RANK_COLORS[team.pos] || "bg-stone-700 text-stone-300";
@@ -32,7 +32,7 @@ export default function TeamCard({ team }: TeamCardProps) {
         {/* Rank badge */}
         <span
           className={`
-          flex-shrink-0 w-8 h-8 rounded-md flex items-center justify-center
+          shrink-0 w-8 h-8 rounded-md flex items-center justify-center
           text-sm font-bold font-quintessential shadow-sm
           ${rankClass}
         `}
@@ -43,7 +43,7 @@ export default function TeamCard({ team }: TeamCardProps) {
         {/* Team name */}
         <span
           className={`
-          flex-grow min-w-0 truncate font-quintessential text-base
+          grow min-w-0 truncate font-quintessential text-base
           ${isTopRank ? "text-amber-200 font-semibold" : "text-amber-100/80"}
         `}
         >
@@ -122,3 +122,14 @@ export default function TeamCard({ team }: TeamCardProps) {
     </div>
   );
 }
+
+export default memo(TeamCard, (prev, next) => {
+  const a = prev.team;
+  const b = next.team;
+  return (
+    a.pos === b.pos &&
+    a.name === b.name &&
+    a.score === b.score &&
+    a.members?.length === b.members?.length
+  );
+});

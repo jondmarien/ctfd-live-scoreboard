@@ -20,13 +20,24 @@ interface ScoreboardData {
   lastUpdate: Date | null;
 }
 
-// Sanitize strings to prevent XSS
+// Sanitize strings to prevent XSS (regex-based, avoids DOM allocation)
+const HTML_ESCAPE_MAP: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  '"': "&quot;",
+  "'": "&#39;",
+};
 function escapeHTML(str: string | null | undefined): string {
   if (str === null || str === undefined) return "";
-  const div = document.createElement("div");
-  div.textContent = str;
-  return div.innerHTML;
+  return str.replace(/[&<>"']/g, (ch) => HTML_ESCAPE_MAP[ch]);
 }
+
+// requestIdleCallback with fallback for Safari / older browsers
+const scheduleIdle =
+  typeof window !== "undefined" && "requestIdleCallback" in window
+    ? window.requestIdleCallback
+    : (cb: () => void) => setTimeout(cb, 50);
 
 const MOCK_TEAMS: Team[] = [
   {
@@ -123,6 +134,7 @@ export function useScoreboard(): ScoreboardData & {
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const lastFetchRef = useRef<number>(0);
 
   const fetchScoreboard = useCallback(async () => {
     try {
@@ -158,6 +170,7 @@ export function useScoreboard(): ScoreboardData & {
       }
       setError(null);
       setLastUpdate(new Date());
+      lastFetchRef.current = Date.now();
     } catch (err) {
       console.warn("Scoreboard fetch failed, using mock data:", err);
       setTeams(MOCK_TEAMS);
@@ -175,9 +188,26 @@ export function useScoreboard(): ScoreboardData & {
 
   useEffect(() => {
     fetchScoreboard();
-    intervalRef.current = setInterval(fetchScoreboard, REFRESH_INTERVAL);
+    // Defer polling fetches to idle periods to avoid interrupting animations
+    intervalRef.current = setInterval(
+      () => scheduleIdle(() => fetchScoreboard()),
+      REFRESH_INTERVAL,
+    );
+
+    // Refetch when tab regains focus (throttled to 10s)
+    const handleVisibility = () => {
+      if (
+        document.visibilityState === "visible" &&
+        Date.now() - lastFetchRef.current > 10_000
+      ) {
+        fetchScoreboard();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      document.removeEventListener("visibilitychange", handleVisibility);
     };
   }, [fetchScoreboard]);
 

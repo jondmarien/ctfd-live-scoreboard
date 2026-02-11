@@ -30,7 +30,8 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sparksRef = useRef<Spark[]>([]);
-  const startTimeRef = useRef<number | null>(null);
+  const animIdRef = useRef<number>(0);
+  const isRunningRef = useRef(false);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -81,25 +82,20 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     [easing]
   );
 
+  const drawRef = useRef<((timestamp: number) => void) | null>(null);
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    let animationId: number;
-
     const draw = (timestamp: number) => {
-      if (!startTimeRef.current) {
-        startTimeRef.current = timestamp;
-      }
-      ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
       sparksRef.current = sparksRef.current.filter((spark: Spark) => {
         const elapsed = timestamp - spark.startTime;
-        if (elapsed >= duration) {
-          return false;
-        }
+        if (elapsed >= duration) return false;
 
         const progress = elapsed / duration;
         const eased = easeFunc(progress);
@@ -122,13 +118,19 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
         return true;
       });
 
-      animationId = requestAnimationFrame(draw);
+      // Stop the loop when all sparks have expired
+      if (sparksRef.current.length > 0) {
+        animIdRef.current = requestAnimationFrame(draw);
+      } else {
+        isRunningRef.current = false;
+      }
     };
 
-    animationId = requestAnimationFrame(draw);
+    drawRef.current = draw;
 
     return () => {
-      cancelAnimationFrame(animationId);
+      cancelAnimationFrame(animIdRef.current);
+      isRunningRef.current = false;
     };
   }, [sparkColor, sparkSize, sparkRadius, sparkCount, duration, easeFunc, extraScale]);
 
@@ -148,6 +150,12 @@ const ClickSpark: React.FC<ClickSparkProps> = ({
     }));
 
     sparksRef.current.push(...newSparks);
+
+    // Start the draw loop if not already running
+    if (!isRunningRef.current && drawRef.current) {
+      isRunningRef.current = true;
+      animIdRef.current = requestAnimationFrame(drawRef.current);
+    }
   };
 
   return (

@@ -1,6 +1,6 @@
 import { MotionValue, motion, useSpring, useTransform } from 'motion/react';
 import type React from 'react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 
 type PlaceValue = number | '.';
 
@@ -21,15 +21,7 @@ function Number({ mv, number, height }: NumberProps) {
     return memo;
   });
 
-  const baseStyle: React.CSSProperties = {
-    position: 'absolute',
-    inset: 0,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center'
-  };
-
-  return <motion.span style={{ ...baseStyle, y }}>{number}</motion.span>;
+  return <motion.span style={{ ...NUMBER_STYLE, y }}>{number}</motion.span>;
 }
 
 interface DigitProps {
@@ -76,6 +68,34 @@ function Digit({ place, value, height, digitStyle }: DigitProps) {
   );
 }
 
+// Hoisted constant styles — avoids recreating objects every render
+const NUMBER_STYLE: React.CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center'
+};
+
+const gradientContainerStyle: React.CSSProperties = {
+  pointerEvents: 'none',
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  justifyContent: 'space-between'
+};
+
+function computePlaces(value: number): PlaceValue[] {
+  return [...value.toString()].map((ch, i, a) => {
+    if (ch === '.') return '.';
+    const dotIndex = a.indexOf('.');
+    const isInteger = dotIndex === -1;
+    const exponent = isInteger ? a.length - i - 1 : i < dotIndex ? dotIndex - i - 1 : -(i - dotIndex);
+    return 10 ** exponent;
+  });
+}
+
 interface CounterProps {
   value: number;
   fontSize?: number;
@@ -106,18 +126,7 @@ export default function Counter({
   value,
   fontSize = 100,
   padding = 0,
-  places = [...value.toString()].map((ch, i, a) => {
-    if (ch === '.') {
-      return '.';
-    }
-
-    const dotIndex = a.indexOf('.');
-    const isInteger = dotIndex === -1;
-
-    const exponent = isInteger ? a.length - i - 1 : i < dotIndex ? dotIndex - i - 1 : -(i - dotIndex);
-
-    return 10 ** exponent;
-  }),
+  places: placesProp,
   gap = 8,
   borderRadius = 4,
   horizontalPadding = 8,
@@ -132,14 +141,16 @@ export default function Counter({
   topGradientStyle,
   bottomGradientStyle
 }: CounterProps) {
+  const places = useMemo(
+    () => placesProp ?? computePlaces(value),
+    // Only recompute when the digit count changes, not on every value change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [placesProp, value.toString().length],
+  );
+
   const height = fontSize + padding;
 
-  const defaultContainerStyle: React.CSSProperties = {
-    position: 'relative',
-    display: 'inline-block'
-  };
-
-  const defaultCounterStyle: React.CSSProperties = {
+  const defaultCounterStyle = useMemo<React.CSSProperties>(() => ({
     fontSize,
     display: 'flex',
     gap,
@@ -150,29 +161,20 @@ export default function Counter({
     lineHeight: 1,
     color: textColor,
     fontWeight
-  };
+  }), [fontSize, gap, borderRadius, horizontalPadding, textColor, fontWeight]);
 
-  const gradientContainerStyle: React.CSSProperties = {
-    pointerEvents: 'none',
-    position: 'absolute',
-    inset: 0,
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between'
-  };
-
-  const defaultTopGradientStyle: React.CSSProperties = {
+  const defaultTopGradientStyle = useMemo<React.CSSProperties>(() => ({
     height: gradientHeight,
     background: `linear-gradient(to bottom, ${gradientFrom}, ${gradientTo})`
-  };
+  }), [gradientHeight, gradientFrom, gradientTo]);
 
-  const defaultBottomGradientStyle: React.CSSProperties = {
+  const defaultBottomGradientStyle = useMemo<React.CSSProperties>(() => ({
     height: gradientHeight,
     background: `linear-gradient(to top, ${gradientFrom}, ${gradientTo})`
-  };
+  }), [gradientHeight, gradientFrom, gradientTo]);
 
   return (
-    <span style={{ ...defaultContainerStyle, ...containerStyle }}>
+    <span style={{ position: 'relative', display: 'inline-block', ...containerStyle }}>
       <span style={{ ...defaultCounterStyle, ...counterStyle }}>
         {places.map(place => (
           <Digit key={place} place={place} value={value} height={height} digitStyle={digitStyle} />

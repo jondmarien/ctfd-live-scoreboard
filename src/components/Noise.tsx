@@ -24,9 +24,6 @@ const Noise: React.FC<NoiseProps> = ({
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
-    let frame = 0;
-    let animationId: number;
-
     const canvasSize = 256;
 
     const resize = () => {
@@ -53,21 +50,18 @@ const Noise: React.FC<NoiseProps> = ({
       ctx.putImageData(imageData, 0, 0);
     };
 
-    const loop = () => {
-      if (frame % patternRefreshInterval === 0) {
-        drawGrain();
-      }
-      frame++;
-      animationId = window.requestAnimationFrame(loop);
-    };
+    // Use setInterval at the target framerate instead of burning a rAF slot every
+    // frame just to skip 3 out of 4. At refreshInterval=4 this targets ~15fps.
+    const intervalMs = (1000 / 60) * patternRefreshInterval;
+    const intervalId = setInterval(drawGrain, intervalMs);
 
     window.addEventListener('resize', resize);
     resize();
-    loop();
+    drawGrain();
 
     return () => {
+      clearInterval(intervalId);
       window.removeEventListener('resize', resize);
-      window.cancelAnimationFrame(animationId);
     };
   }, [patternSize, patternScaleX, patternScaleY, patternRefreshInterval, patternAlpha]);
 
