@@ -27,7 +27,7 @@ const Noise: React.FC<NoiseProps> = ({
     let frame = 0;
     let animationId: number;
 
-    const canvasSize = 1024;
+    const canvasSize = 256;
 
     const resize = () => {
       if (!canvas) return;
@@ -38,18 +38,18 @@ const Noise: React.FC<NoiseProps> = ({
       canvas.style.height = '100vh';
     };
 
+    // Reuse a single ImageData buffer instead of allocating a new one every frame
+    let imageData: ImageData | null = null;
     const drawGrain = () => {
-      const imageData = ctx.createImageData(canvasSize, canvasSize);
-      const data = imageData.data;
-
-      for (let i = 0; i < data.length; i += 4) {
-        const value = Math.random() * 255;
-        data[i] = value;
-        data[i + 1] = value;
-        data[i + 2] = value;
-        data[i + 3] = patternAlpha;
+      if (!imageData) {
+        imageData = ctx.createImageData(canvasSize, canvasSize);
       }
-
+      const buf = new Uint32Array(imageData.data.buffer);
+      const alpha = (patternAlpha & 0xff) << 24;
+      for (let i = 0, len = buf.length; i < len; i++) {
+        const v = (Math.random() * 255) | 0;
+        buf[i] = alpha | (v << 16) | (v << 8) | v;
+      }
       ctx.putImageData(imageData, 0, 0);
     };
 

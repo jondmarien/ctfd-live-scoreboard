@@ -76,7 +76,7 @@ export default function Fireflies({
         ctx.save();
         ctx.globalAlpha = this.opacity;
         ctx.shadowColor = this.color;
-        ctx.shadowBlur = this.size * 6;
+        ctx.shadowBlur = this.size * 3;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
         ctx.fillStyle = this.color;

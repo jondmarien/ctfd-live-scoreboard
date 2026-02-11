@@ -85,24 +85,15 @@ export default function TeamCard({ team }: TeamCardProps) {
           </span>
         </div>
 
-        {/* Mobile — score only, no pipe */}
+        {/* Mobile — score only, no pipe. Uses plain text to avoid duplicate Counter motion.spans */}
         <div className="shrink-0 flex items-center gap-1 ml-auto sm:hidden">
           <span
             className={`
-              font-quintessential font-bold tabular-nums
+              font-quintessential font-bold tabular-nums text-[22px]
               ${isTopRank ? "text-amber-400" : "text-amber-400/70"}
             `}
           >
-            <Counter
-              value={team.score}
-              fontSize={22}
-              padding={8}
-              horizontalPadding={0}
-              gap={2}
-              textColor="inherit"
-              fontWeight="bold"
-              gradientHeight={0}
-            />
+            {team.score}
           </span>
           <span className="text-xs text-amber-600/50 font-medievalsharp">GP</span>
         </div>
