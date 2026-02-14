@@ -164,7 +164,7 @@ async function sendDiscordFirstBlood(
   const body = {
     username: "The Quest Giver",
     avatar_url:
-      "https://i.imgur.com/AfFp7pu.png",
+      "https://iss-ctfd-live-scoreboard.vercel.app/fantasy_ctf.png",
     content: `🏆 A hero has claimed **First Blood**!`,
     embeds: [embed],
   };
