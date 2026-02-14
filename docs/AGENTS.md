@@ -83,6 +83,10 @@ docker run -p 8080:80 fantasy-ctf-scoreboard
 ├── docs/
 │   ├── AGENTS.md                 # This file
 │   └── WORK_DONE.md              # Development log
+├── api/
+│   ├── [...path].ts              # Vercel serverless CTFd API proxy
+│   └── webhook/
+│       └── firstblood.ts         # CTFd First Blood → Discord webhook
 ├── vite.config.ts                # Vite + API proxy config
 ├── tailwind via index.css        # Tailwind 4 @theme config
 ├── nginx.conf                    # Production server
@@ -221,6 +225,35 @@ docker run -p 80:80 fantasy-ctf-scoreboard
 |--------|-------------|
 | `main` | React/Vite 2026 version (current) |
 | `2025` | Vanilla JS Black Hat Bureau (archived) |
+
+## First Blood Discord Webhook
+
+### Overview
+
+A Vercel serverless function at `/api/webhook/firstblood` receives CTFd First Blood webhook events and sends fantasy-themed Discord embed notifications.
+
+### Flow
+
+1. **Validation (GET):** CTFd sends `GET /api/webhook/firstblood?token=<token>` — the function responds with `HMAC-SHA256(WEBHOOK_SECRET, token)`
+2. **Event (POST):** CTFd sends a First Blood event payload `{ id, challenge_id, date, type }`
+3. **Enrichment:** The function fetches full submission + challenge details from the CTFd API
+4. **Notification:** A gold-themed Discord embed is sent via the `WEBHOOK_URL` webhook
+
+### Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CTFD_API_TOKEN` | Yes | API token for CTFd instance |
+| `WEBHOOK_URL` | Yes | Discord channel webhook URL |
+| `WEBHOOK_SECRET` | Yes | CTFd shared secret (Admin → Webhooks) |
+
+### CTFd Setup
+
+1. Go to **Admin → Webhooks** in CTFd
+2. Copy the **Shared Secret** → set as `WEBHOOK_SECRET` in Vercel env vars
+3. Add webhook target URL: `https://<your-domain>/api/webhook/firstblood`
+4. Select **First Blood** event type
+5. CTFd will validate the endpoint, then push events on first solves
 
 ## Key Notes
 

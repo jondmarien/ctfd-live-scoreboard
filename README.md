@@ -8,7 +8,7 @@ A high-fantasy themed live scoreboard for CTFd, built for **ISSessions Fantasy C
 
 ---
 
-https://github.com/user-attachments/assets/a80b40eb-f692-4377-9147-d56b85102945
+<https://github.com/user-attachments/assets/a80b40eb-f692-4377-9147-d56b85102945>
 
 ### 🏰 Features
 
@@ -74,8 +74,21 @@ docker run -p 80:80 fantasy-ctf-scoreboard
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `CTFD_API_TOKEN` | Yes | API token for your CTFd instance (private scoreboards) |
+| `WEBHOOK_URL` | Yes | Discord channel webhook URL for First Blood announcements |
+| `WEBHOOK_SECRET` | Yes | CTFd shared secret for webhook validation (Admin → Webhooks) |
 
 **Dev proxy** is configured in `vite.config.ts` — the Vite dev server proxies `/api/*` to `issessionsctf.ctfd.io` automatically. No separate config file needed.
+
+### 🩸 First Blood Discord Webhook
+
+When a challenge is solved for the first time, CTFd pushes a **First Blood** event to a Vercel serverless function at `/api/webhook/firstblood`. The function enriches the event with challenge/solver details from the CTFd API and sends a fantasy-themed Discord embed to the configured webhook channel.
+
+**Setup:**
+
+1. In CTFd **Admin → Webhooks**, copy the **Shared Secret** → add as `WEBHOOK_SECRET` in Vercel
+2. Add webhook target: `https://<your-domain>/api/webhook/firstblood`
+3. Select the **First Blood** event type
+4. CTFd validates the endpoint automatically, then pushes events on first solves
 
 ### 📁 Project Structure
 
