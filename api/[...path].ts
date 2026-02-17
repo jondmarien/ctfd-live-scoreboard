@@ -30,31 +30,24 @@ const ALLOWED_PATHS = [
   /^v1\/submissions\/\d+$/,
 ];
 
-// User paths handled separately with member-ID allowlist enforcement
+// User paths handled separately with team-membership validation
 const USER_PATH_RE = /^v1\/users\/(\d+)(\/solves)?$/;
 
-// ── Seen-member-ID allowlist ──
-// Populated server-side whenever a /v1/teams/:id response passes through.
-// Only user IDs that appear as team members are allowed through /v1/users/:id.
-const seenMemberIds = new Set<number>();
-
-function recordTeamMembers(data: unknown): void {
-  if (!data || typeof data !== "object" || !("data" in data)) return;
-  const d = (data as { data: unknown }).data;
-  if (!d || typeof d !== "object") return;
-  const team = d as Record<string, unknown>;
-
-  // Record all listed members
-  if (Array.isArray(team.members)) {
-    for (const id of team.members as unknown[]) {
-      if (typeof id === "number") seenMemberIds.add(id);
-    }
-  }
-
-  // Also record captain_id — solo players may have an empty members array
-  // but still have a valid captain_id
-  if (typeof team.captain_id === "number") {
-    seenMemberIds.add(team.captain_id);
+// ── Server-side user validation ──
+// Before proxying /v1/users/:id, fetch the user from CTFd and verify they
+// belong to a team (team_id != null). This prevents enumeration of arbitrary
+// user IDs without relying on shared module-level state (which breaks across
+// serverless instances).
+async function isTeamMember(userId: number, token: string): Promise<boolean> {
+  try {
+    const res = await fetch(`${CTFD_BASE_URL}/api/v1/users/${userId}`, {
+      headers: { Authorization: `Token ${token}`, "Content-Type": "application/json" },
+    });
+    if (!res.ok) return false;
+    const json = await res.json() as { success?: boolean; data?: { team_id?: number | null } };
+    return json.success === true && json.data?.team_id != null;
+  } catch {
+    return false;
   }
 }
 
@@ -207,11 +200,12 @@ export default {
     const pathParts = url.pathname.split("/").filter(Boolean);
     const apiPath = pathParts.slice(1).join("/"); // Remove "api" prefix
 
-    // ── User endpoint: enforce seen-member-ID allowlist ──
+    // ── User endpoint: validate team membership server-side ──
     const userMatch = USER_PATH_RE.exec(apiPath);
     if (userMatch) {
       const requestedId = parseInt(userMatch[1], 10);
-      if (!seenMemberIds.has(requestedId)) {
+      const allowed = await isTeamMember(requestedId, token);
+      if (!allowed) {
         return Response.json(
           { error: "Endpoint not allowed" },
           { status: 403, headers: corsHeaders(origin) },
@@ -237,11 +231,6 @@ export default {
       });
 
       let data = await response.json();
-
-      // Populate seen-member-ID allowlist from team detail responses
-      if (/^v1\/teams\/\d+$/.test(apiPath)) {
-        recordTeamMembers(data);
-      }
 
       // Strip sensitive fields from user profile responses
       if (userMatch && !userMatch[2]) {
