@@ -37,30 +37,56 @@ interface CTFdChallenge {
   };
 }
 
+// Maximum payload size (64 KB)
+const MAX_PAYLOAD_BYTES = 64 * 1024;
+
+// Maximum age for webhook timestamps (5 minutes)
+const MAX_TIMESTAMP_AGE_S = 300;
+
 /**
  * Verify the CTFd webhook signature from the CTFd-Webhook-Signature header.
  * Format: t=<timestamp>,v1=<hmac_hex>
+ * Also validates the timestamp is within MAX_TIMESTAMP_AGE_S of now.
  */
 function verifySignature(
   secret: string,
   payload: string,
   signatureHeader: string,
-): boolean {
+): { valid: boolean; reason?: string } {
   try {
     const parts = signatureHeader.split(",");
     const timestamp = parts.find((p) => p.startsWith("t="))?.slice(2);
     const signature = parts.find((p) => p.startsWith("v1="))?.slice(3);
 
-    if (!timestamp || !signature) return false;
+    if (!timestamp || !signature) {
+      return { valid: false, reason: "Malformed signature header" };
+    }
+
+    // Replay protection: reject timestamps outside the allowed window
+    const ts = parseInt(timestamp, 10);
+    if (isNaN(ts)) {
+      return { valid: false, reason: "Invalid timestamp" };
+    }
+    const nowS = Math.floor(Date.now() / 1000);
+    if (Math.abs(nowS - ts) > MAX_TIMESTAMP_AGE_S) {
+      return { valid: false, reason: `Timestamp too old or too far in the future (delta=${nowS - ts}s)` };
+    }
 
     const signedPayload = `${timestamp}.${payload}`;
     const expected = createHmac("sha256", secret)
       .update(signedPayload)
       .digest("hex");
 
-    return expected === signature;
+    // Constant-time comparison via buffer equality
+    const a = Buffer.from(expected, "hex");
+    const b = Buffer.from(signature, "hex");
+    if (a.length !== b.length || !a.equals(b)) {
+      return { valid: false, reason: "Signature mismatch" };
+    }
+
+    return { valid: true };
   } catch {
-    return false;
+    return { valid: false, reason: "Signature verification error" };
   }
 }
 
@@ -209,6 +235,10 @@ export default {
 
     // ── POST: First Blood event ──
     if (request.method === "POST") {
+      // WEBHOOK_SECRET is required — refuse to process unsigned webhooks
+      if (!secret) {
+        return Response.json({ error: "WEBHOOK_SECRET is not configured" }, { status: 500 });
+      }
       if (!apiToken) {
         return Response.json({ error: "CTFD_API_TOKEN is not configured" }, { status: 500 });
       }
@@ -216,20 +246,28 @@ export default {
         return Response.json({ error: "WEBHOOK_URL is not configured" }, { status: 500 });
       }
 
+      // Enforce payload size limit
+      const contentLength = request.headers.get("content-length");
+      if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_BYTES) {
+        return Response.json({ error: "Payload too large" }, { status: 413 });
+      }
+
       const rawBody = await request.text();
+      if (rawBody.length > MAX_PAYLOAD_BYTES) {
+        return Response.json({ error: "Payload too large" }, { status: 413 });
+      }
 
-      // Verify webhook signature if secret is set
-      if (secret) {
-        const signatureHeader = request.headers.get("ctfd-webhook-signature");
-        if (!signatureHeader) {
-          console.warn("Missing CTFd-Webhook-Signature header");
-          return Response.json({ error: "Missing signature" }, { status: 401 });
-        }
+      // Verify webhook signature (required)
+      const signatureHeader = request.headers.get("ctfd-webhook-signature");
+      if (!signatureHeader) {
+        console.warn("Missing CTFd-Webhook-Signature header");
+        return Response.json({ error: "Missing signature" }, { status: 401 });
+      }
 
-        if (!verifySignature(secret, rawBody, signatureHeader)) {
-          console.warn("Invalid webhook signature");
-          return Response.json({ error: "Invalid signature" }, { status: 401 });
-        }
+      const verification = verifySignature(secret, rawBody, signatureHeader);
+      if (!verification.valid) {
+        console.warn(`Webhook signature verification failed: ${verification.reason}`);
+        return Response.json({ error: "Invalid signature" }, { status: 401 });
       }
 
       const payload = JSON.parse(rawBody) as FirstBloodPayload;
