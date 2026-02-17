@@ -21,7 +21,7 @@ function getCategoryColor(category: string): string {
 }
 
 export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Date | null) => void }) {
-  const { challenges, lastUpdate } = useChallengeCache();
+  const { challenges, lastUpdate, isMock } = useChallengeCache();
 
   // Bubble lastUpdate up to parent
   if (onLastUpdate && lastUpdate) onLastUpdate(lastUpdate);
@@ -51,6 +51,15 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
 
   return (
     <div className="space-y-4 px-1">
+      {/* Mock data banner */}
+      {isMock && (
+        <div className="mx-2 px-3 py-1.5 rounded-lg bg-amber-900/20 border border-amber-700/20 text-center">
+          <span className="font-medievalsharp text-[10px] text-amber-400/50 uppercase tracking-wider">
+            Sample quests — real quests appear when the competition begins
+          </span>
+        </div>
+      )}
+
       {/* Summary */}
       <div className="flex items-center justify-between px-2">
         <span className="font-medievalsharp text-xs text-amber-500/50 uppercase tracking-wider">
