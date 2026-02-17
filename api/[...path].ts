@@ -1,7 +1,7 @@
 const CTFD_BASE_URL = "https://issessionsctf.ctfd.io";
 
 // Allowed origins for CORS — production + Vercel preview deployments
-const ALLOWED_ORIGINS = [
+const ALLOWED_ORIGINS: (string | RegExp)[] = [
   "https://iss-ctfd-live-scoreboard.vercel.app",
   /^https:\/\/iss-ctfd-live-scoreboard-.*\.vercel\.app$/,
   "http://localhost:8000",
@@ -20,6 +20,57 @@ const ALLOWED_PATHS = [
   /^v1\/users\/\d+\/solves$/,
   /^v1\/submissions\/\d+$/,
 ];
+
+// ── IP-based token bucket rate limiter (in-memory, per serverless instance) ──
+const RATE_LIMIT_MAX = 60;        // max tokens (requests) per window
+const RATE_LIMIT_WINDOW_MS = 60_000; // 1-minute window
+const RATE_LIMIT_CLEANUP_MS = 120_000; // purge stale entries every 2 min
+
+interface Bucket {
+  tokens: number;
+  lastRefill: number;
+}
+
+const buckets = new Map<string, Bucket>();
+let lastCleanup = Date.now();
+
+function getClientIP(request: Request): string {
+  return (
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    request.headers.get("x-real-ip") ||
+    "unknown"
+  );
+}
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+
+  // Periodic cleanup of stale buckets
+  if (now - lastCleanup > RATE_LIMIT_CLEANUP_MS) {
+    for (const [key, bucket] of buckets) {
+      if (now - bucket.lastRefill > RATE_LIMIT_WINDOW_MS * 2) buckets.delete(key);
+    }
+    lastCleanup = now;
+  }
+
+  let bucket = buckets.get(ip);
+  if (!bucket) {
+    bucket = { tokens: RATE_LIMIT_MAX, lastRefill: now };
+    buckets.set(ip, bucket);
+  }
+
+  // Refill tokens based on elapsed time
+  const elapsed = now - bucket.lastRefill;
+  const refill = Math.floor((elapsed / RATE_LIMIT_WINDOW_MS) * RATE_LIMIT_MAX);
+  if (refill > 0) {
+    bucket.tokens = Math.min(RATE_LIMIT_MAX, bucket.tokens + refill);
+    bucket.lastRefill = now;
+  }
+
+  if (bucket.tokens <= 0) return true;
+  bucket.tokens--;
+  return false;
+}
 
 function isOriginAllowed(origin: string | null): boolean {
   if (!origin) return false;
@@ -49,6 +100,9 @@ export default {
 
     // Handle CORS preflight
     if (request.method === "OPTIONS") {
+      if (!isOriginAllowed(origin)) {
+        return Response.json({ error: "Origin not allowed" }, { status: 403 });
+      }
       return new Response(null, { status: 204, headers: corsHeaders(origin) });
     }
 
@@ -57,6 +111,29 @@ export default {
       return Response.json(
         { error: "Method not allowed" },
         { status: 405, headers: corsHeaders(origin) },
+      );
+    }
+
+    // Reject requests with missing or disallowed Origin
+    if (!isOriginAllowed(origin)) {
+      return Response.json(
+        { error: "Origin not allowed" },
+        { status: 403 },
+      );
+    }
+
+    // IP-based rate limiting
+    const clientIP = getClientIP(request);
+    if (isRateLimited(clientIP)) {
+      return Response.json(
+        { error: "Too many requests" },
+        {
+          status: 429,
+          headers: {
+            ...corsHeaders(origin),
+            "Retry-After": "60",
+          },
+        },
       );
     }
 
