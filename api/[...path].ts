@@ -17,7 +17,8 @@ const ALLOWED_ORIGINS: (string | RegExp)[] = [
   "http://localhost:8000",
 ];
 
-// Allowlist of CTFd API paths the frontend actually needs (read-only)
+// Allowlist of CTFd API paths the frontend actually needs (read-only).
+// /v1/users/:id is intentionally excluded — access is gated by seen-member allowlist below.
 const ALLOWED_PATHS = [
   /^v1\/scoreboard(\/top\/\d+)?$/,
   /^v1\/teams$/,
@@ -26,13 +27,49 @@ const ALLOWED_PATHS = [
   /^v1\/teams\/\d+\/members$/,
   /^v1\/challenges$/,
   /^v1\/challenges\/\d+$/,
-  /^v1\/users\/\d+$/,
-  /^v1\/users\/\d+\/solves$/,
   /^v1\/submissions\/\d+$/,
 ];
 
+// User paths handled separately with member-ID allowlist enforcement
+const USER_PATH_RE = /^v1\/users\/(\d+)(\/solves)?$/;
+
+// ── Seen-member-ID allowlist ──
+// Populated server-side whenever a /v1/teams/:id response passes through.
+// Only user IDs that appear as team members are allowed through /v1/users/:id.
+const seenMemberIds = new Set<number>();
+
+function recordTeamMembers(data: unknown): void {
+  if (
+    data &&
+    typeof data === "object" &&
+    "data" in data &&
+    data.data &&
+    typeof data.data === "object" &&
+    "members" in (data.data as object) &&
+    Array.isArray((data.data as { members: unknown }).members)
+  ) {
+    for (const id of (data.data as { members: number[] }).members) {
+      if (typeof id === "number") seenMemberIds.add(id);
+    }
+  }
+}
+
+// Sensitive fields to strip from /v1/users/:id responses
+const USER_SENSITIVE_FIELDS = ["email", "password", "secret", "token", "oauth_id"];
+
+function stripSensitiveUserFields(data: unknown): unknown {
+  if (!data || typeof data !== "object") return data;
+  const d = data as Record<string, unknown>;
+  if (d.data && typeof d.data === "object") {
+    const user = { ...(d.data as Record<string, unknown>) };
+    for (const field of USER_SENSITIVE_FIELDS) delete user[field];
+    return { ...d, data: user };
+  }
+  return data;
+}
+
 // ── IP-based token bucket rate limiter (in-memory, per serverless instance) ──
-const RATE_LIMIT_MAX = 60;        // max tokens (requests) per window
+const RATE_LIMIT_MAX = 60;           // max tokens (requests) per window
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1-minute window
 const RATE_LIMIT_CLEANUP_MS = 120_000; // purge stale entries every 2 min
 
@@ -105,7 +142,7 @@ function corsHeaders(origin: string | null): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": allowed && origin ? origin : "",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, X-API-Key",
+    "Access-Control-Allow-Headers": "Content-Type",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
@@ -131,38 +168,16 @@ export default {
       );
     }
 
-    // ── Authentication: server-validated shared secret (required) ──
-    // Every request must include X-API-Key matching API_PROXY_SECRET env var.
-    // This is the primary auth gate — host/Origin checks are defense-in-depth.
-    const proxySecret = process.env.API_PROXY_SECRET;
-    if (!proxySecret) {
-      return Response.json(
-        { error: "API_PROXY_SECRET is not configured" },
-        { status: 500, headers: corsHeaders(origin) },
-      );
-    }
-    const clientKey = request.headers.get("X-API-Key");
-    if (!clientKey || clientKey !== proxySecret) {
-      return Response.json(
-        { error: "Unauthorized" },
-        { status: 401, headers: corsHeaders(origin) },
-      );
-    }
-
-    // ── Defense-in-depth: Vercel edge host validation ──
+    // ── Primary gate: Vercel edge host validation ──
     // Vercel overwrites x-forwarded-host at the edge — external callers can't forge it.
     // Same-origin browser requests don't send Origin, but always have the correct host.
     const forwardedHost = request.headers.get("x-forwarded-host");
     const host = request.headers.get("host");
     if (!isHostAllowed(forwardedHost) && !isHostAllowed(host)) {
-      // If Origin is present (cross-origin), check it as secondary
       if (origin && isOriginAllowed(origin)) {
         // Cross-origin from an allowed origin — permit
       } else {
-        return Response.json(
-          { error: "Forbidden" },
-          { status: 403 },
-        );
+        return Response.json({ error: "Forbidden" }, { status: 403 });
       }
     }
 
@@ -171,18 +186,11 @@ export default {
     if (isRateLimited(clientIP)) {
       return Response.json(
         { error: "Too many requests" },
-        {
-          status: 429,
-          headers: {
-            ...corsHeaders(origin),
-            "Retry-After": "60",
-          },
-        },
+        { status: 429, headers: { ...corsHeaders(origin), "Retry-After": "60" } },
       );
     }
 
     const token = process.env.CTFD_API_TOKEN;
-
     if (!token) {
       return Response.json(
         { error: "CTFD_API_TOKEN is not configured" },
@@ -195,8 +203,18 @@ export default {
     const pathParts = url.pathname.split("/").filter(Boolean);
     const apiPath = pathParts.slice(1).join("/"); // Remove "api" prefix
 
-    // Enforce endpoint allowlist
-    if (!isPathAllowed(apiPath)) {
+    // ── User endpoint: enforce seen-member-ID allowlist ──
+    const userMatch = USER_PATH_RE.exec(apiPath);
+    if (userMatch) {
+      const requestedId = parseInt(userMatch[1], 10);
+      if (!seenMemberIds.has(requestedId)) {
+        return Response.json(
+          { error: "Endpoint not allowed" },
+          { status: 403, headers: corsHeaders(origin) },
+        );
+      }
+    } else if (!isPathAllowed(apiPath)) {
+      // Enforce general endpoint allowlist
       return Response.json(
         { error: "Endpoint not allowed" },
         { status: 403, headers: corsHeaders(origin) },
@@ -214,7 +232,17 @@ export default {
         },
       });
 
-      const data = await response.json();
+      let data = await response.json();
+
+      // Populate seen-member-ID allowlist from team detail responses
+      if (/^v1\/teams\/\d+$/.test(apiPath)) {
+        recordTeamMembers(data);
+      }
+
+      // Strip sensitive fields from user profile responses
+      if (userMatch && !userMatch[2]) {
+        data = stripSensitiveUserFields(data);
+      }
 
       return Response.json(data, {
         status: response.status,

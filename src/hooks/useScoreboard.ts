@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { apiFetch } from "@/lib/apiFetch";
 
 interface TeamMember {
   id: number;
@@ -137,7 +136,7 @@ async function enrichTeams(teams: Team[]): Promise<Team[] | null> {
   try {
     const results = await Promise.allSettled(
       teamsToEnrich.map(async (t) => {
-        const res = await apiFetch(`/api/v1/teams/${t.teamId}`);
+        const res = await fetch(`/api/v1/teams/${t.teamId}`);
         if (!res.ok) return null;
         const json = await res.json();
         if (!json.success || !json.data) return null;
@@ -184,7 +183,7 @@ export function useScoreboard(): ScoreboardData & {
 
   const fetchScoreboard = useCallback(async () => {
     try {
-      const response = await apiFetch("/api/v1/scoreboard");
+      const response = await fetch("/api/v1/scoreboard");
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();

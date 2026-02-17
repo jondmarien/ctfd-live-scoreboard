@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from "react";
-import { apiFetch } from "@/lib/apiFetch";
 
 export interface ChallengeInfo {
   id: number;
@@ -50,7 +49,7 @@ async function fetchChallenges(): Promise<Map<number, ChallengeInfo>> {
   _fetching = true;
 
   try {
-    const res = await apiFetch("/api/v1/challenges");
+    const res = await fetch("/api/v1/challenges");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
 
