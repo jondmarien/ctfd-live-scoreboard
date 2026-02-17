@@ -62,7 +62,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
 
       {/* Scroll + click-outside wrapper */}
       <div
-        className="fixed inset-0 z-50 overflow-y-auto flex items-start justify-center px-4 py-6"
+        className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center px-4 py-6"
         onClick={onClose}
       >
         {/* Modal */}
