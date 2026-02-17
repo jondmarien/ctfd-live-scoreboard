@@ -1,6 +1,6 @@
-import SplitText from "./SplitText";
-import ShinyText from "./ShinyText";
-import AnimatedContent from "./AnimatedContent";
+import SplitText from "@/components/animation/SplitText";
+import ShinyText from "@/components/animation/ShinyText";
+import AnimatedContent from "@/components/animation/AnimatedContent";
 
 export default function Header() {
   return (
@@ -19,7 +19,7 @@ export default function Header() {
             className="w-full h-auto object-cover opacity-90"
             style={{ maxHeight: "180px" }}
           />
-          <div className="h-1 bg-gradient-to-r from-transparent via-amber-500/60 to-transparent" />
+          <div className="h-1 bg-linear-to-r from-transparent via-amber-500/60 to-transparent" />
         </div>
       </AnimatedContent>
 

@@ -1,16 +1,16 @@
-import Aurora from "./Aurora";
-import Fireflies from "./Fireflies";
-import Fog from "./Fog";
-import Noise from "./Noise";
+import Aurora from "@/components/background/Aurora";
+import Fireflies from "@/components/background/Fireflies";
+import Fog from "@/components/background/Fog";
+import Noise from "@/components/background/Noise";
 
 export default function TavernBackground() {
   return (
     <div className="fixed inset-0 z-0">
       {/* Layer 0: Deep dark tavern base */}
-      <div className="absolute inset-0 bg-[#110a00]" />
+      <div className="absolute inset-0 bg-tavern-dark" />
 
       {/* Layer 1: Aurora — warm flowing amber/gold/purple */}
-      <div className="absolute inset-0 z-[1]">
+      <div className="absolute inset-0 z-1">
         <Aurora
           colorStops={["#FF8C00", "#FFD700", "#8B4513"]}
           amplitude={0.28}
@@ -30,7 +30,7 @@ export default function TavernBackground() {
       />
 
       {/* Layer 4: Noise — film grain texture */}
-      <div className="fixed inset-0 z-[15] pointer-events-none opacity-[0.03]">
+      <div className="fixed inset-0 z-15 pointer-events-none opacity-[0.03]">
         <Noise
           patternSize={200}
           patternScaleX={1}
@@ -41,7 +41,7 @@ export default function TavernBackground() {
       </div>
 
       {/* Dark overlay for readability */}
-      <div className="fixed inset-0 z-[20] pointer-events-none bg-black/50" />
+      <div className="fixed inset-0 z-20 pointer-events-none bg-black/50" />
     </div>
   );
 }

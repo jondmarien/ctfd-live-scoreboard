@@ -1,9 +1,14 @@
-import { useScoreboard } from "../hooks/useScoreboard";
-import TeamCard from "./TeamCard";
-import AnimatedContent from "./AnimatedContent";
+import { useState } from "react";
+import { useScoreboard } from "@/hooks/useScoreboard";
+import TeamCard from "@/components/ui/TeamCard";
+import AnimatedContent from "@/components/animation/AnimatedContent";
+import ViewSelector, { type ViewTab } from "@/components/ui/ViewSelector";
+import TeamsView from "@/components/ui/TeamsView";
+import ChallengesView from "@/components/ui/ChallengesView";
 
 export default function Scoreboard() {
-  const { teams, loading, lastUpdate } = useScoreboard();
+  const { teams, loading, lastUpdate, isMock } = useScoreboard();
+  const [activeView, setActiveView] = useState<ViewTab>("scoreboard");
 
   return (
     <main className="relative z-30 w-full max-w-2xl mx-auto px-4 pb-12">
@@ -13,7 +18,10 @@ export default function Scoreboard() {
         duration={0.6}
         delay={0.6}
       >
-        {/* Gold-bordered container matching old vanilla style */}
+        {/* Pill selector */}
+        <ViewSelector active={activeView} onChange={setActiveView} />
+
+        {/* Gold-bordered container */}
         <div
           className="
           rounded-xl overflow-hidden
@@ -27,19 +35,25 @@ export default function Scoreboard() {
             <span className="text-amber-500/50 text-sm">⚜</span>
           </div>
 
-          {/* Team rows */}
+          {/* Content area */}
           <div className="px-2 py-2 space-y-0.5">
-            {loading && teams.length === 0 ? (
-              <LoadingState />
-            ) : teams.length === 0 ? (
-              <EmptyState />
-            ) : (
-              teams.map((team) => <TeamCard key={team.pos} team={team} />)
+            {activeView === "scoreboard" && (
+              <>
+                {loading && teams.length === 0 ? (
+                  <LoadingState />
+                ) : teams.length === 0 ? (
+                  <EmptyState />
+                ) : (
+                  teams.map((team) => <TeamCard key={team.pos} team={team} isMock={isMock} />)
+                )}
+              </>
             )}
+            {activeView === "teams" && <TeamsView />}
+            {activeView === "challenges" && <ChallengesView />}
           </div>
 
-          {/* Timestamp footer — matches old "Last Scrying" bar */}
-          {lastUpdate && (
+          {/* Timestamp footer */}
+          {lastUpdate && activeView === "scoreboard" && (
             <div className="flex items-center justify-between px-4 py-2 border-t border-amber-800/20 bg-stone-950/30">
               <span className="font-medievalsharp text-xs text-amber-500/50">
                 🔮 LAST SCRYING:
