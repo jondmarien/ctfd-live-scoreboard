@@ -1,4 +1,7 @@
+import { useState } from "react";
+import { AnimatePresence } from "framer-motion";
 import { useChallengeCache, type ChallengeInfo } from "@/hooks/useChallengeCache";
+import QuestModal from "@/components/modals/QuestModal";
 
 // Category → color mapping
 const CATEGORY_COLORS: Record<string, string> = {
@@ -22,6 +25,7 @@ function getCategoryColor(category: string): string {
 
 export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Date | null) => void }) {
   const { challenges, lastUpdate, isMock } = useChallengeCache();
+  const [selectedQuest, setSelectedQuest] = useState<ChallengeInfo | null>(null);
 
   // Bubble lastUpdate up to parent
   if (onLastUpdate && lastUpdate) onLastUpdate(lastUpdate);
@@ -50,6 +54,7 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
   const categories = Array.from(grouped.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
   return (
+    <>
     <div className="space-y-4 px-1">
       {/* Mock data banner */}
       {isMock && (
@@ -88,7 +93,8 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
             .map((challenge) => (
               <div
                 key={challenge.id}
-                className="flex items-center justify-between px-3 py-2 rounded-lg bg-stone-800/30 border border-amber-900/10"
+                className="flex items-center justify-between px-3 py-2 rounded-lg bg-stone-800/30 border border-amber-900/10 cursor-pointer hover:bg-stone-800/50 transition-colors"
+                onClick={() => setSelectedQuest(challenge)}
               >
                 <div className="flex flex-col min-w-0 mr-3">
                   <span className="text-amber-200/70 font-medievalsharp text-sm truncate">
@@ -106,5 +112,17 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
         </div>
       ))}
     </div>
+
+    {/* Quest Detail Modal */}
+    <AnimatePresence>
+      {selectedQuest && (
+        <QuestModal
+          quest={selectedQuest}
+          isMock={isMock}
+          onClose={() => setSelectedQuest(null)}
+        />
+      )}
+    </AnimatePresence>
+    </>
   );
 }

@@ -5,26 +5,31 @@ export interface ChallengeInfo {
   name: string;
   category: string;
   value: number;
+  initial_value?: number;
   type: string;
   solves: number;
+  description?: string;
+  tags?: string[];
+  max_attempts?: number;
+  state?: string;
 }
 
 // ── Mock data shown when API returns empty or fails ──
 const MOCK_CHALLENGES: ChallengeInfo[] = [
-  { id: -1, name: "The Dragon's Cipher", category: "Crypto", value: 100, type: "standard", solves: 12 },
-  { id: -2, name: "Enchanted Key Exchange", category: "Crypto", value: 250, type: "standard", solves: 5 },
-  { id: -3, name: "Goblin's Web Lair", category: "Web", value: 100, type: "standard", solves: 18 },
-  { id: -4, name: "SQL Sorcery", category: "Web", value: 200, type: "standard", solves: 9 },
-  { id: -5, name: "The Forbidden Scroll", category: "Web", value: 400, type: "standard", solves: 2 },
-  { id: -6, name: "Stack Smash Keep", category: "Pwn", value: 150, type: "standard", solves: 7 },
-  { id: -7, name: "Return to the Abyss", category: "Pwn", value: 350, type: "standard", solves: 3 },
-  { id: -8, name: "Cursed Binary", category: "Reverse", value: 200, type: "standard", solves: 6 },
-  { id: -9, name: "The Alchemist's Formula", category: "Reverse", value: 450, type: "standard", solves: 1 },
-  { id: -10, name: "Lost Tome of Logs", category: "Forensics", value: 100, type: "standard", solves: 14 },
-  { id: -11, name: "Memory of the Fallen", category: "Forensics", value: 300, type: "standard", solves: 4 },
-  { id: -12, name: "The Riddler's Challenge", category: "Misc", value: 50, type: "standard", solves: 22 },
-  { id: -13, name: "Shadows in the Map", category: "OSINT", value: 150, type: "standard", solves: 8 },
-  { id: -14, name: "Hidden Runes", category: "Stego", value: 200, type: "standard", solves: 5 },
+  { id: -1, name: "The Dragon's Cipher", category: "Crypto", value: 100, initial_value: 100, type: "standard", solves: 12, description: "A dragon guards an ancient cipher scroll. Decode the message hidden within the shifting runes to claim your reward. The cipher uses a classical substitution — but beware, the dragon has added a twist.", tags: ["beginner"], max_attempts: 0, state: "visible" },
+  { id: -2, name: "Enchanted Key Exchange", category: "Crypto", value: 250, initial_value: 300, type: "dynamic", solves: 5, description: "Two wizards wish to share a secret across the enchanted forest, but dark forces are listening. Intercept their key exchange and recover the shared secret before the spell is complete.", tags: ["diffie-hellman"], max_attempts: 0, state: "visible" },
+  { id: -3, name: "Goblin's Web Lair", category: "Web", value: 100, initial_value: 100, type: "standard", solves: 18, description: "The goblins have built a crude web portal to manage their stolen treasure. Find the vulnerability in their login page and steal back the kingdom's gold.", tags: ["beginner", "injection"], max_attempts: 0, state: "visible" },
+  { id: -4, name: "SQL Sorcery", category: "Web", value: 200, initial_value: 250, type: "dynamic", solves: 9, description: "The dark sorcerer stores forbidden knowledge in a magical database. Craft the perfect incantation to bypass the arcane protections and extract the hidden flag.", tags: ["sqli"], max_attempts: 5, state: "visible" },
+  { id: -5, name: "The Forbidden Scroll", category: "Web", value: 400, initial_value: 500, type: "dynamic", solves: 2, description: "Deep within the temple lies a scroll protected by layered enchantments. Chain multiple vulnerabilities together — SSRF, deserialization, and path traversal — to claim the ultimate prize.", tags: ["advanced", "chain"], max_attempts: 3, state: "visible" },
+  { id: -6, name: "Stack Smash Keep", category: "Pwn", value: 150, initial_value: 150, type: "standard", solves: 7, description: "The fortress walls have a weakness in their foundation. Overflow the guard's stack to open the gates and capture the flag within.", tags: ["buffer-overflow"], max_attempts: 0, state: "visible" },
+  { id: -7, name: "Return to the Abyss", category: "Pwn", value: 350, initial_value: 400, type: "dynamic", solves: 3, description: "The Abyss calls you back. Use return-oriented programming to navigate the cursed memory landscape and escape with the flag.", tags: ["rop"], max_attempts: 0, state: "visible" },
+  { id: -8, name: "Cursed Binary", category: "Reverse", value: 200, initial_value: 200, type: "standard", solves: 6, description: "A cursed artifact has been found — a binary that speaks in riddles. Reverse engineer its dark logic to reveal the password it guards.", tags: ["binary"], max_attempts: 0, state: "visible" },
+  { id: -9, name: "The Alchemist's Formula", category: "Reverse", value: 450, initial_value: 500, type: "dynamic", solves: 1, description: "The royal alchemist encoded their secret formula into an obfuscated program. Unravel layers of anti-debugging traps and virtual machine protection to recover the recipe.", tags: ["obfuscation", "vm"], max_attempts: 0, state: "visible" },
+  { id: -10, name: "Lost Tome of Logs", category: "Forensics", value: 100, initial_value: 100, type: "standard", solves: 14, description: "A tome of server logs was recovered from the ruins. Sift through the entries to find evidence of the intruder's presence and extract the stolen secret.", tags: ["logs", "beginner"], max_attempts: 0, state: "visible" },
+  { id: -11, name: "Memory of the Fallen", category: "Forensics", value: 300, initial_value: 350, type: "dynamic", solves: 4, description: "A fallen warrior's memory dump contains the key to the kingdom. Analyze the volatile memory image to recover credentials and hidden artifacts.", tags: ["memory", "volatility"], max_attempts: 0, state: "visible" },
+  { id: -12, name: "The Riddler's Challenge", category: "Misc", value: 50, initial_value: 50, type: "standard", solves: 22, description: "The Riddler awaits at the crossroads with a simple puzzle. Solve the riddle to prove your worth and begin your adventure.", tags: ["warmup"], max_attempts: 0, state: "visible" },
+  { id: -13, name: "Shadows in the Map", category: "OSINT", value: 150, initial_value: 150, type: "standard", solves: 8, description: "A mysterious figure left traces across the realm's public records. Use your investigative skills to track their movements and uncover their true identity.", tags: ["osint"], max_attempts: 0, state: "visible" },
+  { id: -14, name: "Hidden Runes", category: "Stego", value: 200, initial_value: 200, type: "standard", solves: 5, description: "An innocent-looking painting hangs in the guild hall, but hidden runes are embedded within. Extract the concealed message using steganographic techniques.", tags: ["image"], max_attempts: 0, state: "visible" },
 ];
 
 function buildMockCache(): Map<number, ChallengeInfo> {
@@ -61,6 +66,11 @@ async function fetchChallenges(): Promise<Map<number, ChallengeInfo>> {
         value: c.value ?? 0,
         type: c.type ?? "standard",
         solves: c.solves ?? 0,
+        description: c.description,
+        initial_value: c.initial_value,
+        tags: c.tags,
+        max_attempts: c.max_attempts,
+        state: c.state,
       });
     }
     if (map.size === 0) {
