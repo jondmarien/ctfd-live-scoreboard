@@ -1,6 +1,10 @@
 import { memo, useState } from "react";
-import type { Team } from "../hooks/useScoreboard";
-import Counter from "./Counter";
+import { AnimatePresence } from "framer-motion";
+import { Eye } from "lucide-react";
+import type { Team } from "@/hooks/useScoreboard";
+import Counter from "@/components/animation/Counter";
+import AdventurerModal from "@/components/modals/AdventurerModal";
+import TeamSummaryModal from "@/components/modals/TeamSummaryModal";
 
 const RANK_COLORS: Record<number, string> = {
   1: "bg-gradient-to-r from-yellow-700 to-yellow-500 text-yellow-100",
@@ -10,10 +14,13 @@ const RANK_COLORS: Record<number, string> = {
 
 interface TeamCardProps {
   team: Team;
+  isMock?: boolean;
 }
 
-function TeamCard({ team }: TeamCardProps) {
+function TeamCard({ team, isMock = false }: TeamCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [selectedMemberId, setSelectedMemberId] = useState<{ id: number; name: string; score: number } | null>(null);
+  const [showTeamModal, setShowTeamModal] = useState(false);
   const isTopRank = team.pos <= 3;
   const rankClass = RANK_COLORS[team.pos] || "bg-stone-700 text-stone-300";
 
@@ -40,15 +47,29 @@ function TeamCard({ team }: TeamCardProps) {
           #{team.pos}
         </span>
 
-        {/* Team name */}
-        <span
-          className={`
-          grow min-w-0 truncate font-quintessential text-base
-          ${isTopRank ? "text-amber-200 font-semibold" : "text-amber-100/80"}
-        `}
-        >
-          {team.name}
-        </span>
+        {/* Team name + eye icon */}
+        <div className="flex items-center gap-1.5 min-w-0 grow">
+          <span
+            className={`
+            min-w-0 truncate font-quintessential text-base
+            ${isTopRank ? "text-amber-200 font-semibold" : "text-amber-100/80"}
+          `}
+          >
+            {team.name}
+          </span>
+          {!isMock && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowTeamModal(true);
+              }}
+              className="shrink-0 p-1 rounded-md text-amber-600/30 hover:text-amber-400 hover:bg-amber-900/20 transition-colors"
+              title="View party details"
+            >
+              <Eye className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
 
         {/* Right-aligned stats: quests | score GP — fixed total width keeps pipe aligned */}
         <div className="shrink-0 hidden sm:flex items-center ml-auto w-[250px]">
@@ -107,7 +128,8 @@ function TeamCard({ team }: TeamCardProps) {
             .map((member) => (
               <div
                 key={member.id}
-                className="flex items-center justify-between px-3 py-1.5 rounded bg-stone-800/20 border border-amber-900/10 text-sm"
+                className={`flex items-center justify-between px-3 py-1.5 rounded bg-stone-800/20 border border-amber-900/10 text-sm ${!isMock ? "cursor-pointer hover:bg-amber-900/15" : ""} transition-colors`}
+                onClick={() => !isMock && setSelectedMemberId({ id: member.id, name: member.name, score: member.score })}
               >
                 <span className="text-amber-200/60 font-medievalsharp truncate">
                   🗡️ {member.name}
@@ -119,6 +141,28 @@ function TeamCard({ team }: TeamCardProps) {
             ))}
         </div>
       )}
+
+      {/* Adventurer Modal */}
+      <AnimatePresence>
+        {selectedMemberId && (
+          <AdventurerModal
+            memberId={selectedMemberId.id}
+            memberName={selectedMemberId.name}
+            memberScore={selectedMemberId.score}
+            onClose={() => setSelectedMemberId(null)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Team Summary Modal */}
+      <AnimatePresence>
+        {showTeamModal && (
+          <TeamSummaryModal
+            team={team}
+            onClose={() => setShowTeamModal(false)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -130,6 +174,8 @@ export default memo(TeamCard, (prev, next) => {
     a.pos === b.pos &&
     a.name === b.name &&
     a.score === b.score &&
-    a.members?.length === b.members?.length
+    a.members?.length === b.members?.length &&
+    a.affiliation === b.affiliation &&
+    prev.isMock === next.isMock
   );
 });

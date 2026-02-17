@@ -11,6 +11,10 @@ export interface Team {
   name: string;
   score: number;
   members?: TeamMember[];
+  teamId?: number;
+  affiliation?: string;
+  country?: string;
+  website?: string;
 }
 
 interface ScoreboardData {
@@ -18,6 +22,7 @@ interface ScoreboardData {
   loading: boolean;
   error: string | null;
   lastUpdate: Date | null;
+  isMock: boolean;
 }
 
 // Sanitize strings to prevent XSS (regex-based, avoids DOM allocation)
@@ -123,6 +128,45 @@ const MOCK_TEAMS: Team[] = [
   },
 ];
 
+// Batch-fetch team details from CTFd teams API (non-blocking enrichment)
+async function enrichTeams(teams: Team[]): Promise<Team[] | null> {
+  const teamsToEnrich = teams.filter((t) => t.teamId && !t.affiliation);
+  if (teamsToEnrich.length === 0) return null;
+
+  try {
+    const results = await Promise.allSettled(
+      teamsToEnrich.map(async (t) => {
+        const res = await fetch(`/api/v1/teams/${t.teamId}`);
+        if (!res.ok) return null;
+        const json = await res.json();
+        if (!json.success || !json.data) return null;
+        return { teamId: t.teamId!, data: json.data };
+      }),
+    );
+
+    const enrichMap = new Map<number, { affiliation?: string; country?: string; website?: string }>();
+    for (const r of results) {
+      if (r.status === "fulfilled" && r.value) {
+        enrichMap.set(r.value.teamId, {
+          affiliation: r.value.data.affiliation || undefined,
+          country: r.value.data.country || undefined,
+          website: r.value.data.website || undefined,
+        });
+      }
+    }
+
+    if (enrichMap.size === 0) return null;
+
+    return teams.map((t) => {
+      if (!t.teamId) return t;
+      const extra = enrichMap.get(t.teamId);
+      return extra ? { ...t, ...extra } : t;
+    });
+  } catch {
+    return null;
+  }
+}
+
 const REFRESH_INTERVAL = 30_000; // 30 seconds
 
 export function useScoreboard(): ScoreboardData & {
@@ -133,6 +177,7 @@ export function useScoreboard(): ScoreboardData & {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [isMock, setIsMock] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastFetchRef = useRef<number>(0);
 
@@ -149,17 +194,20 @@ export function useScoreboard(): ScoreboardData & {
       if (data.data.length === 0) {
         // API returned empty — use mock data
         setTeams(MOCK_TEAMS);
+        setIsMock(true);
       } else {
         const parsed: Team[] = data.data.map(
           (entry: {
             pos: number;
             name: string;
             score: number;
+            account_id?: number;
             members?: TeamMember[];
           }) => ({
             pos: entry.pos,
             name: escapeHTML(entry.name),
             score: entry.score,
+            teamId: entry.account_id,
             members: entry.members?.map((m: TeamMember) => ({
               ...m,
               name: escapeHTML(m.name),
@@ -167,6 +215,12 @@ export function useScoreboard(): ScoreboardData & {
           }),
         );
         setTeams(parsed);
+        setIsMock(false);
+
+        // Non-blocking team enrichment
+        enrichTeams(parsed).then((enriched) => {
+          if (enriched) setTeams(enriched);
+        });
       }
       setError(null);
       setLastUpdate(new Date());
@@ -174,6 +228,7 @@ export function useScoreboard(): ScoreboardData & {
     } catch (err) {
       console.warn("Scoreboard fetch failed, using mock data:", err);
       setTeams(MOCK_TEAMS);
+      setIsMock(true);
       setError(null);
       setLastUpdate(new Date());
     } finally {
@@ -211,5 +266,5 @@ export function useScoreboard(): ScoreboardData & {
     };
   }, [fetchScoreboard]);
 
-  return { teams, loading, error, lastUpdate, refresh, escapeHTML };
+  return { teams, loading, error, lastUpdate, isMock, refresh, escapeHTML };
 }

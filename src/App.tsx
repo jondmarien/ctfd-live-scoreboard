@@ -1,7 +1,7 @@
-import ClickSpark from "./components/ClickSpark";
-import TavernBackground from "./components/TavernBackground";
-import Header from "./components/Header";
-import Scoreboard from "./components/Scoreboard";
+import ClickSpark from "@/components/animation/ClickSpark";
+import TavernBackground from "@/components/background/TavernBackground";
+import Header from "@/components/ui/Header";
+import Scoreboard from "@/components/ui/Scoreboard";
 
 export default function App() {
   return (
