@@ -224,9 +224,10 @@ export default async function handler(request: Request): Promise<Response> {
       });
     }
     if (!discordWebhookUrl) {
-      return res
-        .status(500)
-        .json({ error: "WEBHOOK_URL is not configured" });
+      return new Response(JSON.stringify({ error: "WEBHOOK_URL is not configured" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      });
     }
 
     // Verify webhook signature if secret is set
