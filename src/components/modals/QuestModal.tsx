@@ -50,24 +50,28 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-y-auto" onClick={onClose}>
-        {/* Backdrop */}
-        <motion.div
-          variants={FADE_IN_VARIANTS}
-          initial="hidden"
-          animate="visible"
-          exit="hidden"
-          className="fixed inset-0 bg-stone-950/85 backdrop-blur-sm"
-          onClick={onClose}
-        />
+      {/* Backdrop */}
+      <motion.div
+        variants={FADE_IN_VARIANTS}
+        initial="hidden"
+        animate="visible"
+        exit="hidden"
+        className="fixed inset-0 z-50 bg-stone-950/85 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
+      {/* Scroll + click-outside wrapper */}
+      <div
+        className="fixed inset-0 z-50 overflow-y-auto flex items-start justify-center px-4 py-6"
+        onClick={onClose}
+      >
         {/* Modal */}
         <motion.div
           variants={SCALE_POP_VARIANTS}
           initial="hidden"
           animate="visible"
           exit="hidden"
-          className="relative bg-stone-950/95 w-full max-w-lg mx-auto my-6 border border-amber-700/30 rounded-2xl shadow-[0_0_60px_rgba(255,165,0,0.08)] flex flex-col max-h-[calc(100vh-3rem)]"
+          className="relative bg-stone-950/95 w-full max-w-lg border border-amber-700/30 rounded-2xl shadow-[0_0_60px_rgba(255,165,0,0.08)] flex flex-col max-h-[calc(100vh-3rem)]"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
