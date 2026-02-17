@@ -131,18 +131,22 @@ export default {
       );
     }
 
-    // ── Authentication: server-validated shared secret ──
-    // Requires X-API-Key header matching API_PROXY_SECRET env var.
+    // ── Authentication: server-validated shared secret (required) ──
+    // Every request must include X-API-Key matching API_PROXY_SECRET env var.
     // This is the primary auth gate — host/Origin checks are defense-in-depth.
     const proxySecret = process.env.API_PROXY_SECRET;
-    if (proxySecret) {
-      const clientKey = request.headers.get("X-API-Key");
-      if (!clientKey || clientKey !== proxySecret) {
-        return Response.json(
-          { error: "Unauthorized" },
-          { status: 401, headers: corsHeaders(origin) },
-        );
-      }
+    if (!proxySecret) {
+      return Response.json(
+        { error: "API_PROXY_SECRET is not configured" },
+        { status: 500, headers: corsHeaders(origin) },
+      );
+    }
+    const clientKey = request.headers.get("X-API-Key");
+    if (!clientKey || clientKey !== proxySecret) {
+      return Response.json(
+        { error: "Unauthorized" },
+        { status: 401, headers: corsHeaders(origin) },
+      );
     }
 
     // ── Defense-in-depth: Vercel edge host validation ──
