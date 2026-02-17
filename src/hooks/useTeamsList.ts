@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { apiFetch } from "@/lib/apiFetch";
 
 export interface TeamListEntry {
   id: number;
@@ -35,7 +36,7 @@ export function useTeamsList(): TeamsListData & { refresh: () => void } {
     setError(null);
 
     try {
-      const res = await fetch("/api/v1/teams");
+      const res = await apiFetch("/api/v1/teams");
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const json = await res.json();
 
@@ -53,7 +54,7 @@ export function useTeamsList(): TeamsListData & { refresh: () => void } {
           let members: TeamListMember[] = [];
           try {
             // Team detail returns members as an array of user IDs
-            const teamRes = await fetch(`/api/v1/teams/${t.id}`);
+            const teamRes = await apiFetch(`/api/v1/teams/${t.id}`);
             if (teamRes.ok) {
               const teamJson = await teamRes.json();
               const memberIds: number[] =
@@ -64,7 +65,7 @@ export function useTeamsList(): TeamsListData & { refresh: () => void } {
               // Fetch each user's profile in parallel
               const userDetails = await Promise.allSettled(
                 memberIds.map(async (uid: number) => {
-                  const userRes = await fetch(`/api/v1/users/${uid}`);
+                  const userRes = await apiFetch(`/api/v1/users/${uid}`);
                   if (!userRes.ok) return null;
                   const userJson = await userRes.json();
                   if (!userJson.success) return null;

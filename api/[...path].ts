@@ -105,7 +105,7 @@ function corsHeaders(origin: string | null): Record<string, string> {
   return {
     "Access-Control-Allow-Origin": allowed && origin ? origin : "",
     "Access-Control-Allow-Methods": "GET, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type",
+    "Access-Control-Allow-Headers": "Content-Type, X-API-Key",
     "Access-Control-Max-Age": "86400",
     Vary: "Origin",
   };
@@ -131,7 +131,21 @@ export default {
       );
     }
 
-    // ── Primary gate: Vercel edge host validation ──
+    // ── Authentication: server-validated shared secret ──
+    // Requires X-API-Key header matching API_PROXY_SECRET env var.
+    // This is the primary auth gate — host/Origin checks are defense-in-depth.
+    const proxySecret = process.env.API_PROXY_SECRET;
+    if (proxySecret) {
+      const clientKey = request.headers.get("X-API-Key");
+      if (!clientKey || clientKey !== proxySecret) {
+        return Response.json(
+          { error: "Unauthorized" },
+          { status: 401, headers: corsHeaders(origin) },
+        );
+      }
+    }
+
+    // ── Defense-in-depth: Vercel edge host validation ──
     // Vercel overwrites x-forwarded-host at the edge — external callers can't forge it.
     // Same-origin browser requests don't send Origin, but always have the correct host.
     const forwardedHost = request.headers.get("x-forwarded-host");

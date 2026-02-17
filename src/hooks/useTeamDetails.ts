@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ensureChallengeCache, type ChallengeInfo } from "@/hooks/useChallengeCache";
+import { apiFetch } from "@/lib/apiFetch";
 
 export interface TeamProfile {
   id: number;
@@ -58,8 +59,8 @@ export function useTeamDetails(teamId: number | null): TeamDetailsData {
 
     try {
       const [teamRes, solvesRes, challengeMap] = await Promise.all([
-        fetch(`/api/v1/teams/${id}`, { signal: controller.signal }),
-        fetch(`/api/v1/teams/${id}/solves`, { signal: controller.signal }),
+        apiFetch(`/api/v1/teams/${id}`, { signal: controller.signal }),
+        apiFetch(`/api/v1/teams/${id}/solves`, { signal: controller.signal }),
         ensureChallengeCache(),
       ]);
 

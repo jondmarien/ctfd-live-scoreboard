@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ensureChallengeCache, type ChallengeInfo } from "@/hooks/useChallengeCache";
+import { apiFetch } from "@/lib/apiFetch";
 
 export interface UserProfile {
   id: number;
@@ -57,8 +58,8 @@ export function useAdventurerDetails(memberId: number | null): AdventurerDetails
     try {
       // Fetch user profile, user solves, and challenge cache in parallel
       const [userRes, solvesRes, challengeMap] = await Promise.all([
-        fetch(`/api/v1/users/${id}`, { signal: controller.signal }),
-        fetch(`/api/v1/users/${id}/solves`, { signal: controller.signal }),
+        apiFetch(`/api/v1/users/${id}`, { signal: controller.signal }),
+        apiFetch(`/api/v1/users/${id}/solves`, { signal: controller.signal }),
         ensureChallengeCache(),
       ]);
 
