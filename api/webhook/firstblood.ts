@@ -1,4 +1,4 @@
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 
 const CTFD_BASE_URL = "https://issessionsctf.ctfd.io";
 
@@ -77,10 +77,10 @@ function verifySignature(
       .update(signedPayload)
       .digest("hex");
 
-    // Constant-time comparison via buffer equality
+    // Constant-time comparison to avoid timing side-channels
     const a = Buffer.from(expected, "hex");
     const b = Buffer.from(signature, "hex");
-    if (a.length !== b.length || !a.equals(b)) {
+    if (a.length !== b.length || !timingSafeEqual(a, b)) {
       return { valid: false, reason: "Signature mismatch" };
     }
 
