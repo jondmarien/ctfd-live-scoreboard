@@ -2,14 +2,15 @@
   "framework": "vite",
   "installCommand": "bun install",
   "buildCommand": "bun run build",
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "@vercel/node@5"
+    }
+  },
   "rewrites": [
     {
-      "source": "/api/webhook/firstblood",
-      "destination": "/api/webhook/firstblood"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
+      "source": "/((?!api/).*)",
+      "destination": "/"
     }
   ]
 }
