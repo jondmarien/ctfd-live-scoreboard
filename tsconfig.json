@@ -6,6 +6,8 @@
     { "path": "./tsconfig.api.json" }
   ],
   "compilerOptions": {
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
