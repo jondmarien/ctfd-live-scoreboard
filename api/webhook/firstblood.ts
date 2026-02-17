@@ -1,3 +1,4 @@
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHmac } from "crypto";
 
 const CTFD_BASE_URL = "https://issessionsctf.ctfd.io";
@@ -182,82 +183,58 @@ async function sendDiscordFirstBlood(
   return res.ok;
 }
 
-export default async function handler(request: Request): Promise<Response> {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   const secret = process.env.WEBHOOK_SECRET;
   const apiToken = process.env.CTFD_API_TOKEN;
   const discordWebhookUrl = process.env.WEBHOOK_URL;
 
   // ── GET: CTFd endpoint validation ──
-  if (request.method === "GET") {
+  if (req.method === "GET") {
     if (!secret) {
-      return new Response(JSON.stringify({ error: "WEBHOOK_SECRET is not configured" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" }
-      });
+      return res.status(500).json({ error: "WEBHOOK_SECRET is not configured" });
     }
 
-    const url = new URL(request.url);
-    const token = url.searchParams.get("token");
+    const token = req.query.token as string | undefined;
     if (!token) {
-      return new Response(JSON.stringify({ error: "Missing token parameter" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" }
-      });
+      return res.status(400).json({ error: "Missing token parameter" });
     }
 
     const response = createHmac("sha256", secret)
       .update(token)
       .digest("hex");
 
-    return new Response(JSON.stringify({ response }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
-    });
+    return res.status(200).json({ response });
   }
 
   // ── POST: First Blood event ──
-  if (request.method === "POST") {
+  if (req.method === "POST") {
     if (!apiToken) {
-      return new Response(JSON.stringify({ error: "CTFD_API_TOKEN is not configured" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" }
-      });
+      return res.status(500).json({ error: "CTFD_API_TOKEN is not configured" });
     }
     if (!discordWebhookUrl) {
-      return new Response(JSON.stringify({ error: "WEBHOOK_URL is not configured" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" }
-      });
+      return res.status(500).json({ error: "WEBHOOK_URL is not configured" });
     }
 
     // Verify webhook signature if secret is set
     if (secret) {
-      const signatureHeader = request.headers.get("ctfd-webhook-signature");
+      const signatureHeader = req.headers["ctfd-webhook-signature"] as string | undefined;
       if (!signatureHeader) {
         console.warn("Missing CTFd-Webhook-Signature header");
-        return new Response(JSON.stringify({ error: "Missing signature" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" }
-        });
+        return res.status(401).json({ error: "Missing signature" });
       }
 
-      const rawBody = await request.text();
+      const rawBody =
+        typeof req.body === "string" ? req.body : JSON.stringify(req.body);
       if (!verifySignature(secret, rawBody, signatureHeader)) {
         console.warn("Invalid webhook signature");
-        return new Response(JSON.stringify({ error: "Invalid signature" }), {
-          status: 401,
-          headers: { "Content-Type": "application/json" }
-        });
+        return res.status(401).json({ error: "Invalid signature" });
       }
     }
 
-    const payload = await request.json() as FirstBloodPayload;
+    const payload = req.body as FirstBloodPayload;
 
     if (!payload.id) {
-      return new Response(JSON.stringify({ error: "Missing submission id" }), {
-        status: 400,
-        headers: { "Content-Type": "application/json" }
-      });
+      return res.status(400).json({ error: "Missing submission id" });
     }
 
     console.log(
@@ -272,10 +249,7 @@ export default async function handler(request: Request): Promise<Response> {
 
     if (!submission) {
       console.error(`Failed to fetch submission ${payload.id}`);
-      return new Response(JSON.stringify({ error: "Failed to fetch submission" }), {
-        status: 502,
-        headers: { "Content-Type": "application/json" }
-      });
+      return res.status(502).json({ error: "Failed to fetch submission" });
     }
 
     const challengeName =
@@ -299,20 +273,14 @@ export default async function handler(request: Request): Promise<Response> {
       solveDate,
     );
 
-    return new Response(JSON.stringify({
+    return res.status(200).json({
       success: true,
       discord_sent: sent,
       challenge: challengeName,
       solver: solverName,
-    }), {
-      status: 200,
-      headers: { "Content-Type": "application/json" }
     });
   }
 
   // ── Other methods ──
-  return new Response(JSON.stringify({ error: "Method not allowed" }), {
-    status: 405,
-    headers: { "Content-Type": "application/json" }
-  });
+  return res.status(405).json({ error: "Method not allowed" });
 }

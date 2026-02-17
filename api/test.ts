@@ -1,5 +1,5 @@
-export default function handler(request: Request): Response {
-  return new Response(JSON.stringify({ message: "API is working!", timestamp: Date.now() }), {
-    headers: { "Content-Type": "application/json" }
-  });
+import type { VercelRequest, VercelResponse } from "@vercel/node";
+
+export default function handler(_req: VercelRequest, res: VercelResponse) {
+  return res.status(200).json({ message: "API is working!", timestamp: Date.now() });
 }
