@@ -1,15 +1,9 @@
 {
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "installCommand": "bun install",
   "buildCommand": "bun run build",
   "rewrites": [
-    {
-      "source": "/api/webhook/firstblood",
-      "destination": "/api/webhook/firstblood"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
-    }
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
