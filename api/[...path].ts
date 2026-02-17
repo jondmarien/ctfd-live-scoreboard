@@ -1,6 +1,16 @@
 const CTFD_BASE_URL = "https://issessionsctf.ctfd.io";
 
-// Allowed origins for CORS — production + Vercel preview deployments
+// ── Allowed hosts — validated via Vercel's x-forwarded-host header ──
+// Vercel edge overwrites x-forwarded-host so it can't be forged by external callers.
+// This is the primary security gate (not Origin, which browsers omit on same-origin).
+const ALLOWED_HOSTS: (string | RegExp)[] = [
+  "iss-ctfd-live-scoreboard.vercel.app",
+  /^iss-ctfd-live-scoreboard-.*\.vercel\.app$/,
+  "localhost:8000",
+  "localhost",
+];
+
+// Secondary: Origin allowlist for CORS cross-origin requests
 const ALLOWED_ORIGINS: (string | RegExp)[] = [
   "https://iss-ctfd-live-scoreboard.vercel.app",
   /^https:\/\/iss-ctfd-live-scoreboard-.*\.vercel\.app$/,
@@ -72,6 +82,13 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
+function isHostAllowed(host: string | null): boolean {
+  if (!host) return false;
+  return ALLOWED_HOSTS.some((h) =>
+    typeof h === "string" ? h === host : h.test(host),
+  );
+}
+
 function isOriginAllowed(origin: string | null): boolean {
   if (!origin) return false;
   return ALLOWED_ORIGINS.some((o) =>
@@ -98,7 +115,7 @@ export default {
   async fetch(request: Request) {
     const origin = request.headers.get("Origin");
 
-    // Handle CORS preflight
+    // Handle CORS preflight — only check Origin (browser always sends it for preflight)
     if (request.method === "OPTIONS") {
       if (!isOriginAllowed(origin)) {
         return Response.json({ error: "Origin not allowed" }, { status: 403 });
@@ -114,12 +131,21 @@ export default {
       );
     }
 
-    // Reject requests with missing or disallowed Origin
-    if (!isOriginAllowed(origin)) {
-      return Response.json(
-        { error: "Origin not allowed" },
-        { status: 403 },
-      );
+    // ── Primary gate: Vercel edge host validation ──
+    // Vercel overwrites x-forwarded-host at the edge — external callers can't forge it.
+    // Same-origin browser requests don't send Origin, but always have the correct host.
+    const forwardedHost = request.headers.get("x-forwarded-host");
+    const host = request.headers.get("host");
+    if (!isHostAllowed(forwardedHost) && !isHostAllowed(host)) {
+      // If Origin is present (cross-origin), check it as secondary
+      if (origin && isOriginAllowed(origin)) {
+        // Cross-origin from an allowed origin — permit
+      } else {
+        return Response.json(
+          { error: "Forbidden" },
+          { status: 403 },
+        );
+      }
     }
 
     // IP-based rate limiting
