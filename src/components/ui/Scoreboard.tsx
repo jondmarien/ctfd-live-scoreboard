@@ -50,7 +50,7 @@ export default function Scoreboard() {
               </>
             )}
             {activeView === "teams" && <TeamsView onLastUpdate={setViewLastUpdate} />}
-            {activeView === "challenges" && <ChallengesView onLastUpdate={setViewLastUpdate} />}
+            {activeView === "quests" && <ChallengesView onLastUpdate={setViewLastUpdate} />}
           </div>
 
           {/* Timestamp footer */}
