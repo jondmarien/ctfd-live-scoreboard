@@ -1,4 +1,4 @@
-import { useChallengeCache } from "@/hooks/useChallengeCache";
+import { useChallengeCache, type ChallengeInfo } from "@/hooks/useChallengeCache";
 
 // Category → color mapping
 const CATEGORY_COLORS: Record<string, string> = {
@@ -20,8 +20,11 @@ function getCategoryColor(category: string): string {
   return "bg-amber-500/20 text-amber-300 border-amber-500/30";
 }
 
-export default function ChallengesView() {
-  const challenges = useChallengeCache();
+export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Date | null) => void }) {
+  const { challenges, lastUpdate } = useChallengeCache();
+
+  // Bubble lastUpdate up to parent
+  if (onLastUpdate && lastUpdate) onLastUpdate(lastUpdate);
 
   if (challenges.size === 0) {
     return (
@@ -38,8 +41,8 @@ export default function ChallengesView() {
   }
 
   // Group by category
-  const grouped = new Map<string, typeof challengeArr>();
   const challengeArr = Array.from(challenges.values());
+  const grouped = new Map<string, ChallengeInfo[]>();
   for (const c of challengeArr) {
     if (!grouped.has(c.category)) grouped.set(c.category, []);
     grouped.get(c.category)!.push(c);

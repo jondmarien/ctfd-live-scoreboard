@@ -26,8 +26,11 @@ function teamListEntryToTeam(t: TeamListEntry, idx: number): Team {
   };
 }
 
-export default function TeamsView() {
-  const { teams, loading, error } = useTeamsList();
+export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | null) => void }) {
+  const { teams, loading, error, lastUpdate } = useTeamsList();
+
+  // Bubble lastUpdate up to parent
+  if (onLastUpdate && lastUpdate) onLastUpdate(lastUpdate);
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [selectedMember, setSelectedMember] = useState<{ id: number; name: string; score: number } | null>(null);
   const [teamModalData, setTeamModalData] = useState<Team | null>(null);

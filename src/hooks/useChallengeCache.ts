@@ -51,8 +51,9 @@ async function fetchChallenges(): Promise<Map<number, ChallengeInfo>> {
 
 const CACHE_TTL = 30_000; // 30 seconds — matches scoreboard refresh
 
-export function useChallengeCache() {
+export function useChallengeCache(): { challenges: Map<number, ChallengeInfo>; lastUpdate: Date | null } {
   const [challenges, setChallenges] = useState<Map<number, ChallengeInfo>>(_cache);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(_lastFetch ? new Date(_lastFetch) : null);
   const mounted = useRef(true);
 
   useEffect(() => {
@@ -60,7 +61,10 @@ export function useChallengeCache() {
 
     const load = async () => {
       const map = await fetchChallenges();
-      if (mounted.current) setChallenges(map);
+      if (mounted.current) {
+        setChallenges(map);
+        setLastUpdate(new Date(_lastFetch));
+      }
     };
 
     // Fetch immediately if stale or empty
@@ -79,7 +83,7 @@ export function useChallengeCache() {
     };
   }, []);
 
-  return challenges;
+  return { challenges, lastUpdate };
 }
 
 // Direct access for hooks that don't need reactivity

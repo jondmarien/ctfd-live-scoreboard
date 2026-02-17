@@ -9,6 +9,7 @@ import ChallengesView from "@/components/ui/ChallengesView";
 export default function Scoreboard() {
   const { teams, loading, lastUpdate, isMock } = useScoreboard();
   const [activeView, setActiveView] = useState<ViewTab>("scoreboard");
+  const [viewLastUpdate, setViewLastUpdate] = useState<Date | null>(null);
 
   return (
     <main className="relative z-30 w-full max-w-2xl mx-auto px-4 pb-12">
@@ -48,21 +49,24 @@ export default function Scoreboard() {
                 )}
               </>
             )}
-            {activeView === "teams" && <TeamsView />}
-            {activeView === "challenges" && <ChallengesView />}
+            {activeView === "teams" && <TeamsView onLastUpdate={setViewLastUpdate} />}
+            {activeView === "challenges" && <ChallengesView onLastUpdate={setViewLastUpdate} />}
           </div>
 
           {/* Timestamp footer */}
-          {lastUpdate && activeView === "scoreboard" && (
-            <div className="flex items-center justify-between px-4 py-2 border-t border-amber-800/20 bg-stone-950/30">
-              <span className="font-medievalsharp text-xs text-amber-500/50">
-                🔮 LAST SCRYING:
-              </span>
-              <span className="font-quintessential text-xs text-amber-400/60">
-                {lastUpdate.toLocaleString()}
-              </span>
-            </div>
-          )}
+          {(() => {
+            const ts = activeView === "scoreboard" ? lastUpdate : viewLastUpdate;
+            return ts ? (
+              <div className="flex items-center justify-between px-4 py-2 border-t border-amber-800/20 bg-stone-950/30">
+                <span className="font-medievalsharp text-xs text-amber-500/50">
+                  🔮 LAST SCRYING:
+                </span>
+                <span className="font-quintessential text-xs text-amber-400/60">
+                  {ts.toLocaleString()}
+                </span>
+              </div>
+            ) : null;
+          })()}
         </div>
       </AnimatedContent>
     </main>

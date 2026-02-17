@@ -29,7 +29,7 @@ export default {
         status: response.status,
         headers: {
           "Access-Control-Allow-Origin": "*",
-          "Cache-Control": "s-maxage=10, stale-while-revalidate=20",
+          "Cache-Control": "s-maxage=30, stale-while-revalidate=60",
         },
       });
     } catch (err) {

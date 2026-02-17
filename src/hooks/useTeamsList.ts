@@ -20,12 +20,14 @@ interface TeamsListData {
   teams: TeamListEntry[];
   loading: boolean;
   error: string | null;
+  lastUpdate: Date | null;
 }
 
 export function useTeamsList(): TeamsListData & { refresh: () => void } {
   const [teams, setTeams] = useState<TeamListEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const fetchedRef = useRef(false);
 
   const fetchTeams = useCallback(async () => {
@@ -97,6 +99,7 @@ export function useTeamsList(): TeamsListData & { refresh: () => void } {
       );
 
       setTeams(enriched);
+      setLastUpdate(new Date());
     } catch (err) {
       console.warn("Teams list fetch failed:", err);
       setError(err instanceof Error ? err.message : "Failed to load teams");
@@ -112,5 +115,5 @@ export function useTeamsList(): TeamsListData & { refresh: () => void } {
     }
   }, [fetchTeams]);
 
-  return { teams, loading, error, refresh: fetchTeams };
+  return { teams, loading, error, lastUpdate, refresh: fetchTeams };
 }
