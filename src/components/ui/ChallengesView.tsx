@@ -34,7 +34,7 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
           No Quests Available
         </p>
         <p className="font-medievalsharp text-xs text-amber-500/30 text-center">
-          The quest board is empty — challenges haven't been released yet...
+          The quest board is empty — quests haven't been released yet...
         </p>
       </div>
     );

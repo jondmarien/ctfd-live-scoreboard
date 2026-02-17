@@ -12,8 +12,14 @@
     />
     <title>⚔️ Guild Quest Board — ISSessions 2026 CTF</title>
   </head>
-  <body>
+  <body style="opacity:0">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      // Unhide body once stylesheets are loaded to prevent FOUC (flash of unstyled content)
+      function ready() { document.body.style.opacity = '1'; }
+      if (document.readyState === 'complete') ready();
+      else window.addEventListener('load', ready);
+    </script>
   </body>
 </html>
