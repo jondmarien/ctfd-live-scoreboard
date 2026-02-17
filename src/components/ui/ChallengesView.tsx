@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { useChallengeCache, type ChallengeInfo } from "@/hooks/useChallengeCache";
 import QuestModal from "@/components/modals/QuestModal";
@@ -28,7 +28,9 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
   const [selectedQuest, setSelectedQuest] = useState<ChallengeInfo | null>(null);
 
   // Bubble lastUpdate up to parent
-  if (onLastUpdate && lastUpdate) onLastUpdate(lastUpdate);
+  useEffect(() => {
+    if (onLastUpdate && lastUpdate) onLastUpdate(lastUpdate);
+  }, [onLastUpdate, lastUpdate]);
 
   if (challenges.size === 0) {
     return (

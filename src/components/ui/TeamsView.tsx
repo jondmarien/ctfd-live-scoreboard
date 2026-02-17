@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Eye } from "lucide-react";
 import { useTeamsList } from "@/hooks/useTeamsList";
@@ -30,7 +30,10 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
   const { teams, loading, error, lastUpdate } = useTeamsList();
 
   // Bubble lastUpdate up to parent
-  if (onLastUpdate && lastUpdate) onLastUpdate(lastUpdate);
+  useEffect(() => {
+    if (onLastUpdate && lastUpdate) onLastUpdate(lastUpdate);
+  }, [onLastUpdate, lastUpdate]);
+
   const [expandedId, setExpandedId] = useState<number | null>(null);
   const [selectedMember, setSelectedMember] = useState<{ id: number; name: string; score: number } | null>(null);
   const [teamModalData, setTeamModalData] = useState<Team | null>(null);

@@ -50,7 +50,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="fixed inset-0 z-50 overflow-y-auto" onClick={onClose}>
         {/* Backdrop */}
         <motion.div
           variants={FADE_IN_VARIANTS}
@@ -68,6 +68,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
           animate="visible"
           exit="hidden"
           className="relative bg-stone-950/95 w-full max-w-lg mx-auto my-6 border border-amber-700/30 rounded-2xl shadow-[0_0_60px_rgba(255,165,0,0.08)] flex flex-col max-h-[calc(100vh-3rem)]"
+          onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
           <div className="p-5 border-b border-amber-800/20 bg-stone-900/50">
