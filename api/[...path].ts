@@ -39,18 +39,22 @@ const USER_PATH_RE = /^v1\/users\/(\d+)(\/solves)?$/;
 const seenMemberIds = new Set<number>();
 
 function recordTeamMembers(data: unknown): void {
-  if (
-    data &&
-    typeof data === "object" &&
-    "data" in data &&
-    data.data &&
-    typeof data.data === "object" &&
-    "members" in (data.data as object) &&
-    Array.isArray((data.data as { members: unknown }).members)
-  ) {
-    for (const id of (data.data as { members: number[] }).members) {
+  if (!data || typeof data !== "object" || !("data" in data)) return;
+  const d = (data as { data: unknown }).data;
+  if (!d || typeof d !== "object") return;
+  const team = d as Record<string, unknown>;
+
+  // Record all listed members
+  if (Array.isArray(team.members)) {
+    for (const id of team.members as unknown[]) {
       if (typeof id === "number") seenMemberIds.add(id);
     }
+  }
+
+  // Also record captain_id — solo players may have an empty members array
+  // but still have a valid captain_id
+  if (typeof team.captain_id === "number") {
+    seenMemberIds.add(team.captain_id);
   }
 }
 

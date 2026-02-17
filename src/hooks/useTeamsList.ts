@@ -59,10 +59,15 @@ async function fetchTeamsData(): Promise<TeamListEntry[]> {
           const teamRes = await fetch(`/api/v1/teams/${t.id}`);
           if (teamRes.ok) {
             const teamJson = await teamRes.json();
-            const memberIds: number[] =
+            const rawMemberIds: number[] =
               teamJson.success && Array.isArray(teamJson.data?.members)
                 ? teamJson.data.members
                 : [];
+            // Include captain_id — solo players may have an empty members array
+            const captainId: number | null = teamJson.data?.captain_id ?? null;
+            const memberIds = captainId && !rawMemberIds.includes(captainId)
+              ? [...rawMemberIds, captainId]
+              : rawMemberIds;
 
             // Fetch each user's profile in parallel (with per-user cache)
             const userDetails = await Promise.allSettled(
