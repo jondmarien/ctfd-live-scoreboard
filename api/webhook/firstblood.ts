@@ -1,4 +1,3 @@
-import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createHmac } from "crypto";
 
 const CTFD_BASE_URL = "https://issessionsctf.ctfd.io";
@@ -183,104 +182,107 @@ async function sendDiscordFirstBlood(
   return res.ok;
 }
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const secret = process.env.WEBHOOK_SECRET;
-  const apiToken = process.env.CTFD_API_TOKEN;
-  const discordWebhookUrl = process.env.WEBHOOK_URL;
+export default {
+  async fetch(request: Request) {
+    const secret = process.env.WEBHOOK_SECRET;
+    const apiToken = process.env.CTFD_API_TOKEN;
+    const discordWebhookUrl = process.env.WEBHOOK_URL;
 
-  // ── GET: CTFd endpoint validation ──
-  if (req.method === "GET") {
-    if (!secret) {
-      return res.status(500).json({ error: "WEBHOOK_SECRET is not configured" });
-    }
-
-    const token = req.query.token as string | undefined;
-    if (!token) {
-      return res.status(400).json({ error: "Missing token parameter" });
-    }
-
-    const response = createHmac("sha256", secret)
-      .update(token)
-      .digest("hex");
-
-    return res.status(200).json({ response });
-  }
-
-  // ── POST: First Blood event ──
-  if (req.method === "POST") {
-    if (!apiToken) {
-      return res.status(500).json({ error: "CTFD_API_TOKEN is not configured" });
-    }
-    if (!discordWebhookUrl) {
-      return res.status(500).json({ error: "WEBHOOK_URL is not configured" });
-    }
-
-    // Verify webhook signature if secret is set
-    if (secret) {
-      const signatureHeader = req.headers["ctfd-webhook-signature"] as string | undefined;
-      if (!signatureHeader) {
-        console.warn("Missing CTFd-Webhook-Signature header");
-        return res.status(401).json({ error: "Missing signature" });
+    // ── GET: CTFd endpoint validation ──
+    if (request.method === "GET") {
+      if (!secret) {
+        return Response.json({ error: "WEBHOOK_SECRET is not configured" }, { status: 500 });
       }
 
-      const rawBody =
-        typeof req.body === "string" ? req.body : JSON.stringify(req.body);
-      if (!verifySignature(secret, rawBody, signatureHeader)) {
-        console.warn("Invalid webhook signature");
-        return res.status(401).json({ error: "Invalid signature" });
+      const url = new URL(request.url);
+      const token = url.searchParams.get("token");
+      if (!token) {
+        return Response.json({ error: "Missing token parameter" }, { status: 400 });
       }
+
+      const response = createHmac("sha256", secret)
+        .update(token)
+        .digest("hex");
+
+      return Response.json({ response });
     }
 
-    const payload = req.body as FirstBloodPayload;
+    // ── POST: First Blood event ──
+    if (request.method === "POST") {
+      if (!apiToken) {
+        return Response.json({ error: "CTFD_API_TOKEN is not configured" }, { status: 500 });
+      }
+      if (!discordWebhookUrl) {
+        return Response.json({ error: "WEBHOOK_URL is not configured" }, { status: 500 });
+      }
 
-    if (!payload.id) {
-      return res.status(400).json({ error: "Missing submission id" });
+      const rawBody = await request.text();
+
+      // Verify webhook signature if secret is set
+      if (secret) {
+        const signatureHeader = request.headers.get("ctfd-webhook-signature");
+        if (!signatureHeader) {
+          console.warn("Missing CTFd-Webhook-Signature header");
+          return Response.json({ error: "Missing signature" }, { status: 401 });
+        }
+
+        if (!verifySignature(secret, rawBody, signatureHeader)) {
+          console.warn("Invalid webhook signature");
+          return Response.json({ error: "Invalid signature" }, { status: 401 });
+        }
+      }
+
+      const payload = JSON.parse(rawBody) as FirstBloodPayload;
+
+      if (!payload.id) {
+        return Response.json({ error: "Missing submission id" }, { status: 400 });
+      }
+
+      console.log(
+        `First Blood event received: submission=${payload.id}, challenge=${payload.challenge_id}`,
+      );
+
+      // Fetch full submission + challenge details from CTFd
+      const [submission, challenge] = await Promise.all([
+        fetchSubmission(payload.id, apiToken),
+        fetchChallenge(payload.challenge_id, apiToken),
+      ]);
+
+      if (!submission) {
+        console.error(`Failed to fetch submission ${payload.id}`);
+        return Response.json({ error: "Failed to fetch submission" }, { status: 502 });
+      }
+
+      const challengeName =
+        challenge?.name ?? submission.challenge?.name ?? "Unknown Quest";
+      const challengeCategory =
+        challenge?.category ?? submission.challenge?.category ?? "Unknown";
+      const challengeValue =
+        challenge?.value ?? submission.challenge?.value ?? 0;
+
+      const solverName = submission.user?.name ?? "Unknown Adventurer";
+      const teamName = submission.team?.name ?? null;
+      const solveDate = submission.date ?? payload.date;
+
+      const sent = await sendDiscordFirstBlood(
+        discordWebhookUrl,
+        solverName,
+        teamName,
+        challengeName,
+        challengeCategory,
+        challengeValue,
+        solveDate,
+      );
+
+      return Response.json({
+        success: true,
+        discord_sent: sent,
+        challenge: challengeName,
+        solver: solverName,
+      });
     }
 
-    console.log(
-      `First Blood event received: submission=${payload.id}, challenge=${payload.challenge_id}`,
-    );
-
-    // Fetch full submission + challenge details from CTFd
-    const [submission, challenge] = await Promise.all([
-      fetchSubmission(payload.id, apiToken),
-      fetchChallenge(payload.challenge_id, apiToken),
-    ]);
-
-    if (!submission) {
-      console.error(`Failed to fetch submission ${payload.id}`);
-      return res.status(502).json({ error: "Failed to fetch submission" });
-    }
-
-    const challengeName =
-      challenge?.name ?? submission.challenge?.name ?? "Unknown Quest";
-    const challengeCategory =
-      challenge?.category ?? submission.challenge?.category ?? "Unknown";
-    const challengeValue =
-      challenge?.value ?? submission.challenge?.value ?? 0;
-
-    const solverName = submission.user?.name ?? "Unknown Adventurer";
-    const teamName = submission.team?.name ?? null;
-    const solveDate = submission.date ?? payload.date;
-
-    const sent = await sendDiscordFirstBlood(
-      discordWebhookUrl,
-      solverName,
-      teamName,
-      challengeName,
-      challengeCategory,
-      challengeValue,
-      solveDate,
-    );
-
-    return res.status(200).json({
-      success: true,
-      discord_sent: sent,
-      challenge: challengeName,
-      solver: solverName,
-    });
-  }
-
-  // ── Other methods ──
-  return res.status(405).json({ error: "Method not allowed" });
-}
+    // ── Other methods ──
+    return Response.json({ error: "Method not allowed" }, { status: 405 });
+  },
+};
