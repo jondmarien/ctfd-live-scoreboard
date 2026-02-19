@@ -6,6 +6,7 @@ const CTFD_BASE_URL = "https://issessionsctf.ctfd.io";
 const ALLOWED_HOSTS: (string | RegExp)[] = [
   "iss-ctfd-live-scoreboard.vercel.app",
   /^iss-ctfd-live-scoreboard-.*\.vercel\.app$/,
+  "scoreboard.issessions.ca",
   "localhost:8000",
   "localhost",
 ];
@@ -14,6 +15,7 @@ const ALLOWED_HOSTS: (string | RegExp)[] = [
 const ALLOWED_ORIGINS: (string | RegExp)[] = [
   "https://iss-ctfd-live-scoreboard.vercel.app",
   /^https:\/\/iss-ctfd-live-scoreboard-.*\.vercel\.app$/,
+  "https://scoreboard.issessions.ca",
   "http://localhost:8000",
 ];
 
@@ -41,10 +43,16 @@ const USER_PATH_RE = /^v1\/users\/(\d+)(\/solves)?$/;
 async function isTeamMember(userId: number, token: string): Promise<boolean> {
   try {
     const res = await fetch(`${CTFD_BASE_URL}/api/v1/users/${userId}`, {
-      headers: { Authorization: `Token ${token}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Token ${token}`,
+        "Content-Type": "application/json",
+      },
     });
     if (!res.ok) return false;
-    const json = await res.json() as { success?: boolean; data?: { team_id?: number | null } };
+    const json = (await res.json()) as {
+      success?: boolean;
+      data?: { team_id?: number | null };
+    };
     return json.success === true && json.data?.team_id != null;
   } catch {
     return false;
@@ -52,7 +60,13 @@ async function isTeamMember(userId: number, token: string): Promise<boolean> {
 }
 
 // Sensitive fields to strip from /v1/users/:id responses
-const USER_SENSITIVE_FIELDS = ["email", "password", "secret", "token", "oauth_id"];
+const USER_SENSITIVE_FIELDS = [
+  "email",
+  "password",
+  "secret",
+  "token",
+  "oauth_id",
+];
 
 function stripSensitiveUserFields(data: unknown): unknown {
   if (!data || typeof data !== "object") return data;
@@ -66,7 +80,7 @@ function stripSensitiveUserFields(data: unknown): unknown {
 }
 
 // ── IP-based token bucket rate limiter (in-memory, per serverless instance) ──
-const RATE_LIMIT_MAX = 60;           // max tokens (requests) per window
+const RATE_LIMIT_MAX = 60; // max tokens (requests) per window
 const RATE_LIMIT_WINDOW_MS = 60_000; // 1-minute window
 const RATE_LIMIT_CLEANUP_MS = 120_000; // purge stale entries every 2 min
 
@@ -92,7 +106,8 @@ function isRateLimited(ip: string): boolean {
   // Periodic cleanup of stale buckets
   if (now - lastCleanup > RATE_LIMIT_CLEANUP_MS) {
     for (const [key, bucket] of buckets) {
-      if (now - bucket.lastRefill > RATE_LIMIT_WINDOW_MS * 2) buckets.delete(key);
+      if (now - bucket.lastRefill > RATE_LIMIT_WINDOW_MS * 2)
+        buckets.delete(key);
     }
     lastCleanup = now;
   }
@@ -183,7 +198,10 @@ export default {
     if (isRateLimited(clientIP)) {
       return Response.json(
         { error: "Too many requests" },
-        { status: 429, headers: { ...corsHeaders(origin), "Retry-After": "60" } },
+        {
+          status: 429,
+          headers: { ...corsHeaders(origin), "Retry-After": "60" },
+        },
       );
     }
 
