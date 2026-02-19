@@ -28,8 +28,6 @@ const ALLOWED_PATHS = [
   /^v1\/teams\/\d+\/solves$/,
   /^v1\/teams\/\d+\/members$/,
   /^v1\/challenges$/,
-  /^v1\/challenges\/\d+$/,
-  /^v1\/submissions\/\d+$/,
 ];
 
 // User paths handled separately with team-membership validation
