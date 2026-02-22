@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import ModalPortal from "@/components/modals/ModalPortal";
 import {
@@ -37,6 +37,21 @@ interface QuestModalProps {
 }
 
 export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) {
+  const [description, setDescription] = useState<string | undefined>(quest.description);
+
+  // Fetch full challenge detail for description (list endpoint omits it on some CTFd versions)
+  useEffect(() => {
+    if (isMock || quest.id < 0) return;
+    fetch(`/api/v1/challenges/${quest.id}`)
+      .then((r) => r.ok ? r.json() : null)
+      .then((json) => {
+        if (json?.success && json.data?.description) {
+          setDescription(json.data.description);
+        }
+      })
+      .catch(() => {});
+  }, [quest.id, isMock]);
+
   // Close on Escape
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -223,9 +238,9 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
                 Quest Description
               </h3>
               <div className="px-3 py-3 rounded-lg bg-stone-800/30 border border-amber-900/10">
-                {quest.description ? (
+                {description ? (
                   <p className="text-amber-200/60 font-medievalsharp text-sm leading-relaxed whitespace-pre-wrap">
-                    {quest.description}
+                    {description}
                   </p>
                 ) : (
                   <p className="text-amber-500/30 font-medievalsharp text-sm italic">
