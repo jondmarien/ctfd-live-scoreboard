@@ -7,8 +7,6 @@ import AdventurerModal from "@/components/modals/AdventurerModal";
 import TeamSummaryModal from "@/components/modals/TeamSummaryModal";
 import type { Team } from "@/hooks/useScoreboard";
 
-const DEFAULT_RANK_CLASS = "bg-stone-700 text-stone-300";
-
 function teamListEntryToTeam(t: TeamListEntry, idx: number): Team {
   return {
     pos: idx + 1,
@@ -75,8 +73,6 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
           const isExpanded = expandedId === team.id;
           const totalScore = team.members.reduce((sum, m) => sum + m.score, 0);
 
-          const rank = idx + 1;
-
           return (
             <div key={team.id}>
               {/* Team row */}
@@ -84,11 +80,6 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 hover:bg-amber-900/15 bg-transparent"
                 onClick={() => setExpandedId(isExpanded ? null : team.id)}
               >
-                {/* Rank */}
-                <span className={`shrink-0 w-8 h-8 rounded-md flex items-center justify-center text-sm font-bold font-quintessential shadow-sm ${DEFAULT_RANK_CLASS}`}>
-                  #{rank}
-                </span>
-
                 {/* Name + eye */}
                 <div className="flex items-center gap-1.5 min-w-0 grow">
                   <span className="min-w-0 truncate font-quintessential text-base text-amber-100/80">

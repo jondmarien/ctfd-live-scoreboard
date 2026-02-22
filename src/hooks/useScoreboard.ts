@@ -129,26 +129,42 @@ async function enrichTeams(teams: Team[]): Promise<Team[] | null> {
   );
   if (teamsToEnrich.length === 0) return null;
 
+  const BATCH_SIZE = 3;
+  const BATCH_DELAY_MS = 400;
+
+  async function fetchTeamEnrichment(t: Team) {
+    const [teamRes, solvesRes] = await Promise.all([
+      fetch(`/api/v1/teams/${t.teamId}`),
+      fetch(`/api/v1/teams/${t.teamId}/solves`),
+    ]);
+    if (!teamRes.ok) return null;
+    const json = await teamRes.json();
+    if (!json.success || !json.data) return null;
+    let solveCount: number | undefined;
+    if (solvesRes.ok) {
+      const solvesJson = await solvesRes.json();
+      if (solvesJson.success && Array.isArray(solvesJson.data)) {
+        solveCount = solvesJson.data.length;
+      }
+    }
+    return { teamId: t.teamId!, data: json.data, solveCount };
+  }
+
   try {
-    const results = await Promise.allSettled(
-      teamsToEnrich.map(async (t) => {
-        const [teamRes, solvesRes] = await Promise.all([
-          fetch(`/api/v1/teams/${t.teamId}`),
-          fetch(`/api/v1/teams/${t.teamId}/solves`),
-        ]);
-        if (!teamRes.ok) return null;
-        const json = await teamRes.json();
-        if (!json.success || !json.data) return null;
-        let solveCount: number | undefined;
-        if (solvesRes.ok) {
-          const solvesJson = await solvesRes.json();
-          if (solvesJson.success && Array.isArray(solvesJson.data)) {
-            solveCount = solvesJson.data.length;
-          }
-        }
-        return { teamId: t.teamId!, data: json.data, solveCount };
-      }),
-    );
+    const allResults: PromiseSettledResult<
+      Awaited<ReturnType<typeof fetchTeamEnrichment>>
+    >[] = [];
+    for (let i = 0; i < teamsToEnrich.length; i += BATCH_SIZE) {
+      const batch = teamsToEnrich.slice(i, i + BATCH_SIZE);
+      const batchResults = await Promise.allSettled(
+        batch.map(fetchTeamEnrichment),
+      );
+      allResults.push(...batchResults);
+      if (i + BATCH_SIZE < teamsToEnrich.length) {
+        await new Promise((r) => setTimeout(r, BATCH_DELAY_MS));
+      }
+    }
+    const results = allResults;
 
     const enrichMap = new Map<
       number,
