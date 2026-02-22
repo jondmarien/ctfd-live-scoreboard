@@ -122,83 +122,36 @@ const MOCK_TEAMS: Team[] = [
   },
 ];
 
-// Batch-fetch team details from CTFd teams API (non-blocking enrichment)
-async function enrichTeams(teams: Team[]): Promise<Team[] | null> {
-  const teamsToEnrich = teams.filter(
-    (t) => t.teamId && t.solveCount === undefined,
+// Fetch solve counts for all teams in a single parallel burst.
+// Returns a Map of teamId → solveCount. Failures are silently skipped.
+async function fetchAllSolveCounts(
+  teams: Team[],
+): Promise<Map<number, number>> {
+  const teamsWithId = teams.filter((t) => t.teamId);
+  if (teamsWithId.length === 0) return new Map();
+
+  const results = await Promise.allSettled(
+    teamsWithId.map(async (t) => {
+      const res = await fetch(`/api/v1/teams/${t.teamId}/solves`);
+      if (!res.ok) return { teamId: t.teamId!, count: 0 };
+      const json = await res.json();
+      const count =
+        json.success && Array.isArray(json.data) ? json.data.length : 0;
+      return { teamId: t.teamId!, count };
+    }),
   );
-  console.log(`[enrichTeams] ${teamsToEnrich.length}/${teams.length} teams need enrichment`);
-  if (teamsToEnrich.length === 0) return null;
 
-  const BATCH_SIZE = 3;
-  const BATCH_DELAY_MS = 400;
-
-  async function fetchTeamEnrichment(t: Team) {
-    const [teamRes, solvesRes] = await Promise.all([
-      fetch(`/api/v1/teams/${t.teamId}`),
-      fetch(`/api/v1/teams/${t.teamId}/solves`),
-    ]);
-    if (!teamRes.ok) return null;
-    const json = await teamRes.json();
-    if (!json.success || !json.data) return null;
-    let solveCount: number | undefined;
-    if (solvesRes.ok) {
-      const solvesJson = await solvesRes.json();
-      if (solvesJson.success && Array.isArray(solvesJson.data)) {
-        solveCount = solvesJson.data.length;
-      }
+  const solveMap = new Map<number, number>();
+  for (const r of results) {
+    if (r.status === "fulfilled") {
+      solveMap.set(r.value.teamId, r.value.count);
     }
-    console.log(`[enrichTeams] team ${t.teamId} (${t.name}): solveCount=${solveCount}`);
-    return { teamId: t.teamId!, data: json.data, solveCount };
   }
-
-  try {
-    const allResults: PromiseSettledResult<
-      Awaited<ReturnType<typeof fetchTeamEnrichment>>
-    >[] = [];
-    for (let i = 0; i < teamsToEnrich.length; i += BATCH_SIZE) {
-      const batch = teamsToEnrich.slice(i, i + BATCH_SIZE);
-      const batchResults = await Promise.allSettled(
-        batch.map(fetchTeamEnrichment),
-      );
-      allResults.push(...batchResults);
-      if (i + BATCH_SIZE < teamsToEnrich.length) {
-        await new Promise((r) => setTimeout(r, BATCH_DELAY_MS));
-      }
-    }
-    const results = allResults;
-
-    const enrichMap = new Map<
-      number,
-      {
-        affiliation?: string;
-        country?: string;
-        website?: string;
-        solveCount?: number;
-      }
-    >();
-    for (const r of results) {
-      if (r.status === "fulfilled" && r.value) {
-        enrichMap.set(r.value.teamId, {
-          affiliation: r.value.data.affiliation || undefined,
-          country: r.value.data.country || undefined,
-          website: r.value.data.website || undefined,
-          solveCount: r.value.solveCount,
-        });
-      }
-    }
-
-    console.log(`[enrichTeams] enrichMap has ${enrichMap.size} entries:`, [...enrichMap.entries()].map(([id, v]) => `${id}=${v.solveCount}`).join(', '));
-    if (enrichMap.size === 0) return null;
-
-    return teams.map((t) => {
-      if (!t.teamId) return t;
-      const extra = enrichMap.get(t.teamId);
-      return extra ? { ...t, ...extra } : t;
-    });
-  } catch {
-    return null;
-  }
+  console.log(
+    `[fetchAllSolveCounts] ${solveMap.size}/${teamsWithId.length} teams:`,
+    [...solveMap.entries()].map(([id, c]) => `${id}=${c}`).join(", "),
+  );
+  return solveMap;
 }
 
 const REFRESH_INTERVAL = 30_000; // 30 seconds
@@ -248,19 +201,18 @@ export function useScoreboard(): ScoreboardData & {
             })),
           }),
         );
-        console.log(`[fetchScoreboard] parsed ${parsed.length} teams:`, parsed.map(t => `${t.teamId}:${t.name}(sc=${t.solveCount})`).join(', '));
-        setTeams(parsed);
+        // Fetch all solve counts in parallel, then set teams once
+        const solveMap = await fetchAllSolveCounts(parsed);
+        const enriched = parsed.map((t) => ({
+          ...t,
+          solveCount: t.teamId ? (solveMap.get(t.teamId) ?? 0) : 0,
+        }));
+        console.log(
+          `[fetchScoreboard] ${enriched.length} teams:`,
+          enriched.map((t) => `${t.teamId}:${t.name}(sc=${t.solveCount})`).join(", "),
+        );
+        setTeams(enriched);
         setIsMock(false);
-
-        // Non-blocking team enrichment
-        enrichTeams(parsed).then((enriched) => {
-          if (enriched) {
-            console.log(`[fetchScoreboard] enrichment done:`, enriched.map(t => `${t.teamId}:${t.name}(sc=${t.solveCount})`).join(', '));
-            setTeams(enriched);
-          } else {
-            console.log(`[fetchScoreboard] enrichment returned null`);
-          }
-        });
       }
       setError(null);
       setLastUpdate(new Date());
