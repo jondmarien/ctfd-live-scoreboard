@@ -99,18 +99,8 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
 
                 {/* Info pills + stats — fixed width to match scoreboard alignment */}
                 <div className="shrink-0 hidden sm:flex items-center ml-auto w-[250px]">
-                  {/* Left side: optional pills + member count pushed toward pipe */}
+                  {/* Left side: member count pushed toward pipe */}
                   <div className="flex-1 flex items-center justify-end gap-2">
-                    {team.affiliation && (
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-medievalsharp text-amber-400/50 bg-stone-800/40 border border-amber-900/15 truncate max-w-[80px]">
-                        {team.affiliation}
-                      </span>
-                    )}
-                    {team.country && (
-                      <span className="text-xs text-amber-500/40 font-medievalsharp shrink-0">
-                        📍 {team.country}
-                      </span>
-                    )}
                     <span className="text-xs text-amber-600/40 font-medievalsharp shrink-0">
                       ■ {team.members.length} member{team.members.length !== 1 ? "s" : ""}
                     </span>
