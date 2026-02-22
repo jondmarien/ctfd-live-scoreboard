@@ -127,6 +127,7 @@ async function enrichTeams(teams: Team[]): Promise<Team[] | null> {
   const teamsToEnrich = teams.filter(
     (t) => t.teamId && t.solveCount === undefined,
   );
+  console.log(`[enrichTeams] ${teamsToEnrich.length}/${teams.length} teams need enrichment`);
   if (teamsToEnrich.length === 0) return null;
 
   const BATCH_SIZE = 3;
@@ -147,6 +148,7 @@ async function enrichTeams(teams: Team[]): Promise<Team[] | null> {
         solveCount = solvesJson.data.length;
       }
     }
+    console.log(`[enrichTeams] team ${t.teamId} (${t.name}): solveCount=${solveCount}`);
     return { teamId: t.teamId!, data: json.data, solveCount };
   }
 
@@ -186,6 +188,7 @@ async function enrichTeams(teams: Team[]): Promise<Team[] | null> {
       }
     }
 
+    console.log(`[enrichTeams] enrichMap has ${enrichMap.size} entries:`, [...enrichMap.entries()].map(([id, v]) => `${id}=${v.solveCount}`).join(', '));
     if (enrichMap.size === 0) return null;
 
     return teams.map((t) => {
@@ -245,12 +248,18 @@ export function useScoreboard(): ScoreboardData & {
             })),
           }),
         );
+        console.log(`[fetchScoreboard] parsed ${parsed.length} teams:`, parsed.map(t => `${t.teamId}:${t.name}(sc=${t.solveCount})`).join(', '));
         setTeams(parsed);
         setIsMock(false);
 
         // Non-blocking team enrichment
         enrichTeams(parsed).then((enriched) => {
-          if (enriched) setTeams(enriched);
+          if (enriched) {
+            console.log(`[fetchScoreboard] enrichment done:`, enriched.map(t => `${t.teamId}:${t.name}(sc=${t.solveCount})`).join(', '));
+            setTeams(enriched);
+          } else {
+            console.log(`[fetchScoreboard] enrichment returned null`);
+          }
         });
       }
       setError(null);
