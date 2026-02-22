@@ -7,11 +7,7 @@ import AdventurerModal from "@/components/modals/AdventurerModal";
 import TeamSummaryModal from "@/components/modals/TeamSummaryModal";
 import type { Team } from "@/hooks/useScoreboard";
 
-const RANK_COLORS: Record<number, string> = {
-  1: "bg-gradient-to-r from-yellow-700 to-yellow-500 text-yellow-100",
-  2: "bg-gradient-to-r from-gray-500 to-gray-400 text-gray-100",
-  3: "bg-gradient-to-r from-amber-800 to-amber-600 text-amber-100",
-};
+const DEFAULT_RANK_CLASS = "bg-stone-700 text-stone-300";
 
 function teamListEntryToTeam(t: TeamListEntry, idx: number): Team {
   return {
@@ -80,24 +76,22 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
           const totalScore = team.members.reduce((sum, m) => sum + m.score, 0);
 
           const rank = idx + 1;
-          const isTopRank = rank <= 3;
-          const rankClass = RANK_COLORS[rank] || "bg-stone-700 text-stone-300";
 
           return (
             <div key={team.id}>
               {/* Team row */}
               <div
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 hover:bg-amber-900/15 ${isTopRank ? "bg-amber-950/20" : "bg-transparent"}`}
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 hover:bg-amber-900/15 bg-transparent"
                 onClick={() => setExpandedId(isExpanded ? null : team.id)}
               >
                 {/* Rank */}
-                <span className={`shrink-0 w-8 h-8 rounded-md flex items-center justify-center text-sm font-bold font-quintessential shadow-sm ${rankClass}`}>
+                <span className={`shrink-0 w-8 h-8 rounded-md flex items-center justify-center text-sm font-bold font-quintessential shadow-sm ${DEFAULT_RANK_CLASS}`}>
                   #{rank}
                 </span>
 
                 {/* Name + eye */}
                 <div className="flex items-center gap-1.5 min-w-0 grow">
-                  <span className={`min-w-0 truncate font-quintessential text-base ${isTopRank ? "text-amber-200 font-semibold" : "text-amber-100/80"}`}>
+                  <span className="min-w-0 truncate font-quintessential text-base text-amber-100/80">
                     {team.name}
                   </span>
                   <button
@@ -112,26 +106,33 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
                   </button>
                 </div>
 
-                {/* Info pills */}
-                <div className="shrink-0 hidden sm:flex items-center gap-2 ml-auto">
-                  {team.affiliation && (
-                    <span className="px-2 py-0.5 rounded-md text-[10px] font-medievalsharp text-amber-400/50 bg-stone-800/40 border border-amber-900/15">
-                      {team.affiliation}
+                {/* Info pills + stats — fixed width to match scoreboard alignment */}
+                <div className="shrink-0 hidden sm:flex items-center ml-auto w-[250px]">
+                  {/* Left side: optional pills + member count pushed toward pipe */}
+                  <div className="flex-1 flex items-center justify-end gap-2">
+                    {team.affiliation && (
+                      <span className="px-2 py-0.5 rounded-md text-[10px] font-medievalsharp text-amber-400/50 bg-stone-800/40 border border-amber-900/15 truncate max-w-[80px]">
+                        {team.affiliation}
+                      </span>
+                    )}
+                    {team.country && (
+                      <span className="text-xs text-amber-500/40 font-medievalsharp shrink-0">
+                        📍 {team.country}
+                      </span>
+                    )}
+                    <span className="text-xs text-amber-600/40 font-medievalsharp shrink-0">
+                      ■ {team.members.length} member{team.members.length !== 1 ? "s" : ""}
                     </span>
-                  )}
-                  {team.country && (
-                    <span className="text-xs text-amber-500/40 font-medievalsharp">
-                      📍 {team.country}
+                  </div>
+                  {/* Separator */}
+                  <span className="shrink-0 text-amber-700/20 mx-3">│</span>
+                  {/* Score */}
+                  <span className="flex-1 flex items-center justify-end gap-1">
+                    <span className="font-quintessential font-bold text-amber-400/70 tabular-nums text-[22px]">
+                      {totalScore}
                     </span>
-                  )}
-                  <span className="text-xs text-amber-600/40 font-medievalsharp">
-                    {team.members.length} member{team.members.length !== 1 ? "s" : ""}
+                    <span className="text-xs text-amber-600/50 font-medievalsharp">GP</span>
                   </span>
-                  <span className="text-amber-700/20">│</span>
-                  <span className="font-quintessential font-bold text-amber-400/70 tabular-nums">
-                    {totalScore}
-                  </span>
-                  <span className="text-xs text-amber-600/50 font-medievalsharp">GP</span>
                 </div>
 
                 {/* Mobile score */}

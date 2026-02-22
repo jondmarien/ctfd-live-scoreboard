@@ -75,7 +75,7 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
         <div className="shrink-0 hidden sm:flex items-center ml-auto w-[250px]">
           {/* Quest count — fills left half, text pushed toward pipe */}
           <span className="flex-1 text-xs text-amber-600/40 font-medievalsharp text-right">
-            ■ {team.members ? team.members.length : 0} quest{team.members && team.members.length !== 1 ? "s" : ""}
+            ■ {team.solveCount ?? 0} quest{(team.solveCount ?? 0) !== 1 ? "s" : ""}
           </span>
 
           {/* Separator — fixed in center of the 250px container */}

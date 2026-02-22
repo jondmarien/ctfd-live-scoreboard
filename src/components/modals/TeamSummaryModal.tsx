@@ -79,7 +79,7 @@ export default function TeamSummaryModal({ team, onClose }: TeamSummaryModalProp
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         {/* Backdrop */}
         <motion.div
           variants={FADE_IN_VARIANTS}
@@ -96,7 +96,7 @@ export default function TeamSummaryModal({ team, onClose }: TeamSummaryModalProp
           initial="hidden"
           animate="visible"
           exit="hidden"
-          className="relative bg-stone-950/95 w-full max-w-2xl mx-auto my-6 border border-amber-700/30 rounded-2xl shadow-[0_0_60px_rgba(255,165,0,0.08)] flex flex-col max-h-[calc(100vh-3rem)]"
+          className="relative bg-stone-950/95 w-full max-w-2xl border border-amber-700/30 rounded-2xl shadow-[0_0_60px_rgba(255,165,0,0.08)] flex flex-col max-h-[calc(100vh-2rem)]"
         >
           {/* Header */}
           <div className="p-5 border-b border-amber-800/20 bg-stone-900/50">

@@ -15,6 +15,7 @@ export interface Team {
   affiliation?: string;
   country?: string;
   website?: string;
+  solveCount?: number;
 }
 
 interface ScoreboardData {
@@ -26,16 +27,9 @@ interface ScoreboardData {
 }
 
 // Sanitize strings to prevent XSS (regex-based, avoids DOM allocation)
-const HTML_ESCAPE_MAP: Record<string, string> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
-};
 function escapeHTML(str: string | null | undefined): string {
   if (str === null || str === undefined) return "";
-  return str.replace(/[&<>"']/g, (ch) => HTML_ESCAPE_MAP[ch]);
+  return str;
 }
 
 // requestIdleCallback with fallback for Safari / older browsers
@@ -130,27 +124,48 @@ const MOCK_TEAMS: Team[] = [
 
 // Batch-fetch team details from CTFd teams API (non-blocking enrichment)
 async function enrichTeams(teams: Team[]): Promise<Team[] | null> {
-  const teamsToEnrich = teams.filter((t) => t.teamId && !t.affiliation);
+  const teamsToEnrich = teams.filter(
+    (t) => t.teamId && t.solveCount === undefined,
+  );
   if (teamsToEnrich.length === 0) return null;
 
   try {
     const results = await Promise.allSettled(
       teamsToEnrich.map(async (t) => {
-        const res = await fetch(`/api/v1/teams/${t.teamId}`);
-        if (!res.ok) return null;
-        const json = await res.json();
+        const [teamRes, solvesRes] = await Promise.all([
+          fetch(`/api/v1/teams/${t.teamId}`),
+          fetch(`/api/v1/teams/${t.teamId}/solves`),
+        ]);
+        if (!teamRes.ok) return null;
+        const json = await teamRes.json();
         if (!json.success || !json.data) return null;
-        return { teamId: t.teamId!, data: json.data };
+        let solveCount: number | undefined;
+        if (solvesRes.ok) {
+          const solvesJson = await solvesRes.json();
+          if (solvesJson.success && Array.isArray(solvesJson.data)) {
+            solveCount = solvesJson.data.length;
+          }
+        }
+        return { teamId: t.teamId!, data: json.data, solveCount };
       }),
     );
 
-    const enrichMap = new Map<number, { affiliation?: string; country?: string; website?: string }>();
+    const enrichMap = new Map<
+      number,
+      {
+        affiliation?: string;
+        country?: string;
+        website?: string;
+        solveCount?: number;
+      }
+    >();
     for (const r of results) {
       if (r.status === "fulfilled" && r.value) {
         enrichMap.set(r.value.teamId, {
           affiliation: r.value.data.affiliation || undefined,
           country: r.value.data.country || undefined,
           website: r.value.data.website || undefined,
+          solveCount: r.value.solveCount,
         });
       }
     }
