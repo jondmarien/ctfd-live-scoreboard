@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ModalPortal from "@/components/modals/ModalPortal";
 import {
   FADE_IN_VARIANTS,
   SCALE_POP_VARIANTS,
@@ -83,6 +84,7 @@ export default function AdventurerModal({
   const categoryCount = grouped.length;
 
   return (
+    <ModalPortal>
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
         {/* Backdrop */}
@@ -255,6 +257,7 @@ export default function AdventurerModal({
         </motion.div>
       </div>
     </AnimatePresence>
+    </ModalPortal>
   );
 }
 

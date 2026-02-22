@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import ModalPortal from "@/components/modals/ModalPortal";
 import {
   FADE_IN_VARIANTS,
   SCALE_POP_VARIANTS,
@@ -49,6 +50,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
   const hasDecayed = isDynamic && quest.initial_value != null && quest.value < quest.initial_value;
 
   return (
+    <ModalPortal>
     <AnimatePresence>
       {/* Backdrop */}
       <motion.div
@@ -248,6 +250,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
         </motion.div>
       </div>
     </AnimatePresence>
+    </ModalPortal>
   );
 }
 
