@@ -176,6 +176,7 @@ export default memo(TeamCard, (prev, next) => {
     a.score === b.score &&
     a.members?.length === b.members?.length &&
     a.affiliation === b.affiliation &&
+    a.solveCount === b.solveCount &&
     prev.isMock === next.isMock
   );
 });
