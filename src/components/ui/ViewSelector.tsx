@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-export type ViewTab = "scoreboard" | "teams" | "quests";
+export type ViewTab = "scoreboard" | "teams" | "adventurers" | "quests";
 
 interface ViewSelectorProps {
   active: ViewTab;
@@ -10,6 +10,7 @@ interface ViewSelectorProps {
 const TABS: { id: ViewTab; label: string; icon: string }[] = [
   { id: "scoreboard", label: "Scoreboard", icon: "🏆" },
   { id: "teams", label: "Teams", icon: "🛡️" },
+  { id: "adventurers", label: "Adventurers", icon: "🗡️🧙🏻" },
   { id: "quests", label: "Quests", icon: "⚔️" },
 ];
 

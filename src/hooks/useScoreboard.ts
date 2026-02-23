@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-interface TeamMember {
+export interface TeamMember {
   id: number;
   name: string;
   score: number;
@@ -209,7 +209,9 @@ export function useScoreboard(): ScoreboardData & {
         }));
         console.log(
           `[fetchScoreboard] ${enriched.length} teams:`,
-          enriched.map((t) => `${t.teamId}:${t.name}(sc=${t.solveCount})`).join(", "),
+          enriched
+            .map((t) => `${t.teamId}:${t.name}(sc=${t.solveCount})`)
+            .join(", "),
         );
         setTeams(enriched);
         setIsMock(false);
