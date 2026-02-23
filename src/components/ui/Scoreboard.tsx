@@ -6,6 +6,7 @@ import ViewSelector, { type ViewTab } from "@/components/ui/ViewSelector";
 import TeamsView from "@/components/ui/TeamsView";
 import ChallengesView from "@/components/ui/ChallengesView";
 import AdventurersView from "@/components/ui/AdventurersView";
+import ChangelogView from "@/components/ui/ChangelogView";
 
 export default function Scoreboard() {
   const { teams, loading, lastUpdate, isMock } = useScoreboard();
@@ -53,6 +54,7 @@ export default function Scoreboard() {
             {activeView === "teams" && <TeamsView onLastUpdate={setViewLastUpdate} />}
             {activeView === "adventurers" && <AdventurersView teams={teams} isMock={isMock} />}
             {activeView === "quests" && <ChallengesView onLastUpdate={setViewLastUpdate} />}
+            {activeView === "changelog" && <ChangelogView />}
           </div>
 
           {/* Timestamp footer */}

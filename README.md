@@ -33,14 +33,26 @@ A high-fantasy themed live scoreboard for CTFd, built for **ISSessions Fantasy C
 - **Quest Detail Modal** — Click any quest to see description, current/original GP value, solve count, tags, max attempts, and value decay for dynamic challenges
 - **Mock Data Fallback** — Fantasy-themed sample quests displayed before the competition begins
 
-### Teams View
+### Guilds View
 
-- **Guild Registry** — Browse all registered teams with member counts and scores
-- **Adventurer & Team Modals** — Drill into any team or member for full details
+- **Guild Registry** — Browse all registered guilds with member counts and scores
+- **Adventurer & Team Modals** — Drill into any guild or member for full details
+
+### Adventurers View
+
+- **Individual Rankings** — Every adventurer ranked by their personal Gold Pieces, derived from scoreboard data
+- **Adventurer Modal** — Click any adventurer for their full quest log and stats
+
+### Changelog (Chronicle of Changes)
+
+- **📜 Scroll Icon** — Access the changelog via the scroll button next to the view selector
+- **Timeline Layout** — A vertical timeline with dates, version badges, and tags
+- **Fantasy Themed** — Styled with the same amber-and-stone palette and medieval fonts as the rest of the board
+- **Full History** — Every major update since the React rebuild documented in rich detail
 
 ### General
 
-- **Fantasy Terminology** — Teams are "Adventuring Parties", points are "Gold Pieces (GP)", challenges are "Quests", categories are "Realms"
+- **Fantasy Terminology** — Teams are "Guilds", points are "Gold Pieces (GP)", challenges are "Quests", categories are "Realms"
 - **Last Scrying Footer** — Shows when data was last refreshed on every view
 - **Auto-refresh** — Scries the CTFd API every 30 seconds with server-side caching
 - **Responsive Design** — Works on guild halls of all sizes (mobile-friendly)
@@ -142,10 +154,12 @@ src/
 │   │   └── TeamSummaryModal.tsx # Full team overview
 │   └── ui/                     # Core UI components
 │       ├── Scoreboard.tsx       # Main container + view switching
-│       ├── ViewSelector.tsx     # Tab bar (Scoreboard / Teams / Quests)
+│       ├── ViewSelector.tsx     # Tab bar (Scoreboard / Guilds / Adventurers / Quests) + 📜 changelog button
 │       ├── TeamCard.tsx         # Expandable team row
 │       ├── ChallengesView.tsx   # Quest board grouped by realm
 │       ├── TeamsView.tsx        # Guild registry list
+│       ├── AdventurersView.tsx  # Individual adventurer rankings
+│       ├── ChangelogView.tsx    # Chronicle of Changes timeline
 │       ├── Header.tsx           # Banner + animated title
 │       ├── SpotlightCard.tsx    # Mouse-follow spotlight card
 │       └── StarBorder.tsx       # Animated border effect
@@ -155,6 +169,8 @@ src/
 │   ├── useChallengeCache.ts     # Challenge cache + mock data fallback
 │   ├── useTeamDetails.ts        # Individual team details
 │   └── useAdventurerDetails.ts  # Individual player details
+├── data/
+│   └── changelog.ts             # Changelog entries (typed array)
 ├── lib/
 │   ├── animations.ts            # Shared Framer Motion variants
 │   └── utils.ts                 # Utility functions

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-export type ViewTab = "scoreboard" | "teams" | "adventurers" | "quests";
+export type ViewTab = "scoreboard" | "teams" | "adventurers" | "quests" | "changelog";
 
 interface ViewSelectorProps {
   active: ViewTab;
@@ -9,14 +9,15 @@ interface ViewSelectorProps {
 
 const TABS: { id: ViewTab; label: string; icon: string }[] = [
   { id: "scoreboard", label: "Scoreboard", icon: "🏆" },
-  { id: "teams", label: "Teams", icon: "🛡️" },
+  { id: "teams", label: "Guilds", icon: "🛡️" },
   { id: "adventurers", label: "Adventurers", icon: "🗡️🧙🏻" },
   { id: "quests", label: "Quests", icon: "⚔️" },
 ];
 
 export default function ViewSelector({ active, onChange }: ViewSelectorProps) {
   return (
-    <div className="flex items-center justify-center gap-1 p-1 rounded-lg bg-stone-900/50 border border-amber-800/20 mb-4">
+    <div className="flex items-center justify-center gap-2 mb-4">
+    <div className="flex items-center gap-1 p-1 rounded-lg bg-stone-900/50 border border-amber-800/20">
       {TABS.map((tab) => (
         <button
           key={tab.id}
@@ -43,6 +44,22 @@ export default function ViewSelector({ active, onChange }: ViewSelectorProps) {
           </span>
         </button>
       ))}
+    </div>
+    {/* Changelog scroll button */}
+    <button
+      onClick={() => onChange("changelog")}
+      title="Changelog"
+      className={`
+        relative p-2 rounded-lg text-lg
+        border transition-all duration-200
+        ${active === "changelog"
+          ? "bg-amber-800/20 border-amber-700/30 text-amber-200 shadow-[0_0_8px_rgba(255,165,0,0.15)]"
+          : "bg-stone-900/50 border-amber-800/20 text-amber-500/40 hover:text-amber-400/60 hover:border-amber-700/20"
+        }
+      `}
+    >
+      📜
+    </button>
     </div>
   );
 }
