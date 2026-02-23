@@ -147,10 +147,6 @@ async function fetchAllSolveCounts(
       solveMap.set(r.value.teamId, r.value.count);
     }
   }
-  console.log(
-    `[fetchAllSolveCounts] ${solveMap.size}/${teamsWithId.length} teams:`,
-    [...solveMap.entries()].map(([id, c]) => `${id}=${c}`).join(", "),
-  );
   return solveMap;
 }
 
@@ -207,12 +203,6 @@ export function useScoreboard(): ScoreboardData & {
           ...t,
           solveCount: t.teamId ? (solveMap.get(t.teamId) ?? 0) : 0,
         }));
-        console.log(
-          `[fetchScoreboard] ${enriched.length} teams:`,
-          enriched
-            .map((t) => `${t.teamId}:${t.name}(sc=${t.solveCount})`)
-            .join(", "),
-        );
         setTeams(enriched);
         setIsMock(false);
       }
