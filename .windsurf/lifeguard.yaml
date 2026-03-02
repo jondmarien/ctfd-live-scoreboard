@@ -1,0 +1,7 @@
+rules: []
+memories:
+  - title: ""
+    description: "In src/hooks/useChallengeCache.ts, the new fetchSolveCounts function attempts to fetch data from /api/v1/statistics/challenges/solves, which is not a valid CTFd API endpoint. The code added this endpoint to the ALLOWED_PATHS in api/[...path].ts (line 31: /^v1\\/statistics\\/challenges\\/solves(\\/percentages)?$/), but CTFd does not provide this endpoint by default. When fetchSolveCounts is called in fetchChallenges (line 254), it fails and returns an empty Map. This causes all challenges to show 0 solves because the code then uses solveCounts.get(c.id) ?? 0 (line 266), which always returns 0 when the map is empty. This breaks the new 'Most Conquered', 'Least Conquered', and 'Unconquered' features in ChallengesView.tsx, as they rely on accurate solve counts to filter and sort challenges. The features will incorrectly show all challenges as having 0 solves, making the 'Most Conquered' and 'Least Conquered' sections empty, and all challenges appearing in 'Unconquered'."
+    file: c:\Users\nucle\Projects\ctfd-live-scoreboard\src\hooks\useChallengeCache.ts
+    line: 230
+    comment: this endpoint is reachable/usable with admin keys, and we have such, so it works fine.
