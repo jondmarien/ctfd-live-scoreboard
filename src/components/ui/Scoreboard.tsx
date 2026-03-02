@@ -7,6 +7,7 @@ import TeamsView from "@/components/ui/TeamsView";
 import ChallengesView from "@/components/ui/ChallengesView";
 import AdventurersView from "@/components/ui/AdventurersView";
 import ChangelogView from "@/components/ui/ChangelogView";
+import ScoreboardGraph from "@/components/ui/ScoreboardGraph";
 
 export default function Scoreboard() {
   const { teams, loading, lastUpdate, isMock } = useScoreboard();
@@ -37,6 +38,9 @@ export default function Scoreboard() {
           <div className="flex justify-center -mb-1 pt-2">
             <span className="text-amber-500/50 text-sm">⚜</span>
           </div>
+
+          {/* Scoreboard graph — shown above team list */}
+          {activeView === "scoreboard" && <ScoreboardGraph />}
 
           {/* Content area */}
           <div className="px-2 py-2 space-y-0.5">

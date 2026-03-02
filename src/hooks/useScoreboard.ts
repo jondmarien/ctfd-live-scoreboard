@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { fetchWithRetry } from "@/lib/fetchWithRetry";
 
 export interface TeamMember {
   id: number;
@@ -132,7 +133,7 @@ async function fetchAllSolveCounts(
 
   const results = await Promise.allSettled(
     teamsWithId.map(async (t) => {
-      const res = await fetch(`/api/v1/teams/${t.teamId}/solves`);
+      const res = await fetchWithRetry(`/api/v1/teams/${t.teamId}/solves`);
       if (!res.ok) return { teamId: t.teamId!, count: 0 };
       const json = await res.json();
       const count =
@@ -166,7 +167,7 @@ export function useScoreboard(): ScoreboardData & {
 
   const fetchScoreboard = useCallback(async () => {
     try {
-      const response = await fetch("/api/v1/scoreboard");
+      const response = await fetchWithRetry("/api/v1/scoreboard");
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const data = await response.json();

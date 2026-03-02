@@ -14,6 +14,44 @@ export interface ChangelogSection {
 
 export const changelog: ChangelogEntry[] = [
   {
+    title: "The Oracle's Eye: Quest Intel & the War Map",
+    date: "2026-03-02",
+    version: "v0.9.0",
+    tags: ["Feature", "UI", "Fix"],
+    content: [
+      {
+        body: "The Oracle has spoken. The Quest Board now reveals which battles rage hardest across the realm, and the Scoreboard unfurls a living war map — a score progression chart that traces every guild's rise to power across the timeline of the contest.",
+      },
+      {
+        heading: "The Oracle's Quest Intelligence",
+        body: "Three new collapsible scrolls appear atop the Quest Board, each scrying a different truth from the realm's solve history. Tap any heading to reveal its secrets.",
+        bullets: [
+          "**Most Conquered**: The five quests most guilds have already claimed — well-trodden ground, but worth knowing.",
+          "**Least Conquered**: The five quests only the bravest have overcome — where reputation is forged and glory is scarce.",
+          "**Unconquered**: Every quest that has yet to be claimed by a single soul. These are the untouched relics of the realm — be the first to break them.",
+        ],
+      },
+      {
+        heading: "The War Map",
+        body: "A score progression chart now rests above the scoreboard rankings, hidden beneath the 📈 banner until summoned. Expand it to reveal a living record of each top guild's cumulative score, plotted across the full span of the contest.",
+        bullets: [
+          "**Top 10 Guilds Tracked**: Every line traces a guild's rise from silence to supremacy — or their quiet fade into history.",
+          "**Collapse by Default**: The map sleeps until called upon. Click the header to unfurl it; click again to seal it away.",
+          "**Amber Tooltip**: Hovering any point in time reveals where every guild stood at that exact moment, rendered in the board's signature amber palette.",
+          "**Mock Scroll**: When the realm has not yet begun, a sample war map keeps the chart from going dark.",
+        ],
+      },
+      {
+        heading: "Scrolls of Mending",
+        body: "Two curses plaguing the realm have been lifted.",
+        bullets: [
+          "**Unconquered Quests Now Revealed**: The Unconquered scroll was showing empty even when unsolved quests existed. The Oracle now consults the realm's official tally directly, ensuring no quest hides from the light.",
+          "**Adventurer Roster Throttled**: The Guilds tab was summoning too many adventurer spirits at once, overwhelming the realm's gate and triggering rejections. Spirits are now called forth in measured groups, three at a time, ensuring every adventurer arrives safely.",
+        ],
+      },
+    ],
+  },
+  {
     title: "Guilds & the Chronicle: A New Identity",
     date: "2026-02-23",
     version: "v0.8.0",

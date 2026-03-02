@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { fetchWithRetry } from "@/lib/fetchWithRetry";
 
 export interface TeamListEntry {
   id: number;
@@ -33,12 +34,34 @@ let _lastUpdateTime: Date | null = null;
 // Per-user profile cache — avoids re-fetching the same user across teams
 const _userProfileCache = new Map<number, TeamListMember>();
 
+// Concurrency limiter — CTFd rate-limits at ~60 req/min; cap parallel user fetches to 3
+const MAX_CONCURRENT_USER_FETCHES = 3;
+
+async function fetchWithConcurrencyLimit<T>(
+  tasks: (() => Promise<T>)[],
+  limit: number,
+): Promise<T[]> {
+  const results: T[] = new Array(tasks.length);
+  let index = 0;
+
+  async function worker() {
+    while (index < tasks.length) {
+      const i = index++;
+      results[i] = await tasks[i]();
+    }
+  }
+
+  const workers = Array.from({ length: Math.min(limit, tasks.length) }, worker);
+  await Promise.all(workers);
+  return results;
+}
+
 async function fetchTeamsData(): Promise<TeamListEntry[]> {
   if (_fetching) return _teamsCache;
   _fetching = true;
 
   try {
-    const res = await fetch("/api/v1/teams");
+    const res = await fetchWithRetry("/api/v1/teams");
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
 
@@ -56,7 +79,7 @@ async function fetchTeamsData(): Promise<TeamListEntry[]> {
         let members: TeamListMember[] = [];
         try {
           // Team detail returns members as an array of user IDs
-          const teamRes = await fetch(`/api/v1/teams/${t.id}`);
+          const teamRes = await fetchWithRetry(`/api/v1/teams/${t.id}`);
           if (teamRes.ok) {
             const teamJson = await teamRes.json();
             const rawMemberIds: number[] =
@@ -69,14 +92,13 @@ async function fetchTeamsData(): Promise<TeamListEntry[]> {
               ? [...rawMemberIds, captainId]
               : rawMemberIds;
 
-            // Fetch each user's profile in parallel (with per-user cache)
-            const userDetails = await Promise.allSettled(
-              memberIds.map(async (uid: number) => {
-                // Return cached profile if available
-                const cached = _userProfileCache.get(uid);
-                if (cached) return cached;
+            // Fetch each user's profile with concurrency cap (avoids 420 rate limits)
+            const tasks = memberIds.map((uid: number) => async () => {
+              const cached = _userProfileCache.get(uid);
+              if (cached) return cached;
 
-                const userRes = await fetch(`/api/v1/users/${uid}`);
+              try {
+                const userRes = await fetchWithRetry(`/api/v1/users/${uid}`);
                 if (!userRes.ok) return null;
                 const userJson = await userRes.json();
                 if (!userJson.success) return null;
@@ -87,14 +109,17 @@ async function fetchTeamsData(): Promise<TeamListEntry[]> {
                 };
                 _userProfileCache.set(uid, profile);
                 return profile;
-              }),
+              } catch {
+                return null;
+              }
+            });
+            const userDetails = await fetchWithConcurrencyLimit(
+              tasks,
+              MAX_CONCURRENT_USER_FETCHES,
             );
-            members = userDetails
-              .filter(
-                (r): r is PromiseFulfilledResult<TeamListMember | null> =>
-                  r.status === "fulfilled" && r.value !== null,
-              )
-              .map((r) => r.value!);
+            members = userDetails.filter(
+              (r): r is TeamListMember => r !== null,
+            );
           }
         } catch {
           // Team detail fetch failed — continue without members

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronDown } from "lucide-react";
 import { useChallengeCache, type ChallengeInfo } from "@/hooks/useChallengeCache";
 import QuestModal from "@/components/modals/QuestModal";
 
@@ -21,6 +22,90 @@ function getCategoryColor(category: string): string {
     if (key.includes(k)) return v;
   }
   return "bg-amber-500/20 text-amber-300 border-amber-500/30";
+}
+
+interface QuestIntelSectionProps {
+  title: string;
+  icon: string;
+  quests: ChallengeInfo[];
+  onSelect: (q: ChallengeInfo) => void;
+  emptyText: string;
+  accentClass: string;
+}
+
+function QuestIntelSection({ title, icon, quests, onSelect, emptyText, accentClass }: QuestIntelSectionProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="rounded-lg border border-amber-900/20 bg-stone-900/30 overflow-hidden">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between px-3 py-2 hover:bg-amber-900/10 transition-colors group"
+      >
+        <span className="font-medievalsharp text-xs text-amber-500/60 uppercase tracking-widest flex items-center gap-2 group-hover:text-amber-400/80 transition-colors">
+          <span>{icon}</span>
+          {title}
+          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${accentClass}`}>
+            {quests.length}
+          </span>
+        </span>
+        <motion.div
+          animate={{ rotate: open ? 180 : 0 }}
+          transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        >
+          <ChevronDown className="w-3 h-3 text-amber-600/40 group-hover:text-amber-500/60 transition-colors" />
+        </motion.div>
+      </button>
+
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="content"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 300, damping: 35 }}
+            style={{ overflow: "hidden" }}
+          >
+            <div className="px-2 pb-2 space-y-0.5">
+              {quests.length === 0 ? (
+                <p className="text-center py-3 font-medievalsharp text-xs text-amber-600/30">
+                  {emptyText}
+                </p>
+              ) : (
+                quests.map((q) => (
+                  <div
+                    key={q.id}
+                    className="flex items-center justify-between px-3 py-2 rounded-lg bg-stone-800/30 border border-amber-900/10 cursor-pointer hover:bg-stone-800/50 transition-colors"
+                    onClick={() => onSelect(q)}
+                  >
+                    <div className="flex items-center gap-2 min-w-0 mr-3">
+                      <span
+                        className={`shrink-0 px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${getCategoryColor(q.category)}`}
+                      >
+                        {q.category}
+                      </span>
+                      <span className="text-amber-200/70 font-medievalsharp text-sm truncate">
+                        {q.name}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-amber-500/40 font-medievalsharp text-[10px]">
+                        {q.solves} solve{q.solves !== 1 ? "s" : ""}
+                      </span>
+                      <span className="text-amber-400/60 font-quintessential text-sm font-bold">
+                        {q.value} GP
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
 }
 
 export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Date | null) => void }) {
@@ -55,6 +140,12 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
   }
   const categories = Array.from(grouped.entries()).sort((a, b) => a[0].localeCompare(b[0]));
 
+  // Solve intel sections
+  const solved = challengeArr.filter((c) => c.solves > 0);
+  const mostConquered = [...solved].sort((a, b) => b.solves - a.solves).slice(0, 5);
+  const leastConquered = [...solved].sort((a, b) => a.solves - b.solves).slice(0, 5);
+  const unconquered = challengeArr.filter((c) => c.solves === 0);
+
   return (
     <>
     <div className="space-y-4 px-1">
@@ -75,6 +166,34 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
         <span className="font-quintessential text-xs text-amber-400/50">
           {challengeArr.reduce((sum, c) => sum + c.value, 0)} GP total
         </span>
+      </div>
+
+      {/* Quest Intel Sections */}
+      <div className="space-y-1.5">
+        <QuestIntelSection
+          title="Most Conquered"
+          icon="🏆"
+          quests={mostConquered}
+          onSelect={setSelectedQuest}
+          emptyText="No quests have been solved yet."
+          accentClass="bg-amber-500/10 text-amber-400/60 border-amber-600/20"
+        />
+        <QuestIntelSection
+          title="Least Conquered"
+          icon="⚔️"
+          quests={leastConquered}
+          onSelect={setSelectedQuest}
+          emptyText="No quests have been solved yet."
+          accentClass="bg-orange-500/10 text-orange-400/60 border-orange-600/20"
+        />
+        <QuestIntelSection
+          title="Unconquered"
+          icon="💀"
+          quests={unconquered}
+          onSelect={setSelectedQuest}
+          emptyText="All quests have been conquered!"
+          accentClass="bg-red-500/10 text-red-400/60 border-red-600/20"
+        />
       </div>
 
       {/* Categories */}

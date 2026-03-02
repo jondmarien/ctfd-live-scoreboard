@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { fetchWithRetry } from "@/lib/fetchWithRetry";
 
 export interface ChallengeInfo {
   id: number;
@@ -226,12 +227,33 @@ let _lastFetch = 0;
 let _fetching = false;
 let _isMock = false;
 
+async function fetchSolveCounts(): Promise<Map<number, number>> {
+  try {
+    const res = await fetchWithRetry("/api/v1/statistics/challenges/solves");
+    if (!res.ok) return new Map();
+    const json = await res.json();
+    if (!json.success || !Array.isArray(json.data)) return new Map();
+    const m = new Map<number, number>();
+    for (const entry of json.data) {
+      if (typeof entry.id === "number" && typeof entry.solves === "number") {
+        m.set(entry.id, entry.solves);
+      }
+    }
+    return m;
+  } catch {
+    return new Map();
+  }
+}
+
 async function fetchChallenges(): Promise<Map<number, ChallengeInfo>> {
   if (_fetching) return _cache;
   _fetching = true;
 
   try {
-    const res = await fetch("/api/v1/challenges");
+    const [res, solveCounts] = await Promise.all([
+      fetchWithRetry("/api/v1/challenges"),
+      fetchSolveCounts(),
+    ]);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
 
@@ -241,13 +263,16 @@ async function fetchChallenges(): Promise<Map<number, ChallengeInfo>> {
 
     const map = new Map<number, ChallengeInfo>();
     for (const c of json.data) {
+      const solves = solveCounts.size > 0
+        ? (solveCounts.get(c.id) ?? 0)
+        : (c.solves ?? 0);
       map.set(c.id, {
         id: c.id,
         name: c.name ?? "Unknown",
         category: c.category ?? "Uncategorized",
         value: c.value ?? 0,
         type: c.type ?? "standard",
-        solves: c.solves ?? 0,
+        solves,
         description: c.description,
         initial_value: c.initial_value,
         tags: Array.isArray(c.tags)
