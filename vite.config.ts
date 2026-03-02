@@ -58,7 +58,6 @@ export default defineConfig(({ mode }) => {
             "@tsparticles/slim",
           ],
           recharts: ["recharts"],
-          vendor: ["react", "react-dom"],
         },
       },
     },
