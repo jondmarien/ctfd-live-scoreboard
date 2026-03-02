@@ -30,6 +30,28 @@ function formatTime(ts: number): string {
   return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
+function makeTickFormatter(allTimes: number[]) {
+  // Find the unique calendar days present in the data
+  const dayOf = (ts: number) => new Date(ts).toDateString();
+  const days = Array.from(new Set(allTimes.map(dayOf)));
+  const multiDay = days.length > 1;
+
+  // For each tick, prefix with short date if this is the first tick of a new day
+  const seenDays = new Set<string>();
+  return (ts: number): string => {
+    const d = new Date(ts);
+    const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    if (!multiDay) return time;
+    const day = dayOf(ts);
+    if (!seenDays.has(day)) {
+      seenDays.add(day);
+      const label = d.toLocaleDateString([], { month: "short", day: "numeric" });
+      return `${label} ${time}`;
+    }
+    return time;
+  };
+}
+
 function buildChartData(
   seriesList: { teamId: number; name: string; series: { time: number; score: number }[] }[],
 ) {
@@ -81,6 +103,8 @@ export default function ScoreboardGraph() {
   const [open, setOpen] = useState(false);
   const { series, loading, isMock } = useScoreboardTop(10);
 
+  const allTimes = series.flatMap((s) => s.series.map((p) => p.time));
+  const tickFormatter = makeTickFormatter(allTimes);
   const chartData = open ? buildChartData(series) : [];
 
   return (
@@ -134,7 +158,7 @@ export default function ScoreboardGraph() {
                   >
                     <XAxis
                       dataKey="time"
-                      tickFormatter={formatTime}
+                      tickFormatter={tickFormatter}
                       tick={{ fontSize: 9, fill: "#a16207", fontFamily: "MedievalSharp, serif" }}
                       tickLine={false}
                       axisLine={{ stroke: "#44403c40" }}
