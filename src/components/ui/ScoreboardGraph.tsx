@@ -99,13 +99,15 @@ interface CustomTooltipProps {
   active?: boolean;
   payload?: { name: string; value: number; color: string }[];
   label?: number;
+  virtualToReal?: Map<number, number>;
 }
 
-function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
+function CustomTooltip({ active, payload, label, virtualToReal }: CustomTooltipProps) {
   if (!active || !payload?.length || !label) return null;
+  const realTs = virtualToReal?.get(label) ?? label;
   return (
     <div className="bg-stone-900/95 border border-amber-800/30 rounded-lg px-3 py-2 shadow-xl text-xs">
-      <p className="font-medievalsharp text-amber-400/60 mb-1">{formatTime(label)}</p>
+      <p className="font-medievalsharp text-amber-400/60 mb-1">{formatTime(realTs)}</p>
       {[...payload]
         .sort((a, b) => b.value - a.value)
         .map((p) => (
@@ -123,13 +125,57 @@ function CustomTooltip({ active, payload, label }: CustomTooltipProps) {
   );
 }
 
+// ── Gap compression ─────────────────────────────────────────────────────────
+const GAP_THRESHOLD = 30 * 60 * 1000; // gaps longer than 30 min get compressed
+const GAP_FILL = 5 * 60 * 1000;       // compressed to 5 min of virtual time
+
+function buildVirtualMap(allRealTimes: number[]): Map<number, number> {
+  const sorted = [...new Set(allRealTimes)].sort((a, b) => a - b);
+  const realToVirtual = new Map<number, number>();
+  if (sorted.length === 0) return realToVirtual;
+
+  let virtual = sorted[0];
+  realToVirtual.set(sorted[0], virtual);
+
+  for (let i = 1; i < sorted.length; i++) {
+    const gap = sorted[i] - sorted[i - 1];
+    virtual += gap > GAP_THRESHOLD ? GAP_FILL : gap;
+    realToVirtual.set(sorted[i], virtual);
+  }
+  return realToVirtual;
+}
+
+function buildChartDataCompressed(
+  seriesList: { teamId: number; name: string; series: { time: number; score: number }[] }[],
+  realToVirtual: Map<number, number>,
+): { virtualToReal: Map<number, number>; data: Record<string, number | string>[] } {
+  const allReal = new Set<number>();
+  for (const s of seriesList) for (const p of s.series) allReal.add(p.time);
+  const sorted = Array.from(allReal).sort((a, b) => a - b);
+
+  const virtualToReal = new Map<number, number>();
+  const data = sorted.map((t) => {
+    const vt = realToVirtual.get(t) ?? t;
+    virtualToReal.set(vt, t);
+    const row: Record<string, number | string> = { time: vt };
+    for (const s of seriesList) {
+      const latest = s.series.filter((p) => p.time <= t).at(-1);
+      if (latest) row[s.name] = latest.score;
+    }
+    return row;
+  });
+  return { virtualToReal, data };
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function ScoreboardGraph() {
   const [open, setOpen] = useState(false);
+  const [compressed, setCompressed] = useState(false);
   const { series, loading, isMock } = useScoreboardTop(10);
 
   const allTimes = series.flatMap((s) => s.series.map((p) => p.time));
 
-  // Compute ticks and day-boundary set from actual data timestamps
+  // Real-time chart data + ticks
   const sortedAllTimes = [...allTimes].sort((a, b) => a - b);
   const firstOfDaySet = new Set<number>();
   const seenDayLabels = new Set<string>();
@@ -139,7 +185,23 @@ export default function ScoreboardGraph() {
   }
   const explicitTicks = buildTicks(allTimes);
   const tickFormatter = makeTickFormatter(firstOfDaySet);
-  const chartData = open ? buildChartData(series) : [];
+
+  // Compressed chart data + ticks
+  const realToVirtual = buildVirtualMap(allTimes);
+  const { virtualToReal, data: compressedData } = buildChartDataCompressed(series, realToVirtual);
+  // For compressed ticks: map each real tick to its virtual equivalent
+  const compressedTicks = explicitTicks.map((t) => realToVirtual.get(t) ?? t);
+  const compressedFirstOfDay = new Set<number>(
+    Array.from(firstOfDaySet).map((t) => realToVirtual.get(t) ?? t),
+  );
+  const compressedTickFormatter = (vt: number) => {
+    const real = virtualToReal.get(vt) ?? vt;
+    const d = new Date(real);
+    const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    return compressedFirstOfDay.has(vt) ? `${dayOf(real)} ${time}` : time;
+  };
+
+  const chartData = open ? (compressed ? compressedData : buildChartData(series)) : [];
 
   return (
     <div className="border-b border-amber-800/20">
@@ -185,57 +247,80 @@ export default function ScoreboardGraph() {
                   </span>
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height={220}>
-                  <LineChart
-                    data={chartData}
-                    margin={{ top: 4, right: 8, left: 0, bottom: 4 }}
-                  >
-                    <XAxis
-                      dataKey="time"
-                      type="number"
-                      scale="time"
-                      domain={["dataMin", "dataMax"]}
-                      ticks={explicitTicks}
-                      tickFormatter={tickFormatter}
-                      tick={{ fontSize: 9, fill: "#a16207", fontFamily: "MedievalSharp, serif" }}
-                      tickLine={false}
-                      axisLine={{ stroke: "#44403c40" }}
-                      minTickGap={50}
-                    />
-                    <YAxis
-                      tick={{ fontSize: 9, fill: "#a16207", fontFamily: "MedievalSharp, serif" }}
-                      tickLine={false}
-                      axisLine={false}
-                      tickFormatter={(v: number) =>
-                        v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v)
-                      }
-                      width={36}
-                    />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Legend
-                      wrapperStyle={{
-                        fontSize: "9px",
-                        fontFamily: "MedievalSharp, serif",
-                        color: "#a16207",
-                        paddingTop: "6px",
-                      }}
-                      iconSize={6}
-                      iconType="circle"
-                    />
-                    {series.map((s, i) => (
-                      <Line
-                        key={s.teamId}
-                        type="monotone"
-                        dataKey={s.name}
-                        stroke={TEAM_COLORS[i % TEAM_COLORS.length]}
-                        strokeWidth={1.5}
-                        dot={false}
-                        activeDot={{ r: 3, strokeWidth: 0 }}
-                        connectNulls
+                <>
+                  {/* Compress toggle */}
+                  {seenDayLabels.size > 1 && (
+                    <div className="flex justify-end mb-1">
+                      <button
+                        onClick={() => setCompressed((v) => !v)}
+                        className={`font-medievalsharp text-[9px] uppercase tracking-widest px-2 py-0.5 rounded border transition-colors ${
+                          compressed
+                            ? "bg-amber-600/20 border-amber-600/40 text-amber-400/80"
+                            : "bg-stone-800/30 border-amber-900/20 text-amber-600/40 hover:text-amber-500/60"
+                        }`}
+                      >
+                        {compressed ? "⇔ compressed" : "⇔ compress gaps"}
+                      </button>
+                    </div>
+                  )}
+                  <ResponsiveContainer width="100%" height={220}>
+                    <LineChart
+                      data={chartData}
+                      margin={{ top: 4, right: 8, left: 0, bottom: 4 }}
+                    >
+                      <XAxis
+                        dataKey="time"
+                        type="number"
+                        scale="time"
+                        domain={["dataMin", "dataMax"]}
+                        ticks={compressed ? compressedTicks : explicitTicks}
+                        tickFormatter={compressed ? compressedTickFormatter : tickFormatter}
+                        tick={{ fontSize: 9, fill: "#a16207", fontFamily: "MedievalSharp, serif" }}
+                        tickLine={false}
+                        axisLine={{ stroke: "#44403c40" }}
+                        minTickGap={50}
                       />
-                    ))}
-                  </LineChart>
-                </ResponsiveContainer>
+                      <YAxis
+                        tick={{ fontSize: 9, fill: "#a16207", fontFamily: "MedievalSharp, serif" }}
+                        tickLine={false}
+                        axisLine={false}
+                        tickFormatter={(v: number) =>
+                          v >= 1000 ? `${(v / 1000).toFixed(1)}k` : String(v)
+                        }
+                        width={36}
+                      />
+                      <Tooltip
+                        content={
+                          <CustomTooltip
+                            virtualToReal={compressed ? virtualToReal : undefined}
+                          />
+                        }
+                      />
+                      <Legend
+                        wrapperStyle={{
+                          fontSize: "9px",
+                          fontFamily: "MedievalSharp, serif",
+                          color: "#a16207",
+                          paddingTop: "6px",
+                        }}
+                        iconSize={6}
+                        iconType="circle"
+                      />
+                      {series.map((s, i) => (
+                        <Line
+                          key={s.teamId}
+                          type="monotone"
+                          dataKey={s.name}
+                          stroke={TEAM_COLORS[i % TEAM_COLORS.length]}
+                          strokeWidth={1.5}
+                          dot={false}
+                          activeDot={{ r: 3, strokeWidth: 0 }}
+                          connectNulls
+                        />
+                      ))}
+                    </LineChart>
+                  </ResponsiveContainer>
+                </>
               )}
             </div>
           </motion.div>

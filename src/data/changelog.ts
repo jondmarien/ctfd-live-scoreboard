@@ -37,7 +37,9 @@ export const changelog: ChangelogEntry[] = [
         bullets: [
           "**Top 10 Guilds Tracked**: Every line traces a guild's rise from silence to supremacy — or their quiet fade into history.",
           "**Collapse by Default**: The map sleeps until called upon. Click the header to unfurl it; click again to seal it away.",
-          "**Amber Tooltip**: Hovering any point in time reveals where every guild stood at that exact moment, rendered in the board's signature amber palette.",
+          "**Multi-Day Awareness**: When the contest spans more than one day, each day's start is marked on the timeline so the boundary between days is always clear.",
+          "**Compress Gaps**: A toggle appears on multi-day maps to collapse the overnight silence into a narrow seam — revealing the full arc of battle without the dead hours stretching the chart apart.",
+          "**Amber Tooltip**: Hovering any point in time reveals where every guild stood at that exact moment, rendered in the board's signature amber palette. Even in compressed mode, the tooltip shows the true time of each event.",
           "**Mock Scroll**: When the realm has not yet begun, a sample war map keeps the chart from going dark.",
         ],
       },
