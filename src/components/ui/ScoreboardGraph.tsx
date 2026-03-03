@@ -26,27 +26,51 @@ const TEAM_COLORS = [
 ];
 
 function formatTime(ts: number): string {
-  const d = new Date(ts);
-  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return new Date(ts).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-function makeTickFormatter(allTimes: number[]) {
-  // Find the unique calendar days present in the data
-  const dayOf = (ts: number) => new Date(ts).toDateString();
-  const days = Array.from(new Set(allTimes.map(dayOf)));
-  const multiDay = days.length > 1;
+function dayOf(ts: number) {
+  return new Date(ts).toLocaleDateString([], { month: "short", day: "numeric" });
+}
 
-  // For each tick, prefix with short date if this is the first tick of a new day
-  const seenDays = new Set<string>();
+/** Returns explicit tick timestamps: ~4 evenly spaced per day, always including the first of each day. */
+function buildTicks(allTimes: number[]): number[] {
+  if (allTimes.length === 0) return [];
+  const sorted = [...allTimes].sort((a, b) => a - b);
+
+  // Group into days
+  const byDay = new Map<string, number[]>();
+  for (const ts of sorted) {
+    const d = dayOf(ts);
+    if (!byDay.has(d)) byDay.set(d, []);
+    byDay.get(d)!.push(ts);
+  }
+
+  const ticks: number[] = [];
+  for (const dayTimes of byDay.values()) {
+    // Always include the first timestamp of this day
+    ticks.push(dayTimes[0]);
+    // Add ~3 more evenly spaced ticks within the day
+    const step = Math.floor(dayTimes.length / 4);
+    if (step > 0) {
+      for (let i = step; i < dayTimes.length - step / 2; i += step) {
+        ticks.push(dayTimes[i]);
+      }
+    }
+    // Always include last of day
+    const last = dayTimes[dayTimes.length - 1];
+    if (!ticks.includes(last)) ticks.push(last);
+  }
+
+  return ticks.sort((a, b) => a - b);
+}
+
+function makeTickFormatter(firstOfDaySet: Set<number>) {
   return (ts: number): string => {
     const d = new Date(ts);
     const time = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-    if (!multiDay) return time;
-    const day = dayOf(ts);
-    if (!seenDays.has(day)) {
-      seenDays.add(day);
-      const label = d.toLocaleDateString([], { month: "short", day: "numeric" });
-      return `${label} ${time}`;
+    if (firstOfDaySet.has(ts)) {
+      return `${dayOf(ts)} ${time}`;
     }
     return time;
   };
@@ -104,7 +128,17 @@ export default function ScoreboardGraph() {
   const { series, loading, isMock } = useScoreboardTop(10);
 
   const allTimes = series.flatMap((s) => s.series.map((p) => p.time));
-  const tickFormatter = makeTickFormatter(allTimes);
+
+  // Compute ticks and day-boundary set from actual data timestamps
+  const sortedAllTimes = [...allTimes].sort((a, b) => a - b);
+  const firstOfDaySet = new Set<number>();
+  const seenDayLabels = new Set<string>();
+  for (const ts of sortedAllTimes) {
+    const d = dayOf(ts);
+    if (!seenDayLabels.has(d)) { seenDayLabels.add(d); firstOfDaySet.add(ts); }
+  }
+  const explicitTicks = buildTicks(allTimes);
+  const tickFormatter = makeTickFormatter(firstOfDaySet);
   const chartData = open ? buildChartData(series) : [];
 
   return (
@@ -158,12 +192,15 @@ export default function ScoreboardGraph() {
                   >
                     <XAxis
                       dataKey="time"
+                      type="number"
+                      scale="time"
+                      domain={["dataMin", "dataMax"]}
+                      ticks={explicitTicks}
                       tickFormatter={tickFormatter}
                       tick={{ fontSize: 9, fill: "#a16207", fontFamily: "MedievalSharp, serif" }}
                       tickLine={false}
                       axisLine={{ stroke: "#44403c40" }}
-                      interval="preserveStartEnd"
-                      minTickGap={40}
+                      minTickGap={50}
                     />
                     <YAxis
                       tick={{ fontSize: 9, fill: "#a16207", fontFamily: "MedievalSharp, serif" }}
