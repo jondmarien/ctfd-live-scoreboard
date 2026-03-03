@@ -8,11 +8,14 @@ import ChallengesView from "@/components/ui/ChallengesView";
 import AdventurersView from "@/components/ui/AdventurersView";
 import ChangelogView from "@/components/ui/ChangelogView";
 import ScoreboardGraph from "@/components/ui/ScoreboardGraph";
+import { useTheme } from "@/contexts/ThemeContext";
 
 export default function Scoreboard() {
   const { teams, loading, lastUpdate, isMock } = useScoreboard();
   const [activeView, setActiveView] = useState<ViewTab>("scoreboard");
   const [viewLastUpdate, setViewLastUpdate] = useState<Date | null>(null);
+  const theme = useTheme();
+  const c = theme.classes;
 
   return (
     <main className="relative z-30 w-full max-w-2xl mx-auto px-4 pb-12">
@@ -25,18 +28,13 @@ export default function Scoreboard() {
         {/* Pill selector */}
         <ViewSelector active={activeView} onChange={setActiveView} />
 
-        {/* Gold-bordered container */}
+        {/* Themed container */}
         <div
-          className="
-          rounded-xl overflow-hidden
-          border-2 border-amber-600/40
-          bg-stone-950/50 backdrop-blur-md
-          shadow-[0_0_30px_rgba(255,165,0,0.06)]
-        "
+          className={`rounded-xl overflow-hidden ${c.cardBorder} ${c.cardBg} ${c.cardShadow}`}
         >
           {/* Top ornament */}
           <div className="flex justify-center -mb-1 pt-2">
-            <span className="text-amber-500/50 text-sm">⚜</span>
+            <span className={c.ornament}>⚜</span>
           </div>
 
           {/* Scoreboard graph — shown above team list */}
@@ -65,11 +63,11 @@ export default function Scoreboard() {
           {(() => {
             const ts = activeView === "scoreboard" ? lastUpdate : viewLastUpdate;
             return ts ? (
-              <div className="flex items-center justify-between px-4 py-2 border-t border-amber-800/20 bg-stone-950/30">
-                <span className="font-medievalsharp text-xs text-amber-500/50">
-                  🔮 LAST SCRYING:
+              <div className={`flex items-center justify-between px-4 py-2 ${c.footerBorder} ${c.footerBg}`}>
+                <span className={c.footerText}>
+                  {theme.labels.lastUpdate}
                 </span>
-                <span className="font-quintessential text-xs text-amber-400/60">
+                <span className={c.footerTimestamp}>
                   {ts.toLocaleString()}
                 </span>
               </div>
@@ -82,25 +80,29 @@ export default function Scoreboard() {
 }
 
 function LoadingState() {
+  const theme = useTheme();
+  const c = theme.classes;
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-3">
-      <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-400 rounded-full animate-spin" />
-      <p className="font-medievalsharp text-sm text-amber-400/50 tracking-wider">
-        Consulting the Oracle...
+      <div className={`w-6 h-6 border-2 ${c.spinnerBorder} rounded-full animate-spin`} />
+      <p className={c.loadingText}>
+        {theme.labels.loadingScoreboard}
       </p>
     </div>
   );
 }
 
 function EmptyState() {
+  const theme = useTheme();
+  const c = theme.classes;
   return (
     <div className="flex flex-col items-center justify-center py-8 gap-2">
       <span className="text-2xl">⚠️</span>
-      <p className="font-quintessential text-base text-amber-300/60 text-center">
-        No Adventurers Have Joined
+      <p className={c.emptyTitle}>
+        {theme.labels.emptyScoreboard}
       </p>
-      <p className="font-medievalsharp text-xs text-amber-500/40 text-center">
-        The guild awaits brave souls...
+      <p className={c.emptySubtitle}>
+        {theme.id === "fantasy" ? "The guild awaits brave souls..." : "The competition hasn't started yet."}
       </p>
     </div>
   );

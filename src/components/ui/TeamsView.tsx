@@ -6,6 +6,7 @@ import type { TeamListEntry } from "@/hooks/useTeamsList";
 import AdventurerModal from "@/components/modals/AdventurerModal";
 import TeamSummaryModal from "@/components/modals/TeamSummaryModal";
 import type { Team } from "@/hooks/useScoreboard";
+import { useTheme } from "@/contexts/ThemeContext";
 
 function teamListEntryToTeam(t: TeamListEntry, idx: number): Team {
   return {
@@ -22,6 +23,8 @@ function teamListEntryToTeam(t: TeamListEntry, idx: number): Team {
 
 export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | null) => void }) {
   const { teams, loading, error, lastUpdate } = useTeamsList();
+  const theme = useTheme();
+  const c = theme.classes;
 
   // Bubble lastUpdate up to parent
   useEffect(() => {
@@ -35,10 +38,8 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center py-12 gap-3">
-        <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-400 rounded-full animate-spin" />
-        <p className="font-medievalsharp text-sm text-amber-400/50 tracking-wider">
-          Summoning the guilds...
-        </p>
+        <div className={`w-6 h-6 border-2 ${c.spinnerBorder} rounded-full animate-spin`} />
+        <p className={c.loadingText}>{theme.labels.loadingTeams}</p>
       </div>
     );
   }
@@ -47,7 +48,7 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
     return (
       <div className="flex flex-col items-center justify-center py-8 gap-2">
         <span className="text-2xl">⚠️</span>
-        <p className="font-medievalsharp text-sm text-red-400/60 text-center">{error}</p>
+        <p className={`${c.fontBody} text-sm text-red-400/60 text-center`}>{error}</p>
       </div>
     );
   }
@@ -55,12 +56,10 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
   if (teams.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 gap-2">
-        <span className="text-2xl">🛡️</span>
-        <p className="font-quintessential text-base text-amber-300/50 text-center">
-          No Guilds Found
-        </p>
-        <p className="font-medievalsharp text-xs text-amber-500/30 text-center">
-          The realm awaits its champions...
+        <span className="text-2xl">{theme.id === "fantasy" ? "🛡️" : "👥"}</span>
+        <p className={c.emptyTitle}>{theme.labels.emptyTeams}</p>
+        <p className={c.emptySubtitle}>
+          {theme.id === "fantasy" ? "The realm awaits its champions..." : "No teams have registered yet."}
         </p>
       </div>
     );
@@ -77,12 +76,12 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
             <div key={team.id}>
               {/* Team row */}
               <div
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 hover:bg-amber-900/15 bg-transparent"
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer transition-all duration-200 ${c.rowHover} bg-transparent`}
                 onClick={() => setExpandedId(isExpanded ? null : team.id)}
               >
                 {/* Name + eye */}
                 <div className="flex items-center gap-1.5 min-w-0 grow">
-                  <span className="min-w-0 truncate font-quintessential text-base text-amber-100/80">
+                  <span className={`min-w-0 truncate ${c.fontHeading} text-base text-white/80`}>
                     {team.name}
                   </span>
                   <button
@@ -90,8 +89,8 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
                       e.stopPropagation();
                       setTeamModalData(teamListEntryToTeam(team, idx));
                     }}
-                    className="shrink-0 p-1 rounded-md text-amber-600/30 hover:text-amber-400 hover:bg-amber-900/20 transition-colors"
-                    title="View party details"
+                    className={`shrink-0 p-1 rounded-md ${c.eyeButton} transition-colors`}
+                    title="View details"
                   >
                     <Eye className="w-3.5 h-3.5" />
                   </button>
@@ -99,29 +98,29 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
 
                 {/* Info pills + stats — fixed width to match scoreboard alignment */}
                 <div className="shrink-0 hidden sm:flex items-center ml-auto w-[250px]">
-                  {/* Left side: member count pushed toward pipe */}
+                  {/* Left side: member count */}
                   <div className="flex-1 flex items-center justify-end gap-2">
-                    <span className="text-xs text-amber-600/40 font-medievalsharp shrink-0">
+                    <span className={`text-xs ${c.statLabel} ${c.fontBody} shrink-0`}>
                       ■ {team.members.length} member{team.members.length !== 1 ? "s" : ""}
                     </span>
                   </div>
                   {/* Separator */}
-                  <span className="shrink-0 text-amber-700/20 mx-3">│</span>
+                  <span className={`shrink-0 ${c.separator} mx-3`}>│</span>
                   {/* Score */}
                   <span className="flex-1 flex items-center justify-end gap-1">
-                    <span className="font-quintessential font-bold text-amber-400/70 tabular-nums text-[22px]">
+                    <span className={`${c.fontHeading} font-bold ${c.scoreDefault} tabular-nums text-[22px]`}>
                       {totalScore}
                     </span>
-                    <span className="text-xs text-amber-600/50 font-medievalsharp">GP</span>
+                    <span className={`text-xs ${c.fontBody} ${c.scoreUnit}`}>{theme.labels.scoreUnit}</span>
                   </span>
                 </div>
 
                 {/* Mobile score */}
                 <div className="shrink-0 flex items-center gap-1 ml-auto sm:hidden">
-                  <span className="font-quintessential font-bold text-amber-400/70 tabular-nums">
+                  <span className={`${c.fontHeading} font-bold ${c.scoreDefault} tabular-nums`}>
                     {totalScore}
                   </span>
-                  <span className="text-xs text-amber-600/50 font-medievalsharp">GP</span>
+                  <span className={`text-xs ${c.fontBody} ${c.scoreUnit}`}>{theme.labels.scoreUnit}</span>
                 </div>
               </div>
 
@@ -133,21 +132,21 @@ export default function TeamsView({ onLastUpdate }: { onLastUpdate?: (d: Date | 
                     .map((member) => (
                       <div
                         key={member.id}
-                        className="flex items-center justify-between px-3 py-1.5 rounded bg-stone-800/20 border border-amber-900/10 text-sm cursor-pointer hover:bg-amber-900/15 transition-colors"
+                        className={`flex items-center justify-between px-3 py-1.5 rounded ${c.memberRow} text-sm cursor-pointer ${c.rowHover} transition-colors`}
                         onClick={() => setSelectedMember({ id: member.id, name: member.name, score: member.score })}
                       >
-                        <span className="text-amber-200/60 font-medievalsharp truncate">
-                          🗡️ {member.name}
+                        <span className={`${c.memberName} ${c.fontBody} truncate`}>
+                          {theme.labels.memberPrefix} {member.name}
                         </span>
-                        <span className="text-amber-400/50 font-quintessential ml-2 shrink-0">
-                          {member.score} GP
+                        <span className={`${c.memberScore} ${c.fontHeading} ml-2 shrink-0`}>
+                          {member.score} {theme.labels.scoreUnit}
                         </span>
                       </div>
                     ))}
                 </div>
               )}
               {isExpanded && team.members.length === 0 && (
-                <div className="ml-11 mr-3 mb-2 mt-1 px-3 py-2 text-xs text-amber-500/30 font-medievalsharp">
+                <div className={`ml-11 mr-3 mb-2 mt-1 px-3 py-2 text-xs ${c.statLabel} ${c.fontBody}`}>
                   No members found
                 </div>
               )}

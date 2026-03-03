@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Quintessential&family=MedievalSharp&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Quintessential&family=MedievalSharp&family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;600&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -18,6 +18,14 @@
 
 @utility font-medievalsharp {
   font-family: "MedievalSharp", cursive;
+}
+
+@utility font-rajdhani {
+  font-family: "Rajdhani", sans-serif;
+}
+
+@utility font-inter {
+  font-family: "Inter", sans-serif;
 }
 
 /* Global styles */

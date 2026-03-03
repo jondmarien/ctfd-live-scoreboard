@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useChallengeCache, type ChallengeInfo } from "@/hooks/useChallengeCache";
 import QuestModal from "@/components/modals/QuestModal";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Category → color mapping
 const CATEGORY_COLORS: Record<string, string> = {
@@ -35,14 +36,16 @@ interface QuestIntelSectionProps {
 
 function QuestIntelSection({ title, icon, quests, onSelect, emptyText, accentClass }: QuestIntelSectionProps) {
   const [open, setOpen] = useState(false);
+  const theme = useTheme();
+  const c = theme.classes;
 
   return (
-    <div className="rounded-lg border border-amber-900/20 bg-stone-900/30 overflow-hidden">
+    <div className={`rounded-lg ${c.questSectionBorder} ${c.questSectionBg} overflow-hidden`}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-3 py-2 hover:bg-amber-900/10 transition-colors group"
+        className={`w-full flex items-center justify-between px-3 py-2 ${c.graphToggleBorder} transition-colors group`}
       >
-        <span className="font-medievalsharp text-xs text-amber-500/60 uppercase tracking-widest flex items-center gap-2 group-hover:text-amber-400/80 transition-colors">
+        <span className={`${c.fontBody} text-xs ${c.graphToggleText} flex items-center gap-2`}>
           <span>{icon}</span>
           {title}
           <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold border ${accentClass}`}>
@@ -53,7 +56,7 @@ function QuestIntelSection({ title, icon, quests, onSelect, emptyText, accentCla
           animate={{ rotate: open ? 180 : 0 }}
           transition={{ type: "spring", stiffness: 300, damping: 30 }}
         >
-          <ChevronDown className="w-3 h-3 text-amber-600/40 group-hover:text-amber-500/60 transition-colors" />
+          <ChevronDown className="w-3 h-3 text-current opacity-40 group-hover:opacity-60 transition-colors" />
         </motion.div>
       </button>
 
@@ -69,14 +72,14 @@ function QuestIntelSection({ title, icon, quests, onSelect, emptyText, accentCla
           >
             <div className="px-2 pb-2 space-y-0.5">
               {quests.length === 0 ? (
-                <p className="text-center py-3 font-medievalsharp text-xs text-amber-600/30">
+                <p className={`text-center py-3 ${c.fontBody} text-xs ${c.statLabel}`}>
                   {emptyText}
                 </p>
               ) : (
                 quests.map((q) => (
                   <div
                     key={q.id}
-                    className="flex items-center justify-between px-3 py-2 rounded-lg bg-stone-800/30 border border-amber-900/10 cursor-pointer hover:bg-stone-800/50 transition-colors"
+                    className={`flex items-center justify-between px-3 py-2 rounded-lg ${c.questRow} cursor-pointer transition-colors`}
                     onClick={() => onSelect(q)}
                   >
                     <div className="flex items-center gap-2 min-w-0 mr-3">
@@ -85,16 +88,16 @@ function QuestIntelSection({ title, icon, quests, onSelect, emptyText, accentCla
                       >
                         {q.category}
                       </span>
-                      <span className="text-amber-200/70 font-medievalsharp text-sm truncate">
+                      <span className={`${c.questName} truncate`}>
                         {q.name}
                       </span>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-amber-500/40 font-medievalsharp text-[10px]">
+                      <span className={`${c.questMeta}`}>
                         {q.solves} solve{q.solves !== 1 ? "s" : ""}
                       </span>
-                      <span className="text-amber-400/60 font-quintessential text-sm font-bold">
-                        {q.value} GP
+                      <span className={c.questScore}>
+                        {q.value} {theme.labels.scoreUnit}
                       </span>
                     </div>
                   </div>
@@ -111,6 +114,8 @@ function QuestIntelSection({ title, icon, quests, onSelect, emptyText, accentCla
 export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Date | null) => void }) {
   const { challenges, lastUpdate, isMock } = useChallengeCache();
   const [selectedQuest, setSelectedQuest] = useState<ChallengeInfo | null>(null);
+  const theme = useTheme();
+  const c = theme.classes;
 
   // Bubble lastUpdate up to parent
   useEffect(() => {
@@ -120,12 +125,10 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
   if (challenges.size === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 gap-2">
-        <span className="text-2xl">⚔️</span>
-        <p className="font-quintessential text-base text-amber-300/50 text-center">
-          No Quests Available
-        </p>
-        <p className="font-medievalsharp text-xs text-amber-500/30 text-center">
-          The quest board is empty — quests haven't been released yet...
+        <span className="text-2xl">{theme.id === "fantasy" ? "⚔️" : "🔓"}</span>
+        <p className={c.emptyTitle}>{theme.labels.emptyChallenges}</p>
+        <p className={c.emptySubtitle}>
+          {theme.id === "fantasy" ? "The quest board is empty — quests haven't been released yet..." : "No challenges have been released yet."}
         </p>
       </div>
     );
@@ -151,47 +154,47 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
     <div className="space-y-4 px-1">
       {/* Mock data banner */}
       {isMock && (
-        <div className="mx-2 px-3 py-1.5 rounded-lg bg-amber-900/20 border border-amber-700/20 text-center">
-          <span className="font-medievalsharp text-[10px] text-amber-400/50 uppercase tracking-wider">
-            Sample quests — real quests appear when the competition begins
+        <div className={`mx-2 px-3 py-1.5 rounded-lg ${c.mockBanner} text-center`}>
+          <span className={`${c.fontBody} text-[10px] ${c.statLabel} uppercase tracking-wider`}>
+            {theme.id === "fantasy" ? "Sample quests — real quests appear when the competition begins" : "Sample challenges — real challenges appear when the competition begins"}
           </span>
         </div>
       )}
 
       {/* Summary */}
       <div className="flex items-center justify-between px-2">
-        <span className="font-medievalsharp text-xs text-amber-500/50 uppercase tracking-wider">
-          {challengeArr.length} quest{challengeArr.length !== 1 ? "s" : ""} across {categories.length} realm{categories.length !== 1 ? "s" : ""}
+        <span className={c.summaryLabel}>
+          {challengeArr.length} {theme.id === "fantasy" ? `quest${challengeArr.length !== 1 ? "s" : ""}` : `challenge${challengeArr.length !== 1 ? "s" : ""}`} across {categories.length} {theme.id === "fantasy" ? `realm${categories.length !== 1 ? "s" : ""}` : `categor${categories.length !== 1 ? "ies" : "y"}`}
         </span>
-        <span className="font-quintessential text-xs text-amber-400/50">
-          {challengeArr.reduce((sum, c) => sum + c.value, 0)} GP total
+        <span className={c.summaryValue}>
+          {challengeArr.reduce((sum, ch) => sum + ch.value, 0)} {theme.labels.scoreUnit} total
         </span>
       </div>
 
-      {/* Quest Intel Sections */}
+      {/* Intel Sections */}
       <div className="space-y-1.5">
         <QuestIntelSection
-          title="Most Conquered"
+          title={theme.id === "fantasy" ? "Most Conquered" : "Most Solved"}
           icon="🏆"
           quests={mostConquered}
           onSelect={setSelectedQuest}
-          emptyText="No quests have been solved yet."
+          emptyText={theme.id === "fantasy" ? "No quests have been solved yet." : "No challenges have been solved yet."}
           accentClass="bg-amber-500/10 text-amber-400/60 border-amber-600/20"
         />
         <QuestIntelSection
-          title="Least Conquered"
-          icon="⚔️"
+          title={theme.id === "fantasy" ? "Least Conquered" : "Least Solved"}
+          icon={theme.id === "fantasy" ? "⚔️" : "🔍"}
           quests={leastConquered}
           onSelect={setSelectedQuest}
-          emptyText="No quests have been solved yet."
+          emptyText={theme.id === "fantasy" ? "No quests have been solved yet." : "No challenges have been solved yet."}
           accentClass="bg-orange-500/10 text-orange-400/60 border-orange-600/20"
         />
         <QuestIntelSection
-          title="Unconquered"
+          title={theme.id === "fantasy" ? "Unconquered" : "Unsolved"}
           icon="💀"
           quests={unconquered}
           onSelect={setSelectedQuest}
-          emptyText="All quests have been conquered!"
+          emptyText={theme.id === "fantasy" ? "All quests have been conquered!" : "All challenges have been solved!"}
           accentClass="bg-red-500/10 text-red-400/60 border-red-600/20"
         />
       </div>
@@ -205,8 +208,8 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
             >
               {category}
             </span>
-            <span className="text-amber-600/30 text-xs font-medievalsharp">
-              {challs.length} quest{challs.length !== 1 ? "s" : ""}
+            <span className={`text-xs ${c.statLabel} ${c.fontBody}`}>
+              {challs.length} {theme.id === "fantasy" ? `quest${challs.length !== 1 ? "s" : ""}` : `challenge${challs.length !== 1 ? "s" : ""}`}
             </span>
           </div>
           {challs
@@ -214,19 +217,19 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
             .map((challenge) => (
               <div
                 key={challenge.id}
-                className="flex items-center justify-between px-3 py-2 rounded-lg bg-stone-800/30 border border-amber-900/10 cursor-pointer hover:bg-stone-800/50 transition-colors"
+                className={`flex items-center justify-between px-3 py-2 rounded-lg ${c.questRow} cursor-pointer transition-colors`}
                 onClick={() => setSelectedQuest(challenge)}
               >
                 <div className="flex flex-col min-w-0 mr-3">
-                  <span className="text-amber-200/70 font-medievalsharp text-sm truncate">
+                  <span className={`${c.questName} truncate`}>
                     {challenge.name}
                   </span>
-                  <span className="text-amber-500/30 font-medievalsharp text-[10px]">
+                  <span className={c.questMeta}>
                     {challenge.type} • {challenge.solves} solve{challenge.solves !== 1 ? "s" : ""}
                   </span>
                 </div>
-                <span className="text-amber-400/60 font-quintessential text-sm font-bold shrink-0">
-                  {challenge.value} GP
+                <span className={`${c.questScore} shrink-0`}>
+                  {challenge.value} {theme.labels.scoreUnit}
                 </span>
               </div>
             ))}

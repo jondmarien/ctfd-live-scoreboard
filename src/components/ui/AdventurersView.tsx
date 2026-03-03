@@ -3,18 +3,13 @@ import { AnimatePresence } from "framer-motion";
 import { Eye } from "lucide-react";
 import type { Team, TeamMember } from "@/hooks/useScoreboard";
 import AdventurerModal from "@/components/modals/AdventurerModal";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface RankedAdventurer extends TeamMember {
   teamName: string;
   rank: number;
 }
 
-const RANK_COLORS: Record<number, string> = {
-  1: "bg-gradient-to-r from-yellow-700 to-yellow-500 text-yellow-100",
-  2: "bg-gradient-to-r from-gray-500 to-gray-400 text-gray-100",
-  3: "bg-gradient-to-r from-amber-800 to-amber-600 text-amber-100",
-};
-const DEFAULT_RANK_CLASS = "bg-stone-700 text-stone-300";
 
 interface AdventurersViewProps {
   teams: Team[];
@@ -23,6 +18,14 @@ interface AdventurersViewProps {
 
 export default function AdventurersView({ teams, isMock }: AdventurersViewProps) {
   const [modalTarget, setModalTarget] = useState<RankedAdventurer | null>(null);
+  const theme = useTheme();
+  const c = theme.classes;
+  const RANK_COLORS: Record<number, string> = {
+    1: c.rankBadge1,
+    2: c.rankBadge2,
+    3: c.rankBadge3,
+  };
+  const DEFAULT_RANK_CLASS = c.rankBadgeDefault;
 
   const adventurers = useMemo<RankedAdventurer[]>(() => {
     const seen = new Map<number, RankedAdventurer>();
@@ -44,12 +47,10 @@ export default function AdventurersView({ teams, isMock }: AdventurersViewProps)
   if (adventurers.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 gap-2">
-        <span className="text-2xl">🗡️</span>
-        <p className="font-quintessential text-base text-amber-300/50 text-center">
-          No Adventurers Found
-        </p>
-        <p className="font-medievalsharp text-xs text-amber-500/30 text-center">
-          The guild hall is empty — no brave souls have joined yet...
+        <span className="text-2xl">{theme.id === "fantasy" ? "🗡️" : "🏅"}</span>
+        <p className={c.emptyTitle}>{theme.labels.emptyPlayers}</p>
+        <p className={c.emptySubtitle}>
+          {theme.id === "fantasy" ? "The guild hall is empty — no brave souls have joined yet..." : "No players have registered yet."}
         </p>
       </div>
     );
@@ -60,11 +61,11 @@ export default function AdventurersView({ teams, isMock }: AdventurersViewProps)
       <div className="space-y-0.5">
         {/* Summary */}
         <div className="flex items-center justify-between px-3 pb-1">
-          <span className="font-medievalsharp text-xs text-amber-500/50 uppercase tracking-wider">
-            {adventurers.length} adventurer{adventurers.length !== 1 ? "s" : ""}
+          <span className={`${c.summaryLabel}`}>
+            {adventurers.length} {theme.id === "fantasy" ? `adventurer${adventurers.length !== 1 ? "s" : ""}` : `player${adventurers.length !== 1 ? "s" : ""}`}
           </span>
-          <span className="font-quintessential text-xs text-amber-400/50">
-            {adventurers.reduce((sum, a) => sum + a.score, 0)} GP total
+          <span className={c.summaryValue}>
+            {adventurers.reduce((sum, a) => sum + a.score, 0)} {theme.labels.scoreUnit} total
           </span>
         </div>
 
@@ -78,7 +79,7 @@ export default function AdventurersView({ teams, isMock }: AdventurersViewProps)
               className={`
                 flex items-center gap-3 px-3 py-2.5 rounded-lg
                 transition-all duration-200
-                ${isTopRank ? "bg-amber-950/20" : "bg-transparent"}
+                ${isTopRank ? c.rowTopRankBg : "bg-transparent"}
               `}
             >
               {/* Rank badge */}
@@ -96,8 +97,8 @@ export default function AdventurersView({ teams, isMock }: AdventurersViewProps)
               <div className="flex items-center gap-1.5 min-w-0 grow">
                 <span
                   className={`
-                    min-w-0 truncate font-quintessential text-base
-                    ${isTopRank ? "text-amber-200 font-semibold" : "text-amber-100/80"}
+                    min-w-0 truncate ${c.fontHeading} text-base
+                    ${isTopRank ? "text-white font-semibold" : "text-white/80"}
                   `}
                 >
                   {adv.name}
@@ -105,45 +106,40 @@ export default function AdventurersView({ teams, isMock }: AdventurersViewProps)
                 {!isMock && (
                   <button
                     onClick={() => setModalTarget(adv)}
-                    className="shrink-0 p-1 rounded-md text-amber-600/30 hover:text-amber-400 hover:bg-amber-900/20 transition-colors"
-                    title="View adventurer details"
+                    className={`shrink-0 p-1 rounded-md ${c.eyeButton} transition-colors`}
+                    title="View details"
                   >
                     <Eye className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
 
-              {/* Right-aligned stats: team | score GP */}
+              {/* Right-aligned stats: team | score */}
               <div className="shrink-0 hidden sm:flex items-center ml-auto w-[250px]">
-                {/* Team name pill */}
-                <span className="flex-1 text-xs text-amber-600/40 font-medievalsharp text-right truncate">
+                <span className={`flex-1 text-xs ${c.statLabel} ${c.fontBody} text-right truncate`}>
                   {adv.teamName}
                 </span>
-
-                {/* Separator */}
-                <span className="shrink-0 text-amber-700/20 mx-3">│</span>
-
-                {/* Score + GP */}
+                <span className={`shrink-0 ${c.separator} mx-3`}>│</span>
                 <span className="flex-1 flex items-center justify-end gap-1">
                   <span
                     className={`
-                      font-quintessential font-bold tabular-nums
-                      ${isTopRank ? "text-amber-400" : "text-amber-400/70"}
+                      ${c.fontHeading} font-bold tabular-nums
+                      ${isTopRank ? c.scoreTop : c.scoreDefault}
                       text-[22px]
                     `}
                   >
                     {adv.score}
                   </span>
-                  <span className="text-xs text-amber-600/50 font-medievalsharp">GP</span>
+                  <span className={`text-xs ${c.fontBody} ${c.scoreUnit}`}>{theme.labels.scoreUnit}</span>
                 </span>
               </div>
 
               {/* Mobile score */}
               <div className="shrink-0 flex items-center gap-1 ml-auto sm:hidden">
-                <span className="font-quintessential font-bold text-amber-400/70 tabular-nums">
+                <span className={`${c.fontHeading} font-bold ${c.scoreDefault} tabular-nums`}>
                   {adv.score}
                 </span>
-                <span className="text-xs text-amber-600/50 font-medievalsharp">GP</span>
+                <span className={`text-xs ${c.fontBody} ${c.scoreUnit}`}>{theme.labels.scoreUnit}</span>
               </div>
             </div>
           );

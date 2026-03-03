@@ -8,19 +8,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="ISSessions Fantasy CTF Live Scoreboard — Guild Quest Board with real-time scoring"
+      content="SkillsSheridan — Cybersecurity Competition Live Scoreboard · Sheridan College Faculty of Applied Science &amp; Technology"
     />
-    <title>⚔️ Guild Quest Board — ISSessions 2026 CTF</title>
+    <title>SkillsSheridan · Live Scoreboard</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script>
       // Hide body immediately, then unhide once stylesheets load to prevent FOUC
-      document.body.style.opacity = '0';
-      function ready() { document.body.style.opacity = '1'; }
-      if (document.readyState === 'complete') ready();
-      else window.addEventListener('load', ready);
+      document.body.style.opacity = "0";
+      function ready() {
+        document.body.style.opacity = "1";
+      }
+      if (document.readyState === "complete") ready();
+      else window.addEventListener("load", ready);
     </script>
   </body>
 </html>

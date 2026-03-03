@@ -1,3 +1,5 @@
+import type { ThemeId } from "@/contexts/ThemeContext";
+
 export interface ChangelogEntry {
   title: string;
   date: string;
@@ -12,7 +14,7 @@ export interface ChangelogSection {
   bullets?: string[];
 }
 
-export const changelog: ChangelogEntry[] = [
+const fantasyChangelog: ChangelogEntry[] = [
   {
     title: "The Oracle's Eye: Quest Intel & the War Map",
     date: "2026-03-02",
@@ -301,3 +303,81 @@ export const changelog: ChangelogEntry[] = [
     ],
   },
 ];
+
+const skillsSheridanChangelog: ChangelogEntry[] = [
+  {
+    title: "SkillsSheridan Launch: Dual-Theme Architecture",
+    date: "2026-03-03",
+    version: "v1.0.0",
+    tags: ["Launch", "Architecture", "UI"],
+    content: [
+      {
+        body: "The scoreboard has been completely re-architected to support multiple competition themes. The original Fantasy CTF theme is now preserved at /fantasy-ctf, while the root path hosts the new SkillsSheridan branding for Sheridan College's cybersecurity competition.",
+      },
+      {
+        heading: "Dual-Theme System",
+        body: "A comprehensive theming system allows the same codebase to serve two completely different visual identities.",
+        bullets: [
+          "**Theme Context**: A React context provider supplies theme-specific colors, fonts, labels, and CSS classes to all components.",
+          "**Route-Based Themes**: `/` serves SkillsSheridan theme, `/fantasy-ctf` serves the original fantasy tavern theme.",
+          "**Zero Duplication**: All scoreboard logic, hooks, and API integration remain shared — only visual presentation changes.",
+        ],
+      },
+      {
+        heading: "SkillsSheridan Branding",
+        body: "The new theme matches the official SkillsSheridan CTFd site design with precision.",
+        bullets: [
+          "**Color Palette**: Dark navy background (#050d1a), gold accents (#f0c040), blue highlights (#4a90d9), matching the CTFd theme exactly.",
+          "**Typography**: Rajdhani for headings and navigation, Inter for body text — clean, modern, professional.",
+          "**Header & Footer**: Custom SkillsSheridan header with split white/gold branding and full footer matching the CTFd site (Sheridan logo, faculty info, powered-by links).",
+          "**Terminology**: Teams instead of Guilds, Players instead of Adventurers, Challenges instead of Quests, pts instead of GP.",
+        ],
+      },
+      {
+        heading: "Technical Implementation",
+        body: "The architecture supports seamless theme switching without code duplication.",
+        bullets: [
+          "**React Router**: Client-side routing with two distinct page components.",
+          "**Theme Classes**: 80+ CSS class mappings per theme covering fonts, colors, borders, backgrounds, and interactive states.",
+          "**Label Overrides**: 20+ label mappings for terminology differences (scoreUnit, tabLabels, loadingText, etc.).",
+          "**Shared Components**: All UI components (TeamCard, Scoreboard, modals, graphs) read from theme context — no theme-specific versions needed.",
+        ],
+      },
+    ],
+  },
+  {
+    title: "Competition Setup",
+    date: "2026-03-03",
+    version: "v1.0.0",
+    tags: ["Info"],
+    content: [
+      {
+        body: "SkillsSheridan is a cybersecurity Capture The Flag competition hosted by Sheridan College's Faculty of Applied Science & Technology. This live scoreboard tracks team rankings, player performance, challenge solves, and score progression in real-time.",
+      },
+      {
+        heading: "About the Competition",
+        body: "SkillsSheridan brings together students to test their skills in offensive and defensive cybersecurity through hands-on challenges.",
+        bullets: [
+          "**Hosted by**: Sheridan College Faculty of Applied Science & Technology",
+          "**Platform**: CTFd (open-source CTF platform)",
+          "**Categories**: Web exploitation, cryptography, binary exploitation, reverse engineering, forensics, OSINT, and more",
+          "**Scoring**: Dynamic scoring based on challenge difficulty and solve count",
+        ],
+      },
+      {
+        heading: "Scoreboard Features",
+        body: "This live scoreboard provides comprehensive competition insights.",
+        bullets: [
+          "**Real-time Rankings**: Team and individual player leaderboards update automatically",
+          "**Score Progression Chart**: Visual timeline showing how teams' scores evolved throughout the competition",
+          "**Challenge Intel**: See which challenges are most/least solved, and which remain unconquered",
+          "**Detailed Modals**: Click any team or player to view their solve history, category breakdown, and stats",
+        ],
+      },
+    ],
+  },
+];
+
+export function getChangelog(themeId: ThemeId): ChangelogEntry[] {
+  return themeId === "fantasy" ? fantasyChangelog : skillsSheridanChangelog;
+}

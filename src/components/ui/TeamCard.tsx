@@ -5,12 +5,7 @@ import type { Team } from "@/hooks/useScoreboard";
 import Counter from "@/components/animation/Counter";
 import AdventurerModal from "@/components/modals/AdventurerModal";
 import TeamSummaryModal from "@/components/modals/TeamSummaryModal";
-
-const RANK_COLORS: Record<number, string> = {
-  1: "bg-gradient-to-r from-yellow-700 to-yellow-500 text-yellow-100",
-  2: "bg-gradient-to-r from-gray-500 to-gray-400 text-gray-100",
-  3: "bg-gradient-to-r from-amber-800 to-amber-600 text-amber-100",
-};
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface TeamCardProps {
   team: Team;
@@ -21,8 +16,15 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState<{ id: number; name: string; score: number } | null>(null);
   const [showTeamModal, setShowTeamModal] = useState(false);
+  const theme = useTheme();
+  const c = theme.classes;
   const isTopRank = team.pos <= 3;
-  const rankClass = RANK_COLORS[team.pos] || "bg-stone-700 text-stone-300";
+  const RANK_COLORS: Record<number, string> = {
+    1: c.rankBadge1,
+    2: c.rankBadge2,
+    3: c.rankBadge3,
+  };
+  const rankClass = RANK_COLORS[team.pos] || c.rankBadgeDefault;
 
   return (
     <div>
@@ -31,8 +33,8 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
         className={`
           flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer
           transition-all duration-200
-          hover:bg-amber-900/15
-          ${isTopRank ? "bg-amber-950/20" : "bg-transparent"}
+          ${c.rowHover}
+          ${isTopRank ? c.rowTopRankBg : "bg-transparent"}
         `}
         onClick={() => setExpanded(!expanded)}
       >
@@ -51,8 +53,8 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
         <div className="flex items-center gap-1.5 min-w-0 grow">
           <span
             className={`
-            min-w-0 truncate font-quintessential text-base
-            ${isTopRank ? "text-amber-200 font-semibold" : "text-amber-100/80"}
+            min-w-0 truncate ${c.fontHeading} text-base
+            ${isTopRank ? "text-white font-semibold" : "text-white/80"}
           `}
           >
             {team.name}
@@ -63,8 +65,8 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
                 e.stopPropagation();
                 setShowTeamModal(true);
               }}
-              className="shrink-0 p-1 rounded-md text-amber-600/30 hover:text-amber-400 hover:bg-amber-900/20 transition-colors"
-              title="View party details"
+              className={`shrink-0 p-1 rounded-md ${c.eyeButton} transition-colors`}
+              title="View details"
             >
               <Eye className="w-3.5 h-3.5" />
             </button>
@@ -74,19 +76,19 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
         {/* Right-aligned stats: quests | score GP — fixed total width keeps pipe aligned */}
         <div className="shrink-0 hidden sm:flex items-center ml-auto w-[250px]">
           {/* Quest count — fills left half, text pushed toward pipe */}
-          <span className="flex-1 text-xs text-amber-600/40 font-medievalsharp text-right">
-            ■ {team.solveCount ?? 0} quest{(team.solveCount ?? 0) !== 1 ? "s" : ""}
+          <span className={`flex-1 text-xs ${c.statLabel} ${c.fontBody} text-right`}>
+            ■ {team.solveCount ?? 0} {(team.solveCount ?? 0) !== 1 ? theme.labels.solveUnitPlural : theme.labels.solveUnit}
           </span>
 
-          {/* Separator — fixed in center of the 250px container */}
-          <span className="shrink-0 text-amber-700/20 mx-3">│</span>
+          {/* Separator */}
+          <span className={`shrink-0 ${c.separator} mx-3`}>│</span>
 
-          {/* Score + GP — fills right half, content pushed right */}
+          {/* Score */}
           <span className="flex-1 flex items-center justify-end gap-1">
             <span
               className={`
-                font-quintessential font-bold tabular-nums
-                ${isTopRank ? "text-amber-400" : "text-amber-400/70"}
+                ${c.fontHeading} font-bold tabular-nums
+                ${isTopRank ? c.scoreTop : c.scoreDefault}
               `}
             >
               <Counter
@@ -100,8 +102,8 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
                 gradientHeight={0}
               />
             </span>
-            <span className="text-xs text-amber-600/50 font-medievalsharp">
-              GP
+            <span className={`text-xs ${c.fontBody} ${c.scoreUnit}`}>
+              {theme.labels.scoreUnit}
             </span>
           </span>
         </div>
@@ -110,13 +112,13 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
         <div className="shrink-0 flex items-center gap-1 ml-auto sm:hidden">
           <span
             className={`
-              font-quintessential font-bold tabular-nums text-[22px]
-              ${isTopRank ? "text-amber-400" : "text-amber-400/70"}
+              ${c.fontHeading} font-bold tabular-nums text-[22px]
+              ${isTopRank ? c.scoreTop : c.scoreDefault}
             `}
           >
             {team.score}
           </span>
-          <span className="text-xs text-amber-600/50 font-medievalsharp">GP</span>
+          <span className={`text-xs ${c.fontBody} ${c.scoreUnit}`}>{theme.labels.scoreUnit}</span>
         </div>
       </div>
 
@@ -128,14 +130,14 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
             .map((member) => (
               <div
                 key={member.id}
-                className={`flex items-center justify-between px-3 py-1.5 rounded bg-stone-800/20 border border-amber-900/10 text-sm ${!isMock ? "cursor-pointer hover:bg-amber-900/15" : ""} transition-colors`}
+                className={`flex items-center justify-between px-3 py-1.5 rounded ${c.memberRow} text-sm ${!isMock ? `cursor-pointer ${c.rowHover}` : ""} transition-colors`}
                 onClick={() => !isMock && setSelectedMemberId({ id: member.id, name: member.name, score: member.score })}
               >
-                <span className="text-amber-200/60 font-medievalsharp truncate">
-                  🗡️ {member.name}
+                <span className={`${c.memberName} ${c.fontBody} truncate`}>
+                  {theme.labels.memberPrefix} {member.name}
                 </span>
-                <span className="text-amber-400/50 font-quintessential ml-2 shrink-0">
-                  {member.score} GP
+                <span className={`${c.memberScore} ${c.fontHeading} ml-2 shrink-0`}>
+                  {member.score} {theme.labels.scoreUnit}
                 </span>
               </div>
             ))}

@@ -11,6 +11,7 @@ import {
   Legend,
 } from "recharts";
 import { useScoreboardTop } from "@/hooks/useScoreboardTop";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const TEAM_COLORS = [
   "#f59e0b", // amber
@@ -103,21 +104,23 @@ interface CustomTooltipProps {
 }
 
 function CustomTooltip({ active, payload, label, virtualToReal }: CustomTooltipProps) {
+  const theme = useTheme();
+  const c = theme.classes;
   if (!active || !payload?.length || !label) return null;
   const realTs = virtualToReal?.get(label) ?? label;
   return (
-    <div className="bg-stone-900/95 border border-amber-800/30 rounded-lg px-3 py-2 shadow-xl text-xs">
-      <p className="font-medievalsharp text-amber-400/60 mb-1">{formatTime(realTs)}</p>
+    <div className={`${c.tooltipBg} rounded-lg px-3 py-2 shadow-xl text-xs`}>
+      <p className={`${c.tooltipTime} mb-1`}>{formatTime(realTs)}</p>
       {[...payload]
         .sort((a, b) => b.value - a.value)
         .map((p) => (
           <div key={p.name} className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
-            <span className="font-medievalsharp text-amber-200/70 truncate max-w-[120px]">
+            <span className={`${c.tooltipName} truncate max-w-[120px]`}>
               {p.name}
             </span>
-            <span className="font-quintessential text-amber-400 ml-auto pl-2">
-              {p.value.toLocaleString()} GP
+            <span className={`${c.tooltipScore} ml-auto pl-2`}>
+              {p.value.toLocaleString()} {theme.labels.scoreUnit}
             </span>
           </div>
         ))}
@@ -172,6 +175,8 @@ export default function ScoreboardGraph() {
   const [open, setOpen] = useState(false);
   const [compressed, setCompressed] = useState(false);
   const { series, loading, isMock } = useScoreboardTop(10);
+  const theme = useTheme();
+  const c = theme.classes;
 
   const allTimes = series.flatMap((s) => s.series.map((p) => p.time));
 
@@ -204,17 +209,17 @@ export default function ScoreboardGraph() {
   const chartData = open ? (compressed ? compressedData : buildChartData(series)) : [];
 
   return (
-    <div className="border-b border-amber-800/20">
+    <div className={c.graphContainerBorder}>
       {/* Toggle header */}
       <button
         onClick={() => setOpen((v) => !v)}
-        className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-amber-900/10 transition-colors group"
+        className={`w-full flex items-center justify-between px-4 py-2.5 ${c.graphToggleBorder} transition-colors group`}
       >
-        <span className="font-medievalsharp text-xs text-amber-500/50 uppercase tracking-widest group-hover:text-amber-400/70 transition-colors flex items-center gap-2">
+        <span className={`${c.graphToggleText} flex items-center gap-2`}>
           <span>📈</span>
-          Score Progression
+          {theme.labels.scoreProgression}
           {isMock && (
-            <span className="text-[9px] text-amber-600/30 normal-case tracking-normal">
+            <span className={`text-[9px] normal-case tracking-normal opacity-40`}>
               (sample)
             </span>
           )}
@@ -241,9 +246,9 @@ export default function ScoreboardGraph() {
             <div className="px-2 pb-4 pt-1">
               {loading ? (
                 <div className="flex items-center justify-center py-10 gap-3">
-                  <div className="w-5 h-5 border-2 border-amber-500/30 border-t-amber-400 rounded-full animate-spin" />
-                  <span className="font-medievalsharp text-xs text-amber-400/40">
-                    Scrying the battlefield...
+                  <div className={`w-5 h-5 border-2 ${c.spinnerBorder} rounded-full animate-spin`} />
+                  <span className={`${c.fontBody} text-xs opacity-40`}>
+                    {theme.labels.scryingBattlefield}
                   </span>
                 </div>
               ) : (
@@ -253,10 +258,8 @@ export default function ScoreboardGraph() {
                     <div className="flex justify-end mb-1">
                       <button
                         onClick={() => setCompressed((v) => !v)}
-                        className={`font-medievalsharp text-[9px] uppercase tracking-widest px-2 py-0.5 rounded border transition-colors ${
-                          compressed
-                            ? "bg-amber-600/20 border-amber-600/40 text-amber-400/80"
-                            : "bg-stone-800/30 border-amber-900/20 text-amber-600/40 hover:text-amber-500/60"
+                        className={`${c.fontBody} text-[9px] uppercase tracking-widest px-2 py-0.5 rounded border transition-colors ${
+                          compressed ? c.compressedActive : c.compressedInactive
                         }`}
                       >
                         {compressed ? "⇔ compressed" : "⇔ compress gaps"}
@@ -275,13 +278,13 @@ export default function ScoreboardGraph() {
                         domain={["dataMin", "dataMax"]}
                         ticks={compressed ? compressedTicks : explicitTicks}
                         tickFormatter={compressed ? compressedTickFormatter : tickFormatter}
-                        tick={{ fontSize: 9, fill: "#a16207", fontFamily: "MedievalSharp, serif" }}
+                        tick={{ fontSize: 9, fill: c.axisFill, fontFamily: c.axisFont }}
                         tickLine={false}
-                        axisLine={{ stroke: "#44403c40" }}
+                        axisLine={{ stroke: "rgba(100,116,139,0.25)" }}
                         minTickGap={50}
                       />
                       <YAxis
-                        tick={{ fontSize: 9, fill: "#a16207", fontFamily: "MedievalSharp, serif" }}
+                        tick={{ fontSize: 9, fill: c.axisFill, fontFamily: c.axisFont }}
                         tickLine={false}
                         axisLine={false}
                         tickFormatter={(v: number) =>
@@ -299,8 +302,8 @@ export default function ScoreboardGraph() {
                       <Legend
                         wrapperStyle={{
                           fontSize: "9px",
-                          fontFamily: "MedievalSharp, serif",
-                          color: "#a16207",
+                          fontFamily: c.axisFont,
+                          color: c.axisFill,
                           paddingTop: "6px",
                         }}
                         iconSize={6}
