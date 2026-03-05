@@ -9,6 +9,7 @@ import {
   HIGH_TENSION_SPRING,
 } from "@/lib/animations";
 import { useAdventurerDetails } from "@/hooks/useAdventurerDetails";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Category → color mapping for pills
 const CATEGORY_COLORS: Record<string, string> = {
@@ -59,6 +60,9 @@ export default function AdventurerModal({
   onClose,
 }: AdventurerModalProps) {
   const { user, solves, loading, error } = useAdventurerDetails(memberId);
+  const theme = useTheme();
+  const c = theme.classes;
+  const l = theme.labels;
 
   // Close on Escape
   useEffect(() => {
@@ -103,22 +107,22 @@ export default function AdventurerModal({
           initial="hidden"
           animate="visible"
           exit="hidden"
-          className="relative bg-stone-950/95 w-full max-w-2xl border border-amber-700/30 rounded-2xl shadow-[0_0_60px_rgba(255,165,0,0.08)] flex flex-col max-h-[calc(100vh-2rem)]"
+          className={`relative ${c.modalBg} w-full max-w-2xl ${c.modalBorder} rounded-2xl ${c.modalShadow} flex flex-col max-h-[calc(100vh-2rem)]`}
         >
           {/* Header */}
-          <div className="p-5 border-b border-amber-800/20 bg-stone-900/50">
+          <div className={`p-5 ${c.modalHeaderBorder} ${c.modalHeaderBg}`}>
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3">
                 {/* Rank emblem */}
-                <div className="w-12 h-12 rounded-lg bg-linear-to-br from-amber-700 to-amber-900 flex items-center justify-center text-2xl shadow-lg border border-amber-600/30">
-                  🗡️
+                <div className={`w-12 h-12 rounded-lg ${c.modalEmblemBg} flex items-center justify-center text-2xl shadow-lg ${c.modalEmblemBorder}`}>
+                  {l.modalPlayerIcon}
                 </div>
                 <div>
                   <motion.h2
                     initial={{ x: -10, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="text-xl font-quintessential font-bold text-amber-100"
+                    className={c.modalName}
                   >
                     {user?.name ?? memberName}
                   </motion.h2>
@@ -128,11 +132,11 @@ export default function AdventurerModal({
                     transition={{ delay: 0.15 }}
                     className="flex items-center gap-2 mt-0.5"
                   >
-                    <span className="text-amber-400 font-quintessential font-bold text-lg">
-                      {totalGP || memberScore} GP
+                    <span className={c.modalScore}>
+                      {totalGP || memberScore} {l.scoreUnit}
                     </span>
                     {user?.affiliation && (
-                      <span className="text-amber-500/50 text-xs font-medievalsharp">
+                      <span className={c.modalAffiliation}>
                         • {user.affiliation}
                       </span>
                     )}
@@ -146,7 +150,7 @@ export default function AdventurerModal({
                 whileTap={{ scale: 0.9 }}
                 transition={HIGH_TENSION_SPRING}
                 onClick={onClose}
-                className="p-1.5 hover:bg-amber-900/20 rounded-lg transition-colors text-amber-500/50 hover:text-amber-300"
+                className={`p-1.5 rounded-lg transition-colors ${c.modalCloseBtn}`}
               >
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -170,9 +174,9 @@ export default function AdventurerModal({
                   animate="visible"
                   className="grid grid-cols-3 gap-3"
                 >
-                  <StatCard label="Quests Completed" value={String(solves.length)} icon="⚔️" />
-                  <StatCard label="Gold Earned" value={`${totalGP} GP`} icon="💰" />
-                  <StatCard label="Realms Conquered" value={String(categoryCount)} icon="🏰" />
+                  <StatCard label={l.modalStatSolves} value={String(solves.length)} icon={l.modalStatSolvesIcon} />
+                  <StatCard label={l.modalStatScore} value={`${totalGP} ${l.scoreUnit}`} icon={l.modalStatScoreIcon} />
+                  <StatCard label={l.modalStatCategories} value={String(categoryCount)} icon={l.modalStatCategoriesIcon} />
                 </motion.div>
 
                 {/* Profile info */}
@@ -184,7 +188,7 @@ export default function AdventurerModal({
                     className="flex flex-wrap gap-3"
                   >
                     {user.country && (
-                      <span className="px-3 py-1 bg-stone-800/50 border border-amber-900/20 rounded-lg text-xs text-amber-300/60 font-medievalsharp">
+                      <span className={`px-3 py-1 rounded-lg ${c.modalProfilePill}`}>
                         📍 {user.country}
                       </span>
                     )}
@@ -193,7 +197,7 @@ export default function AdventurerModal({
                         href={user.website.startsWith("http") ? user.website : `https://${user.website}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="px-3 py-1 bg-stone-800/50 border border-amber-900/20 rounded-lg text-xs text-amber-300/60 font-medievalsharp hover:text-amber-200 hover:border-amber-700/40 transition-colors"
+                        className={`px-3 py-1 rounded-lg transition-colors ${c.modalProfilePill} ${c.modalProfilePillHover}`}
                       >
                         🌐 {user.website}
                       </a>
@@ -201,14 +205,14 @@ export default function AdventurerModal({
                   </motion.div>
                 )}
 
-                {/* Solved quests by category */}
+                {/* Solved challenges by category */}
                 {solves.length === 0 ? (
                   <EmptyState />
                 ) : (
                   <div className="space-y-4">
-                    <h3 className="text-sm font-medievalsharp text-amber-500/60 uppercase tracking-wider flex items-center gap-2">
-                      <span className="w-1 h-3 bg-amber-500/50 rounded-full" />
-                      Quest Log
+                    <h3 className={`${c.modalSectionHeader} flex items-center gap-2`}>
+                      <span className={`w-1 h-3 ${c.modalSectionAccent} rounded-full`} />
+                      {l.modalSolvesHeader}
                     </h3>
                     {grouped.map(([category, catSolves]) => (
                       <motion.div
@@ -224,24 +228,24 @@ export default function AdventurerModal({
                           >
                             {category}
                           </span>
-                          <span className="text-amber-600/30 text-xs font-medievalsharp">
-                            {catSolves.length} quest{catSolves.length !== 1 ? "s" : ""}
+                          <span className={c.modalCategoryCount}>
+                            {catSolves.length} {l.modalSolveCountUnit}{catSolves.length !== 1 ? "s" : ""}
                           </span>
                         </div>
                         {catSolves.map((solve) => (
                           <motion.div
                             key={solve.challenge_id}
                             variants={SLIDE_UP_VARIANTS}
-                            className="flex items-center justify-between px-3 py-2 rounded-lg bg-stone-800/30 border border-amber-900/10 hover:bg-stone-800/50 transition-colors"
+                            className={`flex items-center justify-between px-3 py-2 rounded-lg transition-colors ${c.modalSolveRow}`}
                           >
-                            <span className="text-amber-200/70 font-medievalsharp text-sm truncate mr-3">
+                            <span className={`${c.modalSolveName} truncate mr-3`}>
                               {solve.challenge_name}
                             </span>
                             <div className="flex items-center gap-3 shrink-0">
-                              <span className="text-amber-400/60 font-quintessential text-sm font-bold">
-                                {solve.value} GP
+                              <span className={c.modalSolveScore}>
+                                {solve.value} {l.scoreUnit}
                               </span>
-                              <span className="text-amber-600/30 text-[10px] font-medievalsharp">
+                              <span className={c.modalSolveDate}>
                                 {formatDate(solve.date)}
                               </span>
                             </div>
@@ -262,14 +266,15 @@ export default function AdventurerModal({
 }
 
 function StatCard({ label, value, icon }: { label: string; value: string; icon: string }) {
+  const c = useTheme().classes;
   return (
     <motion.div
       variants={SLIDE_UP_VARIANTS}
-      className="p-3 rounded-lg bg-stone-800/30 border border-amber-900/15 text-center"
+      className={`p-3 rounded-lg text-center ${c.modalStatCardBg}`}
     >
       <div className="text-lg mb-0.5">{icon}</div>
-      <div className="text-amber-300 font-quintessential font-bold text-base">{value}</div>
-      <div className="text-amber-600/40 font-medievalsharp text-[10px] uppercase tracking-wider mt-0.5">
+      <div className={c.modalStatValue}>{value}</div>
+      <div className={`${c.modalStatLabel} mt-0.5`}>
         {label}
       </div>
     </motion.div>
@@ -277,34 +282,39 @@ function StatCard({ label, value, icon }: { label: string; value: string; icon: 
 }
 
 function LoadingState() {
+  const theme = useTheme();
+  const c = theme.classes;
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-3">
-      <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-400 rounded-full animate-spin" />
-      <p className="font-medievalsharp text-sm text-amber-400/50 tracking-wider">
-        Consulting the Oracle...
+      <div className={`w-6 h-6 border-2 ${c.modalSpinner} rounded-full animate-spin`} />
+      <p className={c.modalLoadingText}>
+        {theme.labels.modalLoading}
       </p>
     </div>
   );
 }
 
 function ErrorState({ message }: { message: string }) {
+  const c = useTheme().classes;
   return (
     <div className="flex flex-col items-center justify-center py-8 gap-2">
       <span className="text-2xl">⚠️</span>
-      <p className="font-medievalsharp text-sm text-red-400/60 text-center">{message}</p>
+      <p className={`${c.modalErrorText} text-center`}>{message}</p>
     </div>
   );
 }
 
 function EmptyState() {
+  const theme = useTheme();
+  const c = theme.classes;
   return (
     <div className="flex flex-col items-center justify-center py-8 gap-2">
       <span className="text-2xl">📜</span>
-      <p className="font-quintessential text-base text-amber-300/50 text-center">
-        No Quests Completed Yet
+      <p className={`${c.modalEmptyTitleClass} text-center`}>
+        {theme.labels.modalEmptyTitle}
       </p>
-      <p className="font-medievalsharp text-xs text-amber-500/30 text-center">
-        This adventurer's quest log is empty...
+      <p className={`${c.modalEmptySubtitleClass} text-center`}>
+        {theme.labels.modalEmptySubtitle}
       </p>
     </div>
   );

@@ -27,6 +27,19 @@ export interface ScoreboardTheme {
     memberPrefix: string;
     solveUnit: string;
     solveUnitPlural: string;
+    // Modal labels
+    modalPlayerIcon: string;
+    modalStatSolves: string;
+    modalStatScore: string;
+    modalStatCategories: string;
+    modalStatSolvesIcon: string;
+    modalStatScoreIcon: string;
+    modalStatCategoriesIcon: string;
+    modalSolvesHeader: string;
+    modalSolveCountUnit: string;
+    modalLoading: string;
+    modalEmptyTitle: string;
+    modalEmptySubtitle: string;
   };
 
   // CSS classes
@@ -91,6 +104,36 @@ export interface ScoreboardTheme {
     mockBanner: string;
     summaryLabel: string;
     summaryValue: string;
+    // Modal classes
+    modalBg: string;
+    modalBorder: string;
+    modalShadow: string;
+    modalHeaderBg: string;
+    modalHeaderBorder: string;
+    modalEmblemBg: string;
+    modalEmblemBorder: string;
+    modalName: string;
+    modalScore: string;
+    modalAffiliation: string;
+    modalCloseBtn: string;
+    modalStatCardBg: string;
+    modalStatCardBorder: string;
+    modalStatValue: string;
+    modalStatLabel: string;
+    modalProfilePill: string;
+    modalProfilePillHover: string;
+    modalSectionHeader: string;
+    modalSectionAccent: string;
+    modalCategoryCount: string;
+    modalSolveRow: string;
+    modalSolveName: string;
+    modalSolveScore: string;
+    modalSolveDate: string;
+    modalSpinner: string;
+    modalLoadingText: string;
+    modalErrorText: string;
+    modalEmptyTitleClass: string;
+    modalEmptySubtitleClass: string;
   };
 }
 
@@ -117,6 +160,18 @@ export const FANTASY_THEME: ScoreboardTheme = {
     memberPrefix: "🗡️",
     solveUnit: "quest",
     solveUnitPlural: "quests",
+    modalPlayerIcon: "🗡️",
+    modalStatSolves: "Quests Completed",
+    modalStatScore: "Gold Earned",
+    modalStatCategories: "Realms Conquered",
+    modalStatSolvesIcon: "⚔️",
+    modalStatScoreIcon: "💰",
+    modalStatCategoriesIcon: "🏰",
+    modalSolvesHeader: "Quest Log",
+    modalSolveCountUnit: "quest",
+    modalLoading: "Consulting the Oracle...",
+    modalEmptyTitle: "No Quests Completed Yet",
+    modalEmptySubtitle: "This adventurer's quest log is empty...",
   },
   classes: {
     fontHeading: "font-quintessential",
@@ -179,6 +234,35 @@ export const FANTASY_THEME: ScoreboardTheme = {
     mockBanner: "bg-amber-900/20 border border-amber-700/20",
     summaryLabel: "font-medievalsharp text-xs text-amber-500/50 uppercase tracking-wider",
     summaryValue: "font-quintessential text-xs text-amber-400/50",
+    modalBg: "bg-stone-950/95",
+    modalBorder: "border border-amber-700/30",
+    modalShadow: "shadow-[0_0_60px_rgba(255,165,0,0.08)]",
+    modalHeaderBg: "bg-stone-900/50",
+    modalHeaderBorder: "border-b border-amber-800/20",
+    modalEmblemBg: "bg-linear-to-br from-amber-700 to-amber-900",
+    modalEmblemBorder: "border border-amber-600/30",
+    modalName: "text-xl font-quintessential font-bold text-amber-100",
+    modalScore: "text-amber-400 font-quintessential font-bold text-lg",
+    modalAffiliation: "text-amber-500/50 text-xs font-medievalsharp",
+    modalCloseBtn: "hover:bg-amber-900/20 text-amber-500/50 hover:text-amber-300",
+    modalStatCardBg: "bg-stone-800/30 border border-amber-900/15",
+    modalStatCardBorder: "",
+    modalStatValue: "text-amber-300 font-quintessential font-bold text-base",
+    modalStatLabel: "text-amber-600/40 font-medievalsharp text-[10px] uppercase tracking-wider",
+    modalProfilePill: "bg-stone-800/50 border border-amber-900/20 text-xs text-amber-300/60 font-medievalsharp",
+    modalProfilePillHover: "hover:text-amber-200 hover:border-amber-700/40",
+    modalSectionHeader: "text-sm font-medievalsharp text-amber-500/60 uppercase tracking-wider",
+    modalSectionAccent: "bg-amber-500/50",
+    modalCategoryCount: "text-amber-600/30 text-xs font-medievalsharp",
+    modalSolveRow: "bg-stone-800/30 border border-amber-900/10 hover:bg-stone-800/50",
+    modalSolveName: "text-amber-200/70 font-medievalsharp text-sm",
+    modalSolveScore: "text-amber-400/60 font-quintessential text-sm font-bold",
+    modalSolveDate: "text-amber-600/30 text-[10px] font-medievalsharp",
+    modalSpinner: "border-amber-500/30 border-t-amber-400",
+    modalLoadingText: "font-medievalsharp text-sm text-amber-400/50 tracking-wider",
+    modalErrorText: "font-medievalsharp text-sm text-red-400/60",
+    modalEmptyTitleClass: "font-quintessential text-base text-amber-300/50",
+    modalEmptySubtitleClass: "font-medievalsharp text-xs text-amber-500/30",
   },
 };
 
@@ -205,6 +289,18 @@ export const SS_THEME: ScoreboardTheme = {
     memberPrefix: "›",
     solveUnit: "solve",
     solveUnitPlural: "solves",
+    modalPlayerIcon: "👤",
+    modalStatSolves: "Challenges Solved",
+    modalStatScore: "Total Score",
+    modalStatCategories: "Categories",
+    modalStatSolvesIcon: "✅",
+    modalStatScoreIcon: "🏆",
+    modalStatCategoriesIcon: "📊",
+    modalSolvesHeader: "Solve History",
+    modalSolveCountUnit: "solve",
+    modalLoading: "Loading player data...",
+    modalEmptyTitle: "No Challenges Solved Yet",
+    modalEmptySubtitle: "This player hasn't solved any challenges yet.",
   },
   classes: {
     fontHeading: "font-rajdhani",
@@ -267,6 +363,35 @@ export const SS_THEME: ScoreboardTheme = {
     mockBanner: "bg-[rgba(11,51,94,0.2)] border border-[rgba(11,51,94,0.4)]",
     summaryLabel: "font-inter text-xs text-[#a8c4e8]/50 uppercase tracking-wider",
     summaryValue: "font-rajdhani text-xs text-[#f0c040]/60",
+    modalBg: "bg-[rgba(5,13,26,0.97)]",
+    modalBorder: "border-2 border-[rgba(11,51,94,0.6)]",
+    modalShadow: "shadow-[0_0_40px_rgba(0,0,0,0.7)]",
+    modalHeaderBg: "bg-[rgba(11,51,94,0.15)]",
+    modalHeaderBorder: "border-b-2 border-[rgba(11,51,94,0.5)]",
+    modalEmblemBg: "bg-[rgba(11,51,94,0.4)]",
+    modalEmblemBorder: "border-2 border-[rgba(74,144,217,0.4)]",
+    modalName: "text-xl font-rajdhani font-bold text-white",
+    modalScore: "text-[#f0c040] font-rajdhani font-bold text-lg",
+    modalAffiliation: "text-[#a8c4e8]/50 text-xs font-inter",
+    modalCloseBtn: "hover:bg-[rgba(11,51,94,0.3)] text-[#a8c4e8]/50 hover:text-white",
+    modalStatCardBg: "bg-[rgba(11,51,94,0.15)] border border-[rgba(11,51,94,0.3)]",
+    modalStatCardBorder: "",
+    modalStatValue: "text-[#f0c040] font-rajdhani font-bold text-base",
+    modalStatLabel: "text-[#a8c4e8]/50 font-inter text-[10px] uppercase tracking-wider",
+    modalProfilePill: "bg-[rgba(11,51,94,0.2)] border border-[rgba(11,51,94,0.4)] text-xs text-[#a8c4e8]/60 font-inter",
+    modalProfilePillHover: "hover:text-white hover:border-[rgba(74,144,217,0.5)]",
+    modalSectionHeader: "text-sm font-rajdhani text-[#a8c4e8]/60 uppercase tracking-wider",
+    modalSectionAccent: "bg-[#4a90d9]/50",
+    modalCategoryCount: "text-[#a8c4e8]/40 text-xs font-inter",
+    modalSolveRow: "bg-[rgba(11,51,94,0.15)] border border-[rgba(11,51,94,0.3)] hover:bg-[rgba(11,51,94,0.3)]",
+    modalSolveName: "text-[#e0e8f0]/70 font-inter text-sm",
+    modalSolveScore: "text-[#f0c040]/70 font-rajdhani text-sm font-bold",
+    modalSolveDate: "text-[#a8c4e8]/40 text-[10px] font-inter",
+    modalSpinner: "border-[rgba(11,51,94,0.4)] border-t-[#4a90d9]",
+    modalLoadingText: "font-inter text-sm text-[#a8c4e8]/60 tracking-wider",
+    modalErrorText: "font-inter text-sm text-red-400/60",
+    modalEmptyTitleClass: "font-rajdhani text-base text-[#a8c4e8]/60 uppercase tracking-wider",
+    modalEmptySubtitleClass: "font-inter text-xs text-[#a8c4e8]/40",
   },
 };
 

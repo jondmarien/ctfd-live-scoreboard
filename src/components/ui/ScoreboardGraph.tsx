@@ -210,9 +210,6 @@ export default function ScoreboardGraph() {
 
   const chartData = open ? (compressed ? compressedData : buildChartData(series)) : [];
 
-  // In user mode, hide graph entirely when there's no data
-  if (!loading && series.length === 0 && !isMock) return null;
-
   return (
     <div className={c.graphContainerBorder}>
       {/* Toggle header */}
