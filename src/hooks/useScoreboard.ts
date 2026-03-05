@@ -181,9 +181,41 @@ export function useScoreboard(mode: ScoreboardMode = "team"): ScoreboardData & {
       }
 
       if (data.data.length === 0) {
-        // API returned empty — use mock data
-        setTeams(MOCK_TEAMS);
-        setIsMock(true);
+        // API returned empty — mock data in team mode, real user list in user mode
+        if (mode === "team") {
+          setTeams(MOCK_TEAMS);
+          setIsMock(true);
+        } else {
+          // Fetch real users from /api/v1/users as fallback
+          try {
+            const usersRes = await fetchWithRetry("/api/v1/users");
+            if (usersRes.ok) {
+              const usersJson = await usersRes.json();
+              if (usersJson.success && Array.isArray(usersJson.data)) {
+                const users: Team[] = usersJson.data
+                  .filter((u: { banned?: boolean; hidden?: boolean }) => !u.banned && !u.hidden)
+                  .sort((a: { score?: number }, b: { score?: number }) => (b.score ?? 0) - (a.score ?? 0))
+                  .map((u: Record<string, unknown>, idx: number) => ({
+                    pos: idx + 1,
+                    name: escapeHTML(u.name as string),
+                    score: (u.score as number) ?? 0,
+                    teamId: u.id as number,
+                  }));
+                setTeams(users);
+                setIsMock(false);
+              } else {
+                setTeams([]);
+                setIsMock(false);
+              }
+            } else {
+              setTeams([]);
+              setIsMock(false);
+            }
+          } catch {
+            setTeams([]);
+            setIsMock(false);
+          }
+        }
       } else {
         const parsed: Team[] = data.data.map(
           (entry: {
@@ -218,9 +250,36 @@ export function useScoreboard(mode: ScoreboardMode = "team"): ScoreboardData & {
       setLastUpdate(new Date());
       lastFetchRef.current = Date.now();
     } catch (err) {
-      console.warn("Scoreboard fetch failed, using mock data:", err);
-      setTeams(MOCK_TEAMS);
-      setIsMock(true);
+      console.warn("Scoreboard fetch failed:", err);
+      if (mode === "team") {
+        setTeams(MOCK_TEAMS);
+        setIsMock(true);
+      } else {
+        // Try fetching real users as fallback
+        try {
+          const usersRes = await fetchWithRetry("/api/v1/users");
+          if (usersRes.ok) {
+            const usersJson = await usersRes.json();
+            if (usersJson.success && Array.isArray(usersJson.data)) {
+              const users: Team[] = usersJson.data
+                .filter((u: { banned?: boolean; hidden?: boolean }) => !u.banned && !u.hidden)
+                .sort((a: { score?: number }, b: { score?: number }) => (b.score ?? 0) - (a.score ?? 0))
+                .map((u: Record<string, unknown>, idx: number) => ({
+                  pos: idx + 1,
+                  name: escapeHTML(u.name as string),
+                  score: (u.score as number) ?? 0,
+                  teamId: u.id as number,
+                }));
+              setTeams(users);
+              setIsMock(false);
+            }
+          }
+        } catch {
+          // Both failed — leave empty
+          setTeams([]);
+          setIsMock(false);
+        }
+      }
       setError(null);
       setLastUpdate(new Date());
     } finally {
