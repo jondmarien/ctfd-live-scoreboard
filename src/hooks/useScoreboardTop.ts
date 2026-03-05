@@ -96,8 +96,13 @@ async function fetchScoreboardTop(count = 10, mode: ScoreboardMode = "team"): Pr
     }
 
     if (series.length === 0) {
-      c.data = MOCK_SERIES;
-      c.isMock = true;
+      if (mode === "team") {
+        c.data = MOCK_SERIES;
+        c.isMock = true;
+      } else {
+        c.data = [];
+        c.isMock = false;
+      }
     } else {
       c.data = series;
       c.isMock = false;
@@ -105,10 +110,15 @@ async function fetchScoreboardTop(count = 10, mode: ScoreboardMode = "team"): Pr
     c.lastFetch = Date.now();
     return c.data;
   } catch (err) {
-    console.warn("ScoreboardTop fetch failed, using mock data:", err);
+    console.warn("ScoreboardTop fetch failed:", err);
     if (c.data.length === 0) {
-      c.data = MOCK_SERIES;
-      c.isMock = true;
+      if (mode === "team") {
+        c.data = MOCK_SERIES;
+        c.isMock = true;
+      } else {
+        c.data = [];
+        c.isMock = false;
+      }
     }
     return c.data;
   } finally {
