@@ -195,7 +195,7 @@ export const SS_THEME: ScoreboardTheme = {
     loadingTeams: "Loading teams...",
     loadingPlayers: "Loading players...",
     loadingChallenges: "Loading challenges...",
-    emptyScoreboard: "No Teams Have Joined",
+    emptyScoreboard: "No Players Have Joined",
     emptyTeams: "No Teams Found",
     emptyPlayers: "No Players Found",
     emptyChallenges: "No Challenges Available",

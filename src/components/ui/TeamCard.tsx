@@ -16,7 +16,9 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [selectedMemberId, setSelectedMemberId] = useState<{ id: number; name: string; score: number } | null>(null);
   const [showTeamModal, setShowTeamModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
   const theme = useTheme();
+  const isUserMode = theme.id !== "fantasy";
   const c = theme.classes;
   const isTopRank = team.pos <= 3;
   const RANK_COLORS: Record<number, string> = {
@@ -31,12 +33,12 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
       {/* Main row — compact single line */}
       <div
         className={`
-          flex items-center gap-3 px-3 py-2.5 rounded-lg cursor-pointer
+          flex items-center gap-3 px-3 py-2.5 rounded-lg ${!isUserMode || team.members ? "cursor-pointer" : ""}
           transition-all duration-200
           ${c.rowHover}
           ${isTopRank ? c.rowTopRankBg : "bg-transparent"}
         `}
-        onClick={() => setExpanded(!expanded)}
+        onClick={() => !isUserMode && setExpanded(!expanded)}
       >
         {/* Rank badge */}
         <span
@@ -63,7 +65,11 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setShowTeamModal(true);
+                if (isUserMode) {
+                  setShowUserModal(true);
+                } else {
+                  setShowTeamModal(true);
+                }
               }}
               className={`shrink-0 p-1 rounded-md ${c.eyeButton} transition-colors`}
               title="View details"
@@ -162,6 +168,18 @@ function TeamCard({ team, isMock = false }: TeamCardProps) {
           <TeamSummaryModal
             team={team}
             onClose={() => setShowTeamModal(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* User Detail Modal (user mode) */}
+      <AnimatePresence>
+        {showUserModal && team.teamId && (
+          <AdventurerModal
+            memberId={team.teamId}
+            memberName={team.name}
+            memberScore={team.score}
+            onClose={() => setShowUserModal(false)}
           />
         )}
       </AnimatePresence>

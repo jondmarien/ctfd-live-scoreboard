@@ -27,20 +27,20 @@ const ALLOWED_PATHS = [
   /^v1\/teams\/\d+$/,
   /^v1\/teams\/\d+\/solves$/,
   /^v1\/teams\/\d+\/members$/,
+  /^v1\/users$/,
   /^v1\/challenges$/,
   /^v1\/challenges\/\d+$/,
   /^v1\/statistics\/challenges\/solves(\/percentages)?$/,
 ];
 
-// User paths handled separately with team-membership validation
+// User paths handled separately with validation
 const USER_PATH_RE = /^v1\/users\/(\d+)(\/solves)?$/;
 
 // ── Server-side user validation ──
 // Before proxying /v1/users/:id, fetch the user from CTFd and verify they
-// belong to a team (team_id != null). This prevents enumeration of arbitrary
-// user IDs without relying on shared module-level state (which breaks across
-// serverless instances).
-async function isTeamMember(userId: number, token: string): Promise<boolean> {
+// exist and are not banned/hidden. Supports both team-mode (user has team_id)
+// and user-mode (individual participants without teams).
+async function isValidUser(userId: number, token: string): Promise<boolean> {
   try {
     const res = await fetch(`${CTFD_BASE_URL}/api/v1/users/${userId}`, {
       headers: {
@@ -51,9 +51,10 @@ async function isTeamMember(userId: number, token: string): Promise<boolean> {
     if (!res.ok) return false;
     const json = (await res.json()) as {
       success?: boolean;
-      data?: { team_id?: number | null };
+      data?: { banned?: boolean; hidden?: boolean };
     };
-    return json.success === true && json.data?.team_id != null;
+    if (json.success !== true || !json.data) return false;
+    return !json.data.banned && !json.data.hidden;
   } catch {
     return false;
   }
@@ -222,7 +223,7 @@ export default {
     const userMatch = USER_PATH_RE.exec(apiPath);
     if (userMatch) {
       const requestedId = parseInt(userMatch[1], 10);
-      const allowed = await isTeamMember(requestedId, token);
+      const allowed = await isValidUser(requestedId, token);
       if (!allowed) {
         return Response.json(
           { error: "Endpoint not allowed" },

@@ -7,6 +7,8 @@ export interface TeamMember {
   score: number;
 }
 
+export type ScoreboardMode = "user" | "team";
+
 export interface Team {
   pos: number;
   name: string;
@@ -123,17 +125,20 @@ const MOCK_TEAMS: Team[] = [
   },
 ];
 
-// Fetch solve counts for all teams in a single parallel burst.
-// Returns a Map of teamId → solveCount. Failures are silently skipped.
+// Fetch solve counts for all accounts in a single parallel burst.
+// Returns a Map of accountId → solveCount. Failures are silently skipped.
 async function fetchAllSolveCounts(
   teams: Team[],
+  mode: ScoreboardMode,
 ): Promise<Map<number, number>> {
-  const teamsWithId = teams.filter((t) => t.teamId);
-  if (teamsWithId.length === 0) return new Map();
+  const withId = teams.filter((t) => t.teamId);
+  if (withId.length === 0) return new Map();
+
+  const basePath = mode === "user" ? "/api/v1/users" : "/api/v1/teams";
 
   const results = await Promise.allSettled(
-    teamsWithId.map(async (t) => {
-      const res = await fetchWithRetry(`/api/v1/teams/${t.teamId}/solves`);
+    withId.map(async (t) => {
+      const res = await fetchWithRetry(`${basePath}/${t.teamId}/solves`);
       if (!res.ok) return { teamId: t.teamId!, count: 0 };
       const json = await res.json();
       const count =
@@ -153,7 +158,7 @@ async function fetchAllSolveCounts(
 
 const REFRESH_INTERVAL = 30_000; // 30 seconds
 
-export function useScoreboard(): ScoreboardData & {
+export function useScoreboard(mode: ScoreboardMode = "team"): ScoreboardData & {
   refresh: () => void;
   escapeHTML: typeof escapeHTML;
 } {
@@ -192,14 +197,16 @@ export function useScoreboard(): ScoreboardData & {
             name: escapeHTML(entry.name),
             score: entry.score,
             teamId: entry.account_id,
-            members: entry.members?.map((m: TeamMember) => ({
-              ...m,
-              name: escapeHTML(m.name),
-            })),
+            members: mode === "team"
+              ? entry.members?.map((m: TeamMember) => ({
+                  ...m,
+                  name: escapeHTML(m.name),
+                }))
+              : undefined,
           }),
         );
         // Fetch all solve counts in parallel, then set teams once
-        const solveMap = await fetchAllSolveCounts(parsed);
+        const solveMap = await fetchAllSolveCounts(parsed, mode);
         const enriched = parsed.map((t) => ({
           ...t,
           solveCount: t.teamId ? (solveMap.get(t.teamId) ?? 0) : 0,
@@ -219,7 +226,7 @@ export function useScoreboard(): ScoreboardData & {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [mode]);
 
   const refresh = useCallback(() => {
     setLoading(true);

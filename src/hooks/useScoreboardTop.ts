@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchWithRetry } from "@/lib/fetchWithRetry";
+import type { ScoreboardMode } from "@/hooks/useScoreboard";
 
 export interface ScorePoint {
   time: number;
@@ -39,14 +40,22 @@ const MOCK_SERIES: TeamScoreSeries[] = (() => {
 
 const CACHE_TTL = 30_000;
 
-let _cache: TeamScoreSeries[] = [];
-let _lastFetch = 0;
-let _fetching = false;
-let _isMock = false;
+interface ModeCache {
+  data: TeamScoreSeries[];
+  lastFetch: number;
+  fetching: boolean;
+  isMock: boolean;
+}
 
-async function fetchScoreboardTop(count = 10): Promise<TeamScoreSeries[]> {
-  if (_fetching) return _cache;
-  _fetching = true;
+const _caches: Record<ScoreboardMode, ModeCache> = {
+  user: { data: [], lastFetch: 0, fetching: false, isMock: false },
+  team: { data: [], lastFetch: 0, fetching: false, isMock: false },
+};
+
+async function fetchScoreboardTop(count = 10, mode: ScoreboardMode = "team"): Promise<TeamScoreSeries[]> {
+  const c = _caches[mode];
+  if (c.fetching) return c.data;
+  c.fetching = true;
 
   try {
     const res = await fetchWithRetry(`/api/v1/scoreboard/top/${count}`);
@@ -87,63 +96,65 @@ async function fetchScoreboardTop(count = 10): Promise<TeamScoreSeries[]> {
     }
 
     if (series.length === 0) {
-      _cache = MOCK_SERIES;
-      _isMock = true;
+      c.data = MOCK_SERIES;
+      c.isMock = true;
     } else {
-      _cache = series;
-      _isMock = false;
+      c.data = series;
+      c.isMock = false;
     }
-    _lastFetch = Date.now();
-    return _cache;
+    c.lastFetch = Date.now();
+    return c.data;
   } catch (err) {
     console.warn("ScoreboardTop fetch failed, using mock data:", err);
-    if (_cache.length === 0) {
-      _cache = MOCK_SERIES;
-      _isMock = true;
+    if (c.data.length === 0) {
+      c.data = MOCK_SERIES;
+      c.isMock = true;
     }
-    return _cache;
+    return c.data;
   } finally {
-    _fetching = false;
+    c.fetching = false;
   }
 }
 
-export function useScoreboardTop(count = 10): {
+export function useScoreboardTop(count = 10, mode: ScoreboardMode = "team"): {
   series: TeamScoreSeries[];
   loading: boolean;
   isMock: boolean;
 } {
-  const [series, setSeries] = useState<TeamScoreSeries[]>(_cache);
-  const [loading, setLoading] = useState(_cache.length === 0);
-  const [isMock, setIsMock] = useState(_isMock);
+  const c = _caches[mode];
+  const [series, setSeries] = useState<TeamScoreSeries[]>(c.data);
+  const [loading, setLoading] = useState(c.data.length === 0);
+  const [isMock, setIsMock] = useState(c.isMock);
   const mounted = useRef(true);
 
   useEffect(() => {
     mounted.current = true;
+    const mc = _caches[mode];
 
     const load = async () => {
-      const data = await fetchScoreboardTop(count);
+      const data = await fetchScoreboardTop(count, mode);
       if (mounted.current) {
         setSeries(data);
-        setIsMock(_isMock);
+        setIsMock(_caches[mode].isMock);
         setLoading(false);
       }
     };
 
-    if (_cache.length === 0 || Date.now() - _lastFetch > CACHE_TTL) {
+    if (mc.data.length === 0 || Date.now() - mc.lastFetch > CACHE_TTL) {
       load();
     } else {
       setLoading(false);
     }
 
     const interval = setInterval(() => {
-      if (Date.now() - _lastFetch > CACHE_TTL) load();
+      if (Date.now() - _caches[mode].lastFetch > CACHE_TTL) load();
     }, CACHE_TTL);
 
     return () => {
       mounted.current = false;
       clearInterval(interval);
     };
-  }, [count]);
+  }, [count, mode]);
 
   return { series, loading, isMock };
 }

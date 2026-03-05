@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { useScoreboardTop } from "@/hooks/useScoreboardTop";
 import { useTheme } from "@/contexts/ThemeContext";
+import type { ScoreboardMode } from "@/hooks/useScoreboard";
 
 const TEAM_COLORS = [
   "#f59e0b", // amber
@@ -174,8 +175,9 @@ function buildChartDataCompressed(
 export default function ScoreboardGraph() {
   const [open, setOpen] = useState(false);
   const [compressed, setCompressed] = useState(false);
-  const { series, loading, isMock } = useScoreboardTop(10);
   const theme = useTheme();
+  const mode: ScoreboardMode = theme.id === "fantasy" ? "team" : "user";
+  const { series, loading, isMock } = useScoreboardTop(10, mode);
   const c = theme.classes;
 
   const allTimes = series.flatMap((s) => s.series.map((p) => p.time));
