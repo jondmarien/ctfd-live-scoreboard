@@ -1,6 +1,7 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { ThemeContext, FANTASY_THEME } from "@/contexts/ThemeContext";
+import AboutPage from "@/pages/AboutPage";
 
 const FantasyCtfPage = lazy(() => import("@/pages/FantasyCtfPage"));
 const LandingPage = lazy(() => import("@/pages/LandingPage"));
@@ -8,7 +9,6 @@ const ChallengesPage = lazy(() => import("@/pages/ChallengesPage"));
 const ChallengeDetailPage = lazy(() => import("@/pages/ChallengeDetailPage"));
 const SolutionPage = lazy(() => import("@/pages/SolutionPage"));
 const LoginCallbackPage = lazy(() => import("@/pages/LoginCallbackPage"));
-const AboutPage = lazy(() => import("@/pages/AboutPage"));
 
 export default function App() {
   return (
