@@ -11,6 +11,7 @@ import { directGet } from "@/lib/ctfdClient";
 interface ChallengeDetail extends ChallengeInfo {
   files?: string[];
   hints?: { id: number; cost: number }[];
+  connection_info?: string | null;
 }
 
 function slugify(name: string): string {
@@ -63,6 +64,9 @@ export default function ChallengeDetailPage() {
   }
 
   const isLlm = resolvedDetail.category.toLowerCase() === "llm";
+  const connectionInfo = resolvedDetail.connection_info?.trim();
+  const connectionUrl =
+    connectionInfo && /^https?:\/\//i.test(connectionInfo) ? connectionInfo : null;
 
   return (
     <div className="relative min-h-screen overflow-x-hidden">
@@ -87,6 +91,26 @@ export default function ChallengeDetailPage() {
             className="prose prose-invert mb-8 max-w-none font-medievalsharp text-amber-200/80 [&_a]:text-amber-400 [&_code]:rounded [&_code]:bg-stone-900/60 [&_code]:px-1 [&_code]:text-amber-300"
             dangerouslySetInnerHTML={{ __html: resolvedDetail.description }}
           />
+        )}
+
+        {connectionInfo && (
+          <section className="mb-8 rounded-lg border border-amber-700/30 bg-stone-900/40 p-4 backdrop-blur-md">
+            <h2 className="mb-2 font-quintessential text-xl text-amber-200">Connection Info</h2>
+            {connectionUrl ? (
+              <a
+                href={connectionUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medievalsharp text-amber-400 underline hover:text-amber-200"
+              >
+                {connectionUrl}
+              </a>
+            ) : (
+              <pre className="whitespace-pre-wrap font-mono text-sm text-amber-100">
+                {connectionInfo}
+              </pre>
+            )}
+          </section>
         )}
 
         {resolvedDetail.files && resolvedDetail.files.length > 0 && (
