@@ -1,6 +1,5 @@
 import { useCallback, useState } from "react";
 import { directPost } from "@/lib/ctfdClient";
-import { getPlayerApiKeyHeader } from "@/lib/llmByo";
 
 export type SubmitResult =
   | { kind: "correct" }
@@ -14,7 +13,7 @@ interface AttemptResponse {
   data: { status: "correct" | "incorrect" | "already_solved"; message: string };
 }
 
-export function useSubmitFlag(challengeId: number, includePlayerApiKey: boolean = false) {
+export function useSubmitFlag(challengeId: number) {
   const [submitting, setSubmitting] = useState(false);
   const [lastResult, setLastResult] = useState<SubmitResult | null>(null);
 
@@ -25,8 +24,6 @@ export function useSubmitFlag(challengeId: number, includePlayerApiKey: boolean 
         const json = await directPost<AttemptResponse>("/challenges/attempt", {
           challenge_id: challengeId,
           submission: flag,
-        }, {
-          headers: includePlayerApiKey ? getPlayerApiKeyHeader() : undefined,
         });
         const status = json?.data?.status;
         let result: SubmitResult;
@@ -49,7 +46,7 @@ export function useSubmitFlag(challengeId: number, includePlayerApiKey: boolean 
         setSubmitting(false);
       }
     },
-    [challengeId, includePlayerApiKey],
+    [challengeId],
   );
 
   return { submit, submitting, lastResult };

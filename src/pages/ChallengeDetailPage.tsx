@@ -6,6 +6,8 @@ import { useAuth } from "@/hooks/useAuth";
 import FlagSubmissionForm from "@/components/forms/FlagSubmissionForm";
 import BYOKeyForm from "@/components/forms/BYOKeyForm";
 import LLMDemoAnimation from "@/components/llm/LLMDemoAnimation";
+import LLMUsageInstructions from "@/components/llm/LLMUsageInstructions";
+import { getLLMEndpoint } from "@/data/llm-endpoints";
 import { directGet } from "@/lib/ctfdClient";
 
 interface ChallengeDetail extends ChallengeInfo {
@@ -64,6 +66,7 @@ export default function ChallengeDetailPage() {
   }
 
   const isLlm = resolvedDetail.category.toLowerCase() === "llm";
+  const llmEndpoint = getLLMEndpoint(slug ?? "");
   const connectionInfo = resolvedDetail.connection_info?.trim();
   const connectionUrl =
     connectionInfo && /^https?:\/\//i.test(connectionInfo) ? connectionInfo : null;
@@ -135,6 +138,7 @@ export default function ChallengeDetailPage() {
           <section className="mb-8">
             <h2 className="mb-3 font-quintessential text-xl text-amber-200">The Familiar Speaks</h2>
             <BYOKeyForm />
+            {llmEndpoint && <LLMUsageInstructions endpointUrl={llmEndpoint} />}
             <LLMDemoAnimation challengeSlug={slug ?? ""} />
           </section>
         )}
@@ -142,10 +146,7 @@ export default function ChallengeDetailPage() {
         <section className="mb-8">
           <h2 className="mb-3 font-quintessential text-xl text-amber-200">Submit a Flag</h2>
           {isAuthenticated ? (
-            <FlagSubmissionForm
-              challengeId={challengeId}
-              includePlayerApiKey={isLlm}
-            />
+            <FlagSubmissionForm challengeId={challengeId} />
           ) : (
             <button
               onClick={() => login(`/challenges/${slug}`)}

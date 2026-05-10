@@ -3,16 +3,11 @@ import { useSubmitFlag, type SubmitResult } from "@/hooks/useSubmitFlag";
 
 export default function FlagSubmissionForm({
   challengeId,
-  includePlayerApiKey = false,
 }: {
   challengeId: number;
-  includePlayerApiKey?: boolean;
 }) {
   const [flag, setFlag] = useState("");
-  const { submit, submitting, lastResult } = useSubmitFlag(
-    challengeId,
-    includePlayerApiKey,
-  );
+  const { submit, submitting, lastResult } = useSubmitFlag(challengeId);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
