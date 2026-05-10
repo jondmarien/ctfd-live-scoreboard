@@ -55,7 +55,7 @@ export default function LandingPage() {
                   onClick={() => login("/challenges")}
                   className="rounded-lg border-2 border-amber-600/60 bg-stone-950/60 px-8 py-3 font-quintessential text-lg text-amber-200 shadow-[0_0_20px_rgba(255,165,0,0.15)] backdrop-blur-md transition hover:border-amber-500 hover:bg-amber-900/30"
                 >
-                  Sign in with GitHub
+                  Start Your Adventure
                 </button>
               )}
               <Link

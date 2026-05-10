@@ -4,6 +4,8 @@ import { fetchWithRetry } from "@/lib/fetchWithRetry";
 // Falls back to env-injected origin in production; localhost for dev.
 const DIRECT_API_BASE =
   import.meta.env.VITE_CTFD_DIRECT_BASE ?? "https://api.ctf.chron0.tech";
+const CTFD_WEB_BASE =
+  import.meta.env.VITE_CTFD_WEB_BASE ?? "https://ctf.chron0.tech";
 
 // Proxy base — same-origin, hits api/[...path].ts
 const PROXY_BASE = "/api";
@@ -79,7 +81,7 @@ export async function directPost<T = unknown>(
 
 // Login / token minting
 // CTFd's /api/v1/tokens endpoint requires an authenticated session (cookie).
-// Flow: user redirects to https://api.ctf.chron0.tech/oauth -> GitHub -> /redirect -> CTFd sets session cookie on .chron0.tech.
+// Flow: user redirects to https://ctf.chron0.tech/login -> auth flow -> CTFd sets session cookie on .chron0.tech.
 // SPA then POSTs /api/v1/tokens with credentials: 'include' to mint a bearer.
 export async function mintBearerFromSession(): Promise<string> {
   const res = await fetch(`${DIRECT_API_BASE}/api/v1/tokens`, {
@@ -103,10 +105,9 @@ export async function mintBearerFromSession(): Promise<string> {
 }
 
 export function loginUrl(returnTo: string = "/"): string {
-  // CTFd OAuth plugin handles the GitHub flow at /oauth
-  // After successful auth, redirect back to /login/callback?next=<returnTo>
-  const callback = `${window.location.origin}/login/callback?next=${encodeURIComponent(returnTo)}`;
-  return `${DIRECT_API_BASE}/oauth?next=${encodeURIComponent(callback)}`;
+  // After successful auth, redirect back to /auth/callback?next=<returnTo>
+  const callback = `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}`;
+  return `${CTFD_WEB_BASE}/login?next=${encodeURIComponent(callback)}`;
 }
 
 export async function logout(): Promise<void> {
