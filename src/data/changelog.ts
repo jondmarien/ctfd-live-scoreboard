@@ -16,6 +16,44 @@ export interface ChangelogSection {
 
 const fantasyChangelog: ChangelogEntry[] = [
   {
+    title: "The Realm Reforged: Full-Site Launch on chron0.tech",
+    date: "2026-05-10",
+    version: "v1.0.0",
+    tags: ["Launch", "Routing", "Security", "Data"],
+    content: [
+      {
+        body: "The Guild Quest Board has been reforged into a full FantasyCTF experience at `ctf.chron0.tech`, with the scoreboard, challenge routes, and lore pages unified under one domain.",
+      },
+      {
+        heading: "New Roads Through the Realm",
+        body: "Navigation and challenge discovery now flow through dedicated routes rather than one-off static pages.",
+        bullets: [
+          "**Quest Hall Routing**: Challenge detail now uses a catch-all `/challenges/*` route, so every challenge can render from one shared template.",
+          "**Landing & Lore Pages**: Added a full landing page, about page, callback route, and challenge progression flow.",
+          "**Scoreboard Pathing**: `scoreboard.chron0.tech` now routes into the main experience at `/scoreboard`.",
+        ],
+      },
+      {
+        heading: "Battle Board Alignment",
+        body: "The scoreboard now reflects a user-only competition model and cleaner empty-state behavior.",
+        bullets: [
+          "**Guild Tab Removed**: The teams/guilds view was retired for this season's user-based format.",
+          "**Adventurer Empty State**: When no adventurers are available (or access is restricted), the board now shows the themed fallback message instead of raw transport errors.",
+          "**No Silent Mocking in Production**: Default mock-data fallbacks were disabled outside opt-in local dev mode, so live data issues are visible and actionable.",
+        ],
+      },
+      {
+        heading: "Runes of Safety & Polish",
+        body: "Security and quality-of-life upgrades were woven into both challenge and content surfaces.",
+        bullets: [
+          "**Solution Scroll Hardening**: Markdown writeups now render through `marked` + `DOMPurify`.",
+          "**Metadata & Link Previews**: Site metadata and Open Graph fields were updated for FantasyCTF branding.",
+          "**LLM Demo Precision**: Fixed the enchanted parrot flag highlight range so glow effects align exactly with the flag text.",
+        ],
+      },
+    ],
+  },
+  {
     title: "The Oracle's Eye: Quest Intel & the War Map",
     date: "2026-03-02",
     version: "v0.9.0",

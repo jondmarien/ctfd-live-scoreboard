@@ -34,21 +34,17 @@ export default function PlayersView({ onLastUpdate }: { onLastUpdate?: (d: Date 
     );
   }
 
-  if (error) {
+  const treatAsEmpty = users.length === 0 || (!!error && /HTTP 401/.test(error));
+  if (treatAsEmpty) {
     return (
       <div className="flex flex-col items-center justify-center py-8 gap-2">
         <span className="text-2xl">⚠️</span>
-        <p className={`${c.fontBody} text-sm text-red-400/60 text-center`}>{error}</p>
-      </div>
-    );
-  }
-
-  if (users.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-8 gap-2">
-        <span className="text-2xl">🏅</span>
         <p className={c.emptyTitle}>{theme.labels.emptyPlayers}</p>
-        <p className={c.emptySubtitle}>No players have registered yet.</p>
+        <p className={c.emptySubtitle}>
+          {theme.id === "fantasy"
+            ? "The guild awaits brave souls..."
+            : "No players have registered yet."}
+        </p>
       </div>
     );
   }
