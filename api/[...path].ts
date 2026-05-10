@@ -1,22 +1,26 @@
-const CTFD_BASE_URL = "https://issessionsctf.ctfd.io";
+const CTFD_BASE_URL =
+  process.env.CTFD_BASE_URL ?? "https://api.ctf.chron0.tech";
 
 // ── Allowed hosts — validated via Vercel's x-forwarded-host header ──
 // Vercel edge overwrites x-forwarded-host so it can't be forged by external callers.
 // This is the primary security gate (not Origin, which browsers omit on same-origin).
 const ALLOWED_HOSTS: (string | RegExp)[] = [
+  "ctf.chron0.tech",
+  "scoreboard.chron0.tech",
   "iss-ctfd-live-scoreboard.vercel.app",
   /^iss-ctfd-live-scoreboard-.*\.vercel\.app$/,
-  "scoreboard.issessions.ca",
   "localhost:8000",
   "localhost",
 ];
 
 // Secondary: Origin allowlist for CORS cross-origin requests
 const ALLOWED_ORIGINS: (string | RegExp)[] = [
+  "https://ctf.chron0.tech",
+  "https://scoreboard.chron0.tech",
   "https://iss-ctfd-live-scoreboard.vercel.app",
   /^https:\/\/iss-ctfd-live-scoreboard-.*\.vercel\.app$/,
-  "https://scoreboard.issessions.ca",
   "http://localhost:8000",
+  "http://localhost:5173",
 ];
 
 // Allowlist of CTFd API paths the frontend actually needs (read-only).
