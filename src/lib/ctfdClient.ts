@@ -5,7 +5,7 @@ import { fetchWithRetry } from "@/lib/fetchWithRetry";
 const DIRECT_API_BASE =
   import.meta.env.VITE_CTFD_DIRECT_BASE ?? "https://api.ctf.chron0.tech";
 const CTFD_WEB_BASE =
-  import.meta.env.VITE_CTFD_WEB_BASE ?? "https://ctf.chron0.tech";
+  import.meta.env.VITE_CTFD_WEB_BASE ?? "https://api.ctf.chron0.tech";
 
 // Proxy base — same-origin, hits api/[...path].ts
 const PROXY_BASE = "/api";

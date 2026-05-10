@@ -4,9 +4,7 @@ import type { ScoreboardMode } from "@/hooks/useScoreboard";
 import TeamCard from "@/components/ui/TeamCard";
 import AnimatedContent from "@/components/animation/AnimatedContent";
 import ViewSelector, { type ViewTab } from "@/components/ui/ViewSelector";
-import TeamsView from "@/components/ui/TeamsView";
 import ChallengesView from "@/components/ui/ChallengesView";
-import AdventurersView from "@/components/ui/AdventurersView";
 import PlayersView from "@/components/ui/PlayersView";
 import ChangelogView from "@/components/ui/ChangelogView";
 import ScoreboardGraph from "@/components/ui/ScoreboardGraph";
@@ -14,7 +12,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 
 export default function Scoreboard() {
   const theme = useTheme();
-  const mode: ScoreboardMode = theme.id === "fantasy" ? "team" : "user";
+  const mode: ScoreboardMode = "user";
   const { teams, loading, lastUpdate, isMock } = useScoreboard(mode);
   const [activeView, setActiveView] = useState<ViewTab>("scoreboard");
   const [viewLastUpdate, setViewLastUpdate] = useState<Date | null>(null);
@@ -56,9 +54,7 @@ export default function Scoreboard() {
                 )}
               </>
             )}
-            {activeView === "teams" && mode === "team" && <TeamsView onLastUpdate={setViewLastUpdate} />}
-            {activeView === "adventurers" && mode === "team" && <AdventurersView teams={teams} isMock={isMock} />}
-            {activeView === "adventurers" && mode === "user" && <PlayersView onLastUpdate={setViewLastUpdate} />}
+            {activeView === "adventurers" && <PlayersView onLastUpdate={setViewLastUpdate} />}
             {activeView === "quests" && <ChallengesView onLastUpdate={setViewLastUpdate} />}
             {activeView === "changelog" && <ChangelogView />}
           </div>

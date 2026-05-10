@@ -16,6 +16,9 @@ export interface ChallengeInfo {
 }
 
 // ── Mock data shown when API returns empty or fails ──
+const ENABLE_MOCKS =
+  import.meta.env.DEV && import.meta.env.VITE_ENABLE_MOCK_DATA === "true";
+
 const MOCK_CHALLENGES: ChallengeInfo[] = [
   {
     id: -1,
@@ -263,9 +266,8 @@ async function fetchChallenges(): Promise<Map<number, ChallengeInfo>> {
 
     const map = new Map<number, ChallengeInfo>();
     for (const c of json.data) {
-      const solves = solveCounts.size > 0
-        ? (solveCounts.get(c.id) ?? 0)
-        : (c.solves ?? 0);
+      const solves =
+        solveCounts.size > 0 ? (solveCounts.get(c.id) ?? 0) : (c.solves ?? 0);
       map.set(c.id, {
         id: c.id,
         name: c.name ?? "Unknown",
@@ -285,9 +287,15 @@ async function fetchChallenges(): Promise<Map<number, ChallengeInfo>> {
       });
     }
     if (map.size === 0) {
-      // API returned empty — use mock data
-      _cache = buildMockCache();
-      _isMock = true;
+      // API returned empty.
+      // In production we keep this empty so issues are visible; dev can opt in to mock data.
+      if (ENABLE_MOCKS) {
+        _cache = buildMockCache();
+        _isMock = true;
+      } else {
+        _cache = new Map();
+        _isMock = false;
+      }
     } else {
       _cache = map;
       _isMock = false;
@@ -295,8 +303,8 @@ async function fetchChallenges(): Promise<Map<number, ChallengeInfo>> {
     _lastFetch = Date.now();
     return _cache;
   } catch (err) {
-    console.warn("Challenge cache fetch failed, using mock data:", err);
-    if (_cache.size === 0) {
+    console.warn("Challenge cache fetch failed:", err);
+    if (_cache.size === 0 && ENABLE_MOCKS) {
       _cache = buildMockCache();
       _isMock = true;
     }

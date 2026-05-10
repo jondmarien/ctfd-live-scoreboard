@@ -25,7 +25,7 @@ export default function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/scoreboard" element={<FantasyCtfPage />} />
             <Route path="/challenges" element={<ChallengesPage />} />
-            <Route path="/challenges/:slug" element={<ChallengeDetailPage />} />
+            <Route path="/challenges/*" element={<ChallengeDetailPage />} />
             <Route path="/solutions/:slug" element={<SolutionPage />} />
             <Route path="/auth/callback" element={<LoginCallbackPage />} />
             <Route path="/about" element={<AboutPage />} />

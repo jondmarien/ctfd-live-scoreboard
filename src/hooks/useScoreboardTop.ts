@@ -39,6 +39,8 @@ const MOCK_SERIES: TeamScoreSeries[] = (() => {
 })();
 
 const CACHE_TTL = 30_000;
+const ENABLE_MOCKS =
+  import.meta.env.DEV && import.meta.env.VITE_ENABLE_MOCK_DATA === "true";
 
 interface ModeCache {
   data: TeamScoreSeries[];
@@ -52,7 +54,10 @@ const _caches: Record<ScoreboardMode, ModeCache> = {
   team: { data: [], lastFetch: 0, fetching: false, isMock: false },
 };
 
-async function fetchScoreboardTop(count = 10, mode: ScoreboardMode = "team"): Promise<TeamScoreSeries[]> {
+async function fetchScoreboardTop(
+  count = 10,
+  mode: ScoreboardMode = "team",
+): Promise<TeamScoreSeries[]> {
   const c = _caches[mode];
   if (c.fetching) return c.data;
   c.fetching = true;
@@ -96,7 +101,7 @@ async function fetchScoreboardTop(count = 10, mode: ScoreboardMode = "team"): Pr
     }
 
     if (series.length === 0) {
-      if (mode === "team") {
+      if (mode === "team" && ENABLE_MOCKS) {
         c.data = MOCK_SERIES;
         c.isMock = true;
       } else {
@@ -112,7 +117,7 @@ async function fetchScoreboardTop(count = 10, mode: ScoreboardMode = "team"): Pr
   } catch (err) {
     console.warn("ScoreboardTop fetch failed:", err);
     if (c.data.length === 0) {
-      if (mode === "team") {
+      if (mode === "team" && ENABLE_MOCKS) {
         c.data = MOCK_SERIES;
         c.isMock = true;
       } else {
@@ -126,7 +131,10 @@ async function fetchScoreboardTop(count = 10, mode: ScoreboardMode = "team"): Pr
   }
 }
 
-export function useScoreboardTop(count = 10, mode: ScoreboardMode = "team"): {
+export function useScoreboardTop(
+  count = 10,
+  mode: ScoreboardMode = "team",
+): {
   series: TeamScoreSeries[];
   loading: boolean;
   isMock: boolean;
@@ -152,8 +160,6 @@ export function useScoreboardTop(count = 10, mode: ScoreboardMode = "team"): {
 
     if (mc.data.length === 0 || Date.now() - mc.lastFetch > CACHE_TTL) {
       load();
-    } else {
-      setLoading(false);
     }
 
     const interval = setInterval(() => {

@@ -41,6 +41,9 @@ const scheduleIdle =
     ? window.requestIdleCallback
     : (cb: () => void) => setTimeout(cb, 50);
 
+const ENABLE_MOCKS =
+  import.meta.env.DEV && import.meta.env.VITE_ENABLE_MOCK_DATA === "true";
+
 const MOCK_TEAMS: Team[] = [
   {
     pos: 1,
@@ -181,10 +184,16 @@ export function useScoreboard(mode: ScoreboardMode = "team"): ScoreboardData & {
       }
 
       if (data.data.length === 0) {
-        // API returned empty — mock data in team mode, real user list in user mode
+        // API returned empty.
+        // Team mode can optionally use mock data in dev; user mode always attempts real users.
         if (mode === "team") {
-          setTeams(MOCK_TEAMS);
-          setIsMock(true);
+          if (ENABLE_MOCKS) {
+            setTeams(MOCK_TEAMS);
+            setIsMock(true);
+          } else {
+            setTeams([]);
+            setIsMock(false);
+          }
         } else {
           // Fetch real users from /api/v1/users as fallback
           try {
@@ -193,8 +202,14 @@ export function useScoreboard(mode: ScoreboardMode = "team"): ScoreboardData & {
               const usersJson = await usersRes.json();
               if (usersJson.success && Array.isArray(usersJson.data)) {
                 const users: Team[] = usersJson.data
-                  .filter((u: { banned?: boolean; hidden?: boolean }) => !u.banned && !u.hidden)
-                  .sort((a: { score?: number }, b: { score?: number }) => (b.score ?? 0) - (a.score ?? 0))
+                  .filter(
+                    (u: { banned?: boolean; hidden?: boolean }) =>
+                      !u.banned && !u.hidden,
+                  )
+                  .sort(
+                    (a: { score?: number }, b: { score?: number }) =>
+                      (b.score ?? 0) - (a.score ?? 0),
+                  )
                   .map((u: Record<string, unknown>, idx: number) => ({
                     pos: idx + 1,
                     name: escapeHTML(u.name as string),
@@ -229,12 +244,13 @@ export function useScoreboard(mode: ScoreboardMode = "team"): ScoreboardData & {
             name: escapeHTML(entry.name),
             score: entry.score,
             teamId: entry.account_id,
-            members: mode === "team"
-              ? entry.members?.map((m: TeamMember) => ({
-                  ...m,
-                  name: escapeHTML(m.name),
-                }))
-              : undefined,
+            members:
+              mode === "team"
+                ? entry.members?.map((m: TeamMember) => ({
+                    ...m,
+                    name: escapeHTML(m.name),
+                  }))
+                : undefined,
           }),
         );
         // Fetch all solve counts in parallel, then set teams once
@@ -252,8 +268,13 @@ export function useScoreboard(mode: ScoreboardMode = "team"): ScoreboardData & {
     } catch (err) {
       console.warn("Scoreboard fetch failed:", err);
       if (mode === "team") {
-        setTeams(MOCK_TEAMS);
-        setIsMock(true);
+        if (ENABLE_MOCKS) {
+          setTeams(MOCK_TEAMS);
+          setIsMock(true);
+        } else {
+          setTeams([]);
+          setIsMock(false);
+        }
       } else {
         // Try fetching real users as fallback
         try {
@@ -262,8 +283,14 @@ export function useScoreboard(mode: ScoreboardMode = "team"): ScoreboardData & {
             const usersJson = await usersRes.json();
             if (usersJson.success && Array.isArray(usersJson.data)) {
               const users: Team[] = usersJson.data
-                .filter((u: { banned?: boolean; hidden?: boolean }) => !u.banned && !u.hidden)
-                .sort((a: { score?: number }, b: { score?: number }) => (b.score ?? 0) - (a.score ?? 0))
+                .filter(
+                  (u: { banned?: boolean; hidden?: boolean }) =>
+                    !u.banned && !u.hidden,
+                )
+                .sort(
+                  (a: { score?: number }, b: { score?: number }) =>
+                    (b.score ?? 0) - (a.score ?? 0),
+                )
                 .map((u: Record<string, unknown>, idx: number) => ({
                   pos: idx + 1,
                   name: escapeHTML(u.name as string),
@@ -280,7 +307,7 @@ export function useScoreboard(mode: ScoreboardMode = "team"): ScoreboardData & {
           setIsMock(false);
         }
       }
-      setError(null);
+      setError(err instanceof Error ? err.message : String(err));
       setLastUpdate(new Date());
     } finally {
       setLoading(false);

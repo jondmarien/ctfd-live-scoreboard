@@ -20,10 +20,8 @@ export default function ViewSelector({ active, onChange }: ViewSelectorProps) {
     { id: "quests", label: l.tabChallenges, icon: theme.id === "fantasy" ? "⚔️" : "🔓" },
   ];
 
-  // In user mode (SS theme), hide the Teams tab — scoreboard already shows individual users
-  const TABS = theme.id === "fantasy"
-    ? ALL_TABS
-    : ALL_TABS.filter((t) => t.id !== "teams");
+  // User-only scoreboard mode: hide the Teams tab.
+  const TABS = ALL_TABS.filter((t) => t.id !== "teams");
 
   return (
     <div className="flex items-center justify-center gap-2 mb-4">

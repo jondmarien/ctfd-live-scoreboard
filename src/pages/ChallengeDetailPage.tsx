@@ -18,12 +18,20 @@ function slugify(name: string): string {
 }
 
 export default function ChallengeDetailPage() {
-  const { slug } = useParams<{ slug: string }>();
+  const params = useParams<{ slug?: string; "*": string }>();
   const location = useLocation();
   const { isAuthenticated, login } = useAuth();
   const { challenges } = useChallengeCache();
   const [detail, setDetail] = useState<ChallengeDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const wildcard = params["*"] ?? "";
+  const slug =
+    params.slug ??
+    wildcard
+      .split("/")
+      .filter(Boolean)
+      .at(-1);
 
   const challengeId =
     (location.state as { challengeId?: number } | null)?.challengeId ??
