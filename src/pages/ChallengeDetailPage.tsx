@@ -142,7 +142,10 @@ export default function ChallengeDetailPage() {
         <section className="mb-8">
           <h2 className="mb-3 font-quintessential text-xl text-amber-200">Submit a Flag</h2>
           {isAuthenticated ? (
-            <FlagSubmissionForm challengeId={challengeId} />
+            <FlagSubmissionForm
+              challengeId={challengeId}
+              includePlayerApiKey={isLlm}
+            />
           ) : (
             <button
               onClick={() => login(`/challenges/${slug}`)}

@@ -41,3 +41,9 @@ export function getStoredModel(): string | null {
 export function getStoredApiKey(): string | null {
   return sessionStorage.getItem(KEY_STORAGE);
 }
+
+export function getPlayerApiKeyHeader(): Record<string, string> {
+  const apiKey = getStoredApiKey();
+  if (!apiKey) return {};
+  return { "X-Player-API-Key": apiKey };
+}

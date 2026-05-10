@@ -56,6 +56,7 @@ export async function directGet<T = unknown>(path: string): Promise<T> {
 export async function directPost<T = unknown>(
   path: string,
   body: unknown,
+  options?: { headers?: Record<string, string> },
 ): Promise<T> {
   const token = getBearerToken();
   if (!token) throw new Error("Not authenticated");
@@ -64,6 +65,7 @@ export async function directPost<T = unknown>(
     headers: {
       Authorization: `Bearer ${token}`,
       "Content-Type": "application/json",
+      ...(options?.headers ?? {}),
     },
     credentials: "include",
     body: JSON.stringify(body),
