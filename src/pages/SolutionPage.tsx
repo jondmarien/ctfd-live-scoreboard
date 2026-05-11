@@ -7,10 +7,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useSolves } from "@/hooks/useSolves";
 import { useChallengeCache } from "@/hooks/useChallengeCache";
 
-// TODO: when monorepo merges feat/hosting -> main, update branch ref.
-//       Or replace with a build-time-generated manifest to avoid raw GitHub fetches entirely.
 const SOLUTIONS_BASE_URL =
-  "https://raw.githubusercontent.com/jondmarien/fantasy_ctf_challs/feat/hosting";
+  "https://raw.githubusercontent.com/jondmarien/fantasy_ctf_challs/main";
 
 marked.setOptions({
   gfm: true,
