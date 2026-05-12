@@ -11,6 +11,7 @@ const CTFD_WEB_BASE =
 const PROXY_BASE = "/api";
 
 const TOKEN_KEY = "ctfd_bearer";
+const TOKEN_CLEARED_AT_KEY = "ctfd_bearer_cleared_at";
 const PROXIED_DIRECT_GET_PATHS = [
   /^\/users\/me$/,
   /^\/challenges\/\d+$/,
@@ -24,8 +25,18 @@ function readPersistedToken(): string | null {
 
   // Backward compatible migration from older session-only storage.
   const sessionToken = sessionStorage.getItem(TOKEN_KEY);
+  if (!sessionToken) return null;
+
+  // If logout happened in another tab, never restore from stale session storage.
+  const clearedAt = localStorage.getItem(TOKEN_CLEARED_AT_KEY);
+  if (clearedAt) {
+    sessionStorage.removeItem(TOKEN_KEY);
+    return null;
+  }
+
   if (sessionToken) {
     localStorage.setItem(TOKEN_KEY, sessionToken);
+    sessionStorage.removeItem(TOKEN_KEY);
     return sessionToken;
   }
   return null;
@@ -37,11 +48,13 @@ export function getBearerToken(): string | null {
 
 export function setBearerToken(token: string): void {
   localStorage.setItem(TOKEN_KEY, token);
-  sessionStorage.setItem(TOKEN_KEY, token);
+  localStorage.removeItem(TOKEN_CLEARED_AT_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
 }
 
 export function clearBearerToken(): void {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.setItem(TOKEN_CLEARED_AT_KEY, String(Date.now()));
   sessionStorage.removeItem(TOKEN_KEY);
 }
 
