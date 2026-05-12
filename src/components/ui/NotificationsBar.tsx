@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useNotifications } from "@/hooks/useNotifications";
 
 const DISMISSED_KEY = "dismissed_notifications";
+const BAR_POSITION_KEY = "notifications_bar_position";
 
 function getDismissed(): Set<number> {
   try {
@@ -12,10 +13,24 @@ function getDismissed(): Set<number> {
   }
 }
 
+function getSavedPosition(): { x: number; y: number } {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(BAR_POSITION_KEY) ?? "null");
+    if (parsed && typeof parsed.x === "number" && typeof parsed.y === "number") {
+      return { x: parsed.x, y: parsed.y };
+    }
+  } catch {
+    // ignore malformed storage
+  }
+  return { x: 0, y: 0 };
+}
+
 export default function NotificationsBar() {
   const notifications = useNotifications();
   const [dismissed, setDismissed] = useState<Set<number>>(getDismissed);
+  const [position, setPosition] = useState(getSavedPosition);
   const visible = notifications.filter((n) => !dismissed.has(n.id));
+  const moved = useMemo(() => position.x !== 0 || position.y !== 0, [position.x, position.y]);
 
   if (visible.length === 0) return null;
 
@@ -26,8 +41,36 @@ export default function NotificationsBar() {
     sessionStorage.setItem(DISMISSED_KEY, JSON.stringify(Array.from(next)));
   }
 
+  function savePosition(x: number, y: number) {
+    const next = { x, y };
+    setPosition(next);
+    localStorage.setItem(BAR_POSITION_KEY, JSON.stringify(next));
+  }
+
   return (
-    <div className="sticky top-0 z-50 border-b border-amber-700/40 bg-stone-950/80 backdrop-blur-md">
+    <motion.div
+      drag
+      dragMomentum={false}
+      onDragEnd={(_, info) => {
+        savePosition(position.x + info.offset.x, position.y + info.offset.y);
+      }}
+      style={{ x: position.x, y: position.y }}
+      className="fixed left-1/2 top-2 z-50 w-full max-w-5xl -translate-x-1/2 border-b border-amber-700/40 bg-stone-950/80 backdrop-blur-md"
+    >
+      <div className="flex items-center justify-end gap-2 border-b border-amber-700/20 px-3 py-1">
+        <span className="cursor-move select-none font-medievalsharp text-[10px] uppercase tracking-widest text-amber-500/60">
+          drag
+        </span>
+        {moved && (
+          <button
+            onClick={() => savePosition(0, 0)}
+            className="font-medievalsharp text-[10px] uppercase tracking-widest text-amber-400/70 hover:text-amber-200"
+            title="Reset notification bar position"
+          >
+            reset
+          </button>
+        )}
+      </div>
       <AnimatePresence>
         {visible.map((notice) => (
           <motion.div
@@ -53,7 +96,7 @@ export default function NotificationsBar() {
           </motion.div>
         ))}
       </AnimatePresence>
-    </div>
+    </motion.div>
   );
 }
 
