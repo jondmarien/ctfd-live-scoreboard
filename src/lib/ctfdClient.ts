@@ -18,15 +18,30 @@ const PROXIED_DIRECT_GET_PATHS = [
   /^\/hints\/\d+$/,
 ];
 
+function readPersistedToken(): string | null {
+  const localToken = localStorage.getItem(TOKEN_KEY);
+  if (localToken) return localToken;
+
+  // Backward compatible migration from older session-only storage.
+  const sessionToken = sessionStorage.getItem(TOKEN_KEY);
+  if (sessionToken) {
+    localStorage.setItem(TOKEN_KEY, sessionToken);
+    return sessionToken;
+  }
+  return null;
+}
+
 export function getBearerToken(): string | null {
-  return sessionStorage.getItem(TOKEN_KEY);
+  return readPersistedToken();
 }
 
 export function setBearerToken(token: string): void {
+  localStorage.setItem(TOKEN_KEY, token);
   sessionStorage.setItem(TOKEN_KEY, token);
 }
 
 export function clearBearerToken(): void {
+  localStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(TOKEN_KEY);
 }
 

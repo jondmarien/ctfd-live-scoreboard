@@ -73,7 +73,7 @@ export default function LoginPage() {
             <li>Paste the token below (starts with `ctfd_`)</li>
           </ol>
           <p className="text-sm text-amber-500/70">
-            Token is stored in sessionStorage for this browser session only.
+            Token is stored in this browser so new windows stay signed in until you sign out.
           </p>
         </article>
 
