@@ -38,6 +38,21 @@ export async function proxyGet<T = unknown>(path: string): Promise<T> {
 export async function directGet<T = unknown>(path: string): Promise<T> {
   const token = getBearerToken();
   if (!token) throw new Error("Not authenticated");
+  if (path === "/users/me") {
+    const res = await fetch(`${PROXY_BASE}/v1/users/me`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+    if (res.status === 401) {
+      clearBearerToken();
+      throw new Error("Session expired");
+    }
+    if (!res.ok) throw new Error(`Direct GET ${path}: HTTP ${res.status}`);
+    return res.json() as Promise<T>;
+  }
   const res = await fetch(`${DIRECT_API_BASE}/api/v1${path}`, {
     headers: {
       Authorization: `Bearer ${token}`,

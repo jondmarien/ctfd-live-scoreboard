@@ -32,6 +32,7 @@ const ALLOWED_PATHS = [
   /^v1\/teams\/\d+\/solves$/,
   /^v1\/teams\/\d+\/members$/,
   /^v1\/users$/,
+  /^v1\/users\/me$/,
   /^v1\/challenges$/,
   /^v1\/challenges\/\d+$/,
   /^v1\/challenges\/\d+\/hints$/,
@@ -43,6 +44,14 @@ const ALLOWED_PATHS = [
 
 // User paths handled separately with validation
 const USER_PATH_RE = /^v1\/users\/(\d+)(\/(solves|awards))?$/;
+const USER_ME_PATH_RE = /^v1\/users\/me$/;
+
+function extractClientToken(authHeader: string | null): string | null {
+  if (!authHeader) return null;
+  const match = authHeader.match(/^(Bearer|Token)\s+(.+)$/i);
+  if (!match) return null;
+  return match[2].trim() || null;
+}
 
 // ── Server-side user validation ──
 // Before proxying /v1/users/:id, fetch the user from CTFd and verify they
@@ -214,8 +223,8 @@ export default {
       );
     }
 
-    const token = process.env.CTFD_API_TOKEN;
-    if (!token) {
+    const serverToken = process.env.CTFD_API_TOKEN;
+    if (!serverToken) {
       return Response.json(
         { error: "CTFD_API_TOKEN is not configured" },
         { status: 500, headers: corsHeaders(origin) },
@@ -226,12 +235,15 @@ export default {
     const url = new URL(request.url);
     const pathParts = url.pathname.split("/").filter(Boolean);
     const apiPath = pathParts.slice(1).join("/"); // Remove "api" prefix
+    const clientToken = extractClientToken(
+      request.headers.get("authorization"),
+    );
 
     // ── User endpoint: validate team membership server-side ──
     const userMatch = USER_PATH_RE.exec(apiPath);
     if (userMatch) {
       const requestedId = parseInt(userMatch[1], 10);
-      const allowed = await isValidUser(requestedId, token);
+      const allowed = await isValidUser(requestedId, serverToken);
       if (!allowed) {
         return Response.json(
           { error: "Endpoint not allowed" },
@@ -246,13 +258,16 @@ export default {
       );
     }
 
+    const outboundToken =
+      USER_ME_PATH_RE.test(apiPath) && clientToken ? clientToken : serverToken;
+
     const targetUrl = `${CTFD_BASE_URL}/api/${apiPath}${url.search}`;
 
     try {
       const response = await fetch(targetUrl, {
         method: "GET",
         headers: {
-          Authorization: `Token ${token}`,
+          Authorization: `Token ${outboundToken}`,
           "Content-Type": "application/json",
         },
       });
