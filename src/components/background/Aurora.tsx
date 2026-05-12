@@ -115,6 +115,25 @@ interface AuroraProps {
   speed?: number;
 }
 
+/**
+ * Lightweight WebGL availability check. Some browsers (Firefox with
+ * privacy.resistFingerprinting, machines without GPU acceleration, locked-down
+ * VMs, etc.) cannot create a WebGL context. We detect this up front and skip
+ * the Aurora effect entirely rather than crashing the React render tree.
+ */
+function hasWebGLSupport(): boolean {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return false;
+  }
+  try {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('webgl2') || canvas.getContext('webgl');
+    return !!ctx;
+  } catch {
+    return false;
+  }
+}
+
 export default function Aurora(props: AuroraProps) {
   const { colorStops = ['#5227FF', '#7cff67', '#5227FF'], amplitude = 1.0, blend = 0.5 } = props;
   const propsRef = useRef<AuroraProps>(props);
@@ -126,12 +145,32 @@ export default function Aurora(props: AuroraProps) {
     const ctn = ctnDom.current;
     if (!ctn) return;
 
-    const renderer = new Renderer({
-      alpha: true,
-      premultipliedAlpha: true,
-      antialias: true
-    });
+    // Pre-flight: confirm WebGL is available before even calling OGL.
+    if (!hasWebGLSupport()) {
+      console.warn(
+        '[Aurora] WebGL unavailable in this browser; aurora effect skipped.'
+      );
+      return;
+    }
+
+    let renderer: Renderer;
+    try {
+      renderer = new Renderer({
+        alpha: true,
+        premultipliedAlpha: true,
+        antialias: true
+      });
+    } catch (err) {
+      console.warn('[Aurora] WebGL renderer construction failed; aurora effect skipped.', err);
+      return;
+    }
+
     const gl = renderer.gl;
+    if (!gl) {
+      console.warn('[Aurora] WebGL context is null after renderer init; aurora effect skipped.');
+      return;
+    }
+
     gl.clearColor(0, 0, 0, 0);
     gl.enable(gl.BLEND);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);

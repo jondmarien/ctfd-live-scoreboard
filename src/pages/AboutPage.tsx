@@ -84,6 +84,17 @@ export default function AboutPage() {
             </li>
           </ul>
 
+          <h2 className="font-display text-xl text-amber-200">Browser compatibility</h2>
+          <p className="text-sm text-amber-300/70">
+            This site is tested in Chrome, Edge, Safari, and Firefox. Under
+            Firefox's <em>Strict</em> tracking-protection mode the cross-origin
+            auth flow can be unreliable due to Total Cookie Protection — if
+            you see a blank page or the sign-in flow misbehaves, either lower
+            the protection level for this site (shield icon in the address bar)
+            or use a Chromium browser. The site degrades gracefully if WebGL
+            is unavailable: the aurora effect simply isn't drawn.
+          </p>
+
           <h2 className="font-display text-xl text-amber-200">Credit</h2>
           <p className="text-sm text-amber-500/60">
             Originally designed for ISSessions Fantasy 2026 CTF.

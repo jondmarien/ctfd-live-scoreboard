@@ -1,4 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=MedievalSharp&family=JetBrains+Mono:wght@400;600&display=swap");
+/* Most fonts are now self-hosted via @fontsource packages imported in main.tsx.
+   MedievalSharp isn't published on fontsource, so it stays on Google Fonts —
+   one font request is a tiny privacy/network surface compared to four. */
+@import url("https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap");
 @import "tailwindcss";
 
 @theme {
