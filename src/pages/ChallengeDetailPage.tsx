@@ -128,15 +128,37 @@ export default function ChallengeDetailPage() {
         {resolvedDetail.files && resolvedDetail.files.length > 0 && (
           <section className="mb-8">
             <h2 className="mb-3 font-quintessential text-xl text-amber-200">Provisions</h2>
-            <ul className="space-y-2">
+            <ul className="space-y-3">
               {resolvedDetail.files.map((f) => (
                 <li key={f}>
-                  <a
-                    href={`https://api.ctf.chron0.tech${f}`}
-                    className="font-medievalsharp text-amber-400 underline hover:text-amber-200"
-                  >
-                    {f.split("/").pop()}
-                  </a>
+                  {(() => {
+                    const fileUrl = `https://api.ctf.chron0.tech${f}`;
+                    const rawName = f.split("/").pop() ?? "download";
+                    const fileName = rawName.split("?")[0] || rawName;
+                    return (
+                      <a
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="group flex items-center justify-between rounded-lg border border-amber-700/30 bg-stone-900/40 px-4 py-3 backdrop-blur-md transition hover:border-amber-500/50 hover:bg-stone-800/60"
+                      >
+                        <div className="mr-3 flex min-w-0 items-center gap-3">
+                          <span className="shrink-0 text-lg">📦</span>
+                          <div className="min-w-0">
+                            <p className="truncate font-medievalsharp text-amber-100">
+                              {fileName}
+                            </p>
+                            <p className="font-medievalsharp text-xs text-amber-500/60">
+                              Challenge attachment
+                            </p>
+                          </div>
+                        </div>
+                        <span className="shrink-0 rounded-md border border-amber-600/40 bg-amber-900/20 px-3 py-1 font-medievalsharp text-xs text-amber-300 transition group-hover:bg-amber-800/30 group-hover:text-amber-100">
+                          Download
+                        </span>
+                      </a>
+                    );
+                  })()}
                 </li>
               ))}
             </ul>
