@@ -11,6 +11,12 @@ const CTFD_WEB_BASE =
 const PROXY_BASE = "/api";
 
 const TOKEN_KEY = "ctfd_bearer";
+const PROXIED_DIRECT_GET_PATHS = [
+  /^\/users\/me$/,
+  /^\/challenges\/\d+$/,
+  /^\/challenges\/\d+\/hints$/,
+  /^\/hints\/\d+$/,
+];
 
 export function getBearerToken(): string | null {
   return sessionStorage.getItem(TOKEN_KEY);
@@ -38,8 +44,8 @@ export async function proxyGet<T = unknown>(path: string): Promise<T> {
 export async function directGet<T = unknown>(path: string): Promise<T> {
   const token = getBearerToken();
   if (!token) throw new Error("Not authenticated");
-  if (path === "/users/me") {
-    const res = await fetch(`${PROXY_BASE}/v1/users/me`, {
+  if (PROXIED_DIRECT_GET_PATHS.some((re) => re.test(path))) {
+    const res = await fetch(`${PROXY_BASE}/v1${path}`, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",

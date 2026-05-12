@@ -37,6 +37,7 @@ const ALLOWED_PATHS = [
   /^v1\/challenges\/\d+$/,
   /^v1\/challenges\/\d+\/hints$/,
   /^v1\/challenges\/\d+\/solves$/,
+  /^v1\/hints\/\d+$/,
   /^v1\/notifications$/,
   /^v1\/awards$/,
   /^v1\/statistics\/challenges\/solves(\/percentages)?$/,
@@ -45,6 +46,12 @@ const ALLOWED_PATHS = [
 // User paths handled separately with validation
 const USER_PATH_RE = /^v1\/users\/(\d+)(\/(solves|awards))?$/;
 const USER_ME_PATH_RE = /^v1\/users\/me$/;
+const CLIENT_TOKEN_PATHS = [
+  USER_ME_PATH_RE,
+  /^v1\/challenges\/\d+$/,
+  /^v1\/challenges\/\d+\/hints$/,
+  /^v1\/hints\/\d+$/,
+];
 
 function extractClientToken(authHeader: string | null): string | null {
   if (!authHeader) return null;
@@ -167,6 +174,10 @@ function isPathAllowed(apiPath: string): boolean {
   return ALLOWED_PATHS.some((pattern) => pattern.test(apiPath));
 }
 
+function shouldUseClientToken(apiPath: string, hasClientToken: boolean): boolean {
+  return hasClientToken && CLIENT_TOKEN_PATHS.some((pattern) => pattern.test(apiPath));
+}
+
 function corsHeaders(origin: string | null): Record<string, string> {
   const allowed = isOriginAllowed(origin);
   return {
@@ -258,8 +269,9 @@ export default {
       );
     }
 
-    const outboundToken =
-      USER_ME_PATH_RE.test(apiPath) && clientToken ? clientToken : serverToken;
+    const outboundToken = shouldUseClientToken(apiPath, !!clientToken)
+      ? (clientToken as string)
+      : serverToken;
 
     const targetUrl = `${CTFD_BASE_URL}/api/${apiPath}${url.search}`;
 
