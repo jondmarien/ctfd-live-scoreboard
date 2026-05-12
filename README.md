@@ -6,6 +6,8 @@ This repository now covers more than the scoreboard UI: it includes public chall
 
 ![ISSessions Fantasy CTF](public/img/fantasy-ctf-banner.png)
 
+[![Chron0 CTF Status](https://status.ctf.chron0.tech/api/badge/1/status)](https://status.ctf.chron0.tech)
+
 ## Development Docs
 
 All implementation and workflow details live in [`DEVELOPMENT.md`](./DEVELOPMENT.md).

@@ -36,6 +36,24 @@ export default function AboutPage() {
             Player keys are session-scoped and not persisted server-side.
           </p>
 
+          <h2 className="font-display text-xl text-amber-200">Live Status</h2>
+          <p className="flex items-center gap-3">
+            <a
+              href="https://status.ctf.chron0.tech"
+              className="text-amber-400 underline"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Uptime Kuma
+            </a>
+            <img
+              src="https://status.ctf.chron0.tech/api/badge/1/status"
+              alt="Chron0 CTF status badge"
+              className="inline-block h-5"
+              loading="lazy"
+            />
+          </p>
+
           <h2 className="font-display text-xl text-amber-200">Source</h2>
           <ul className="list-disc list-inside">
             <li>
