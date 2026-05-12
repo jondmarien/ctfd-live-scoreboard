@@ -3,7 +3,6 @@ import {
   clearBearerToken,
   directGet,
   getBearerToken,
-  loginUrl,
   logout as ctfdLogout,
   mintBearerFromSession,
 } from "@/lib/ctfdClient";
@@ -53,7 +52,7 @@ export function useAuth() {
   }, [loadUser]);
 
   const login = useCallback((returnTo: string = "/") => {
-    window.location.href = loginUrl(returnTo);
+    window.location.href = `/login?next=${encodeURIComponent(returnTo)}`;
   }, []);
 
   const logout = useCallback(async () => {

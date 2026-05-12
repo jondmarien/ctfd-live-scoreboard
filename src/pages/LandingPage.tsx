@@ -5,6 +5,7 @@ import SplitText from "@/components/animation/SplitText";
 import ShinyText from "@/components/animation/ShinyText";
 import AnimatedContent from "@/components/animation/AnimatedContent";
 import { useAuth } from "@/hooks/useAuth";
+import ProfileBadge from "@/components/ui/ProfileBadge";
 
 export default function LandingPage() {
   const { isAuthenticated, login } = useAuth();
@@ -13,6 +14,9 @@ export default function LandingPage() {
     <ClickSpark sparkColor="#FFD700" sparkSize={12} sparkRadius={20} sparkCount={10} duration={500}>
       <div className="relative min-h-screen overflow-x-hidden">
         <TavernBackground />
+        <div className="absolute right-6 top-6 z-40">
+          <ProfileBadge />
+        </div>
         <div className="relative z-30 flex min-h-screen flex-col items-center justify-center px-6 text-center">
           <AnimatedContent distance={20} direction="vertical" duration={0.8} delay={0.2}>
             <h1 className="mb-6">

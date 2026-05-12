@@ -173,7 +173,7 @@ function buildChartDataCompressed(
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ScoreboardGraph() {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const [compressed, setCompressed] = useState(false);
   const theme = useTheme();
   const mode: ScoreboardMode = theme.id === "fantasy" ? "team" : "user";

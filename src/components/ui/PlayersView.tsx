@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { AnimatePresence } from "framer-motion";
 import { Eye } from "lucide-react";
-import { useUsersList } from "@/hooks/useUsersList";
-import type { UserListEntry } from "@/hooks/useUsersList";
+import { Link } from "react-router-dom";
+import { useScoreboard } from "@/hooks/useScoreboard";
 import AdventurerModal from "@/components/modals/AdventurerModal";
 import { useTheme } from "@/contexts/ThemeContext";
 
 export default function PlayersView({ onLastUpdate }: { onLastUpdate?: (d: Date | null) => void }) {
-  const { users, loading, error, lastUpdate } = useUsersList();
+  const { teams, loading, error, lastUpdate } = useScoreboard("user");
   const theme = useTheme();
   const c = theme.classes;
 
@@ -16,7 +16,7 @@ export default function PlayersView({ onLastUpdate }: { onLastUpdate?: (d: Date 
     if (onLastUpdate && lastUpdate) onLastUpdate(lastUpdate);
   }, [onLastUpdate, lastUpdate]);
 
-  const [selectedUser, setSelectedUser] = useState<UserListEntry | null>(null);
+  const [selectedUser, setSelectedUser] = useState<{ id: number; name: string; score: number } | null>(null);
 
   const RANK_COLORS: Record<number, string> = {
     1: c.rankBadge1,
@@ -34,7 +34,7 @@ export default function PlayersView({ onLastUpdate }: { onLastUpdate?: (d: Date 
     );
   }
 
-  const treatAsEmpty = users.length === 0 || (!!error && /HTTP 401/.test(error));
+  const treatAsEmpty = teams.length === 0 || (!!error && /HTTP 401/.test(error));
   if (treatAsEmpty) {
     return (
       <div className="flex flex-col items-center justify-center py-8 gap-2">
@@ -55,21 +55,21 @@ export default function PlayersView({ onLastUpdate }: { onLastUpdate?: (d: Date 
         {/* Summary */}
         <div className="flex items-center justify-between px-3 pb-1">
           <span className={c.summaryLabel}>
-            {users.length} player{users.length !== 1 ? "s" : ""}
+            {teams.length} player{teams.length !== 1 ? "s" : ""}
           </span>
           <span className={c.summaryValue}>
-            {users.reduce((sum, u) => sum + u.score, 0)} {theme.labels.scoreUnit} total
+            {teams.reduce((sum, t) => sum + t.score, 0)} {theme.labels.scoreUnit} total
           </span>
         </div>
 
-        {users.map((user, idx) => {
-          const rank = idx + 1;
+        {teams.map((team) => {
+          const rank = team.pos;
           const isTopRank = rank <= 3;
           const rankClass = RANK_COLORS[rank] ?? DEFAULT_RANK_CLASS;
 
           return (
             <div
-              key={user.id}
+              key={team.teamId ?? `${team.name}-${team.pos}`}
               className={`
                 flex items-center gap-3 px-3 py-2.5 rounded-lg
                 transition-all duration-200
@@ -89,16 +89,36 @@ export default function PlayersView({ onLastUpdate }: { onLastUpdate?: (d: Date 
 
               {/* Name + eye icon */}
               <div className="flex items-center gap-1.5 min-w-0 grow">
-                <span
-                  className={`
-                    min-w-0 truncate ${c.fontHeading} text-base
-                    ${isTopRank ? "text-white font-semibold" : "text-white/80"}
-                  `}
-                >
-                  {user.name}
-                </span>
+                {team.teamId ? (
+                  <Link
+                    to={`/players/${team.teamId}`}
+                    className={`
+                      min-w-0 truncate ${c.fontHeading} text-base
+                      ${isTopRank ? "text-white font-semibold" : "text-white/80"}
+                      hover:text-amber-100
+                    `}
+                  >
+                    {team.name}
+                  </Link>
+                ) : (
+                  <span
+                    className={`
+                      min-w-0 truncate ${c.fontHeading} text-base
+                      ${isTopRank ? "text-white font-semibold" : "text-white/80"}
+                    `}
+                  >
+                    {team.name}
+                  </span>
+                )}
                 <button
-                  onClick={() => setSelectedUser(user)}
+                  onClick={() =>
+                    setSelectedUser({
+                      id: team.teamId ?? 0,
+                      name: team.name,
+                      score: team.score,
+                    })
+                  }
+                  disabled={!team.teamId}
                   className={`shrink-0 p-1 rounded-md ${c.eyeButton} transition-colors`}
                   title="View details"
                 >
@@ -106,10 +126,10 @@ export default function PlayersView({ onLastUpdate }: { onLastUpdate?: (d: Date 
                 </button>
               </div>
 
-              {/* Right-aligned stats: affiliation | score */}
+              {/* Right-aligned stats: quests | score */}
               <div className="shrink-0 hidden sm:flex items-center ml-auto w-[250px]">
                 <span className={`flex-1 text-xs ${c.statLabel} ${c.fontBody} text-right truncate`}>
-                  {user.affiliation || "—"}
+                  ■ {team.solveCount ?? 0} {(team.solveCount ?? 0) === 1 ? theme.labels.solveUnit : theme.labels.solveUnitPlural}
                 </span>
                 <span className={`shrink-0 ${c.separator} mx-3`}>│</span>
                 <span className="flex-1 flex items-center justify-end gap-1">
@@ -120,7 +140,7 @@ export default function PlayersView({ onLastUpdate }: { onLastUpdate?: (d: Date 
                       text-[22px]
                     `}
                   >
-                    {user.score}
+                    {team.score}
                   </span>
                   <span className={`text-xs ${c.fontBody} ${c.scoreUnit}`}>{theme.labels.scoreUnit}</span>
                 </span>
@@ -129,7 +149,7 @@ export default function PlayersView({ onLastUpdate }: { onLastUpdate?: (d: Date 
               {/* Mobile score */}
               <div className="shrink-0 flex items-center gap-1 ml-auto sm:hidden">
                 <span className={`${c.fontHeading} font-bold ${c.scoreDefault} tabular-nums`}>
-                  {user.score}
+                  {team.score}
                 </span>
                 <span className={`text-xs ${c.fontBody} ${c.scoreUnit}`}>{theme.labels.scoreUnit}</span>
               </div>

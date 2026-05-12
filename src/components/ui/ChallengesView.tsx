@@ -152,6 +152,17 @@ export default function ChallengesView({ onLastUpdate }: { onLastUpdate?: (d: Da
   return (
     <>
     <div className="space-y-4 px-1">
+      <div className="flex justify-end px-2">
+        <a
+          href="https://ctf.chron0.tech/challenges"
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`px-3 py-1.5 rounded-lg border ${c.questSectionBorder} ${c.questSectionBg} ${c.fontBody} text-xs ${c.graphToggleText} hover:opacity-90 transition-opacity`}
+        >
+          Open live quests
+        </a>
+      </div>
+
       {/* Mock data banner */}
       {isMock && (
         <div className={`mx-2 px-3 py-1.5 rounded-lg ${c.mockBanner} text-center`}>

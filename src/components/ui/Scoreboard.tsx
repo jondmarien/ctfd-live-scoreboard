@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useScoreboard } from "@/hooks/useScoreboard";
 import type { ScoreboardMode } from "@/hooks/useScoreboard";
-import TeamCard from "@/components/ui/TeamCard";
 import AnimatedContent from "@/components/animation/AnimatedContent";
 import ViewSelector, { type ViewTab } from "@/components/ui/ViewSelector";
 import ChallengesView from "@/components/ui/ChallengesView";
@@ -13,7 +12,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 export default function Scoreboard() {
   const theme = useTheme();
   const mode: ScoreboardMode = "user";
-  const { teams, loading, lastUpdate, isMock } = useScoreboard(mode);
+  const { teams, loading, lastUpdate } = useScoreboard(mode);
   const [activeView, setActiveView] = useState<ViewTab>("scoreboard");
   const [viewLastUpdate, setViewLastUpdate] = useState<Date | null>(null);
   const c = theme.classes;
@@ -43,17 +42,7 @@ export default function Scoreboard() {
 
           {/* Content area */}
           <div className="px-2 py-2 space-y-0.5">
-            {activeView === "scoreboard" && (
-              <>
-                {loading && teams.length === 0 ? (
-                  <LoadingState />
-                ) : teams.length === 0 ? (
-                  <EmptyState />
-                ) : (
-                  teams.map((team) => <TeamCard key={team.pos} team={team} isMock={isMock} />)
-                )}
-              </>
-            )}
+            {activeView === "scoreboard" && (loading && teams.length === 0 ? <LoadingState /> : teams.length === 0 ? <EmptyState /> : null)}
             {activeView === "adventurers" && <PlayersView onLastUpdate={setViewLastUpdate} />}
             {activeView === "quests" && <ChallengesView onLastUpdate={setViewLastUpdate} />}
             {activeView === "changelog" && <ChangelogView />}

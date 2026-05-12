@@ -32,6 +32,17 @@ interface TeamDetailsData {
 // Per-team cache
 const _teamCache = new Map<number, { team: TeamProfile; solves: TeamSolve[] }>();
 
+function toThemedPartyError(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  if (/HTTP 401/.test(message)) {
+    return "The Party ledger is protected. Sign in with your token to inspect party records.";
+  }
+  if (/HTTP 403/.test(message)) {
+    return "These party chronicles are sealed by the Quest Giver.";
+  }
+  return message || "Failed to load party details";
+}
+
 export function useTeamDetails(teamId: number | null): TeamDetailsData {
   const [team, setTeam] = useState<TeamProfile | null>(null);
   const [solves, setSolves] = useState<TeamSolve[]>([]);
@@ -113,7 +124,7 @@ export function useTeamDetails(teamId: number | null): TeamDetailsData {
       if (err instanceof DOMException && err.name === "AbortError") return;
       console.warn("Team details fetch failed:", err);
       if (!controller.signal.aborted) {
-        setError(err instanceof Error ? err.message : "Failed to load party details");
+        setError(toThemedPartyError(err));
       }
     } finally {
       if (!controller.signal.aborted) {

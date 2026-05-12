@@ -6,6 +6,7 @@ import TavernBackground from "@/components/background/TavernBackground";
 import { useAuth } from "@/hooks/useAuth";
 import { useSolves } from "@/hooks/useSolves";
 import { useChallengeCache } from "@/hooks/useChallengeCache";
+import ProfileBadge from "@/components/ui/ProfileBadge";
 
 const SOLUTIONS_BASE_URL =
   "https://raw.githubusercontent.com/jondmarien/fantasy_ctf_challs/main";
@@ -114,6 +115,9 @@ function Shell({ children }: { children: ReactNode }) {
   return (
     <div className="relative min-h-screen overflow-x-hidden">
       <TavernBackground />
+      <div className="absolute right-6 top-6 z-40">
+        <ProfileBadge />
+      </div>
       <div className="relative z-30 mx-auto max-w-3xl px-6 py-12">
         <Link to="/challenges" className="font-medievalsharp text-sm text-amber-400/60 hover:text-amber-300">
           Quest Hall

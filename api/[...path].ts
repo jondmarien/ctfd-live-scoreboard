@@ -34,11 +34,15 @@ const ALLOWED_PATHS = [
   /^v1\/users$/,
   /^v1\/challenges$/,
   /^v1\/challenges\/\d+$/,
+  /^v1\/challenges\/\d+\/hints$/,
+  /^v1\/challenges\/\d+\/solves$/,
+  /^v1\/notifications$/,
+  /^v1\/awards$/,
   /^v1\/statistics\/challenges\/solves(\/percentages)?$/,
 ];
 
 // User paths handled separately with validation
-const USER_PATH_RE = /^v1\/users\/(\d+)(\/solves)?$/;
+const USER_PATH_RE = /^v1\/users\/(\d+)(\/(solves|awards))?$/;
 
 // ── Server-side user validation ──
 // Before proxying /v1/users/:id, fetch the user from CTFd and verify they

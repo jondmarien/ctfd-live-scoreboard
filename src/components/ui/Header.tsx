@@ -1,10 +1,15 @@
 import SplitText from "@/components/animation/SplitText";
 import ShinyText from "@/components/animation/ShinyText";
 import AnimatedContent from "@/components/animation/AnimatedContent";
+import ProfileBadge from "@/components/ui/ProfileBadge";
 
 export default function Header() {
   return (
     <header className="relative z-30 flex flex-col items-center pt-4 pb-6 px-4">
+      <div className="absolute right-4 top-4 z-40">
+        <ProfileBadge />
+      </div>
+
       {/* Banner image */}
       <AnimatedContent
         distance={30}

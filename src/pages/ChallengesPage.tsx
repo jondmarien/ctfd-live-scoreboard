@@ -3,6 +3,7 @@ import TavernBackground from "@/components/background/TavernBackground";
 import { useChallengeCache, type ChallengeInfo } from "@/hooks/useChallengeCache";
 import { useSolves } from "@/hooks/useSolves";
 import { useAuth } from "@/hooks/useAuth";
+import ProfileBadge from "@/components/ui/ProfileBadge";
 
 const CATEGORY_ORDER = ["crypto", "prog", "llm", "osint", "rev", "misc"];
 const CATEGORY_LABELS: Record<string, string> = {
@@ -34,6 +35,9 @@ export default function ChallengesPage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden">
       <TavernBackground />
+      <div className="absolute right-6 top-6 z-40">
+        <ProfileBadge />
+      </div>
       <div className="relative z-30 mx-auto max-w-5xl px-6 py-12">
         <h1 className="mb-8 text-center font-quintessential text-3xl text-amber-100 md:text-4xl">
           The Quest Hall

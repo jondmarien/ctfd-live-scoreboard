@@ -7,8 +7,11 @@ import FlagSubmissionForm from "@/components/forms/FlagSubmissionForm";
 import BYOKeyForm from "@/components/forms/BYOKeyForm";
 import LLMDemoAnimation from "@/components/llm/LLMDemoAnimation";
 import LLMUsageInstructions from "@/components/llm/LLMUsageInstructions";
+import HintsPanel from "@/components/challenge/HintsPanel";
+import SolvesPanel from "@/components/challenge/SolvesPanel";
+import ProfileBadge from "@/components/ui/ProfileBadge";
 import { getLLMEndpoint } from "@/data/llm-endpoints";
-import { directGet } from "@/lib/ctfdClient";
+import { directGet, proxyGet } from "@/lib/ctfdClient";
 
 interface ChallengeDetail extends ChallengeInfo {
   files?: string[];
@@ -43,13 +46,16 @@ export default function ChallengeDetailPage() {
   const fallbackDetail = challengeId ? ((challenges.get(challengeId) as ChallengeDetail | undefined) ?? null) : null;
 
   useEffect(() => {
-    if (!challengeId || !isAuthenticated) return;
-    directGet<{ success: boolean; data: ChallengeDetail }>(`/challenges/${challengeId}`)
+    if (!challengeId) return;
+    const fetchPromise = isAuthenticated
+      ? directGet<{ success: boolean; data: ChallengeDetail }>(`/challenges/${challengeId}`)
+      : proxyGet<{ success: boolean; data: ChallengeDetail }>(`/v1/challenges/${challengeId}`);
+    fetchPromise
       .then((j) => setDetail(j.data))
       .catch((e) => setError(e instanceof Error ? e.message : String(e)));
   }, [challengeId, isAuthenticated]);
 
-  const resolvedDetail = isAuthenticated ? detail : fallbackDetail;
+  const resolvedDetail = detail ?? fallbackDetail;
 
   if (!challengeId || !resolvedDetail) {
     return (
@@ -74,6 +80,9 @@ export default function ChallengeDetailPage() {
   return (
     <div className="relative min-h-screen overflow-x-hidden">
       <TavernBackground />
+      <div className="absolute right-6 top-6 z-40">
+        <ProfileBadge />
+      </div>
       <div className="relative z-30 mx-auto max-w-3xl px-6 py-12">
         <Link to="/challenges" className="font-medievalsharp text-sm text-amber-400/60 hover:text-amber-300">
           Quest Hall
@@ -133,6 +142,9 @@ export default function ChallengeDetailPage() {
             </ul>
           </section>
         )}
+
+        <SolvesPanel challengeId={challengeId} />
+        <HintsPanel challengeId={challengeId} />
 
         {isLlm && (
           <section className="mb-8">

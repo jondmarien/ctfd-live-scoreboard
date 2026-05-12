@@ -29,6 +29,17 @@ interface AdventurerDetailsData {
 // Per-user cache
 const _userCache = new Map<number, { user: UserProfile; solves: UserSolve[] }>();
 
+function toThemedAdventurerError(err: unknown): string {
+  const message = err instanceof Error ? err.message : String(err);
+  if (/HTTP 401/.test(message)) {
+    return "The Guild archives are warded. Sign in with your token to view this adventurer's chronicle.";
+  }
+  if (/HTTP 403/.test(message)) {
+    return "The Oracle denies this request. This adventurer's records are currently sealed.";
+  }
+  return message || "Failed to load adventurer";
+}
+
 export function useAdventurerDetails(memberId: number | null): AdventurerDetailsData {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [solves, setSolves] = useState<UserSolve[]>([]);
@@ -111,7 +122,7 @@ export function useAdventurerDetails(memberId: number | null): AdventurerDetails
       if (err instanceof DOMException && err.name === "AbortError") return;
       console.warn("Adventurer details fetch failed:", err);
       if (!controller.signal.aborted) {
-        setError(err instanceof Error ? err.message : "Failed to load adventurer");
+        setError(toThemedAdventurerError(err));
       }
     } finally {
       if (!controller.signal.aborted) {
