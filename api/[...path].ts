@@ -33,6 +33,7 @@ const ALLOWED_PATHS = [
   /^v1\/teams\/\d+\/members$/,
   /^v1\/users$/,
   /^v1\/users\/me$/,
+  /^v1\/users\/me\/solves$/,
   /^v1\/challenges$/,
   /^v1\/challenges\/\d+$/,
   /^v1\/challenges\/\d+\/hints$/,
@@ -48,6 +49,7 @@ const USER_PATH_RE = /^v1\/users\/(\d+)(\/(solves|awards))?$/;
 const USER_ME_PATH_RE = /^v1\/users\/me$/;
 const CLIENT_TOKEN_PATHS = [
   USER_ME_PATH_RE,
+  /^v1\/users\/me\/solves$/,
   /^v1\/challenges\/\d+$/,
   /^v1\/challenges\/\d+\/hints$/,
   /^v1\/hints\/\d+$/,

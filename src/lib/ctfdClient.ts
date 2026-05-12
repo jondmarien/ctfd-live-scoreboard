@@ -14,6 +14,7 @@ const TOKEN_KEY = "ctfd_bearer";
 const TOKEN_CLEARED_AT_KEY = "ctfd_bearer_cleared_at";
 const PROXIED_DIRECT_GET_PATHS = [
   /^\/users\/me$/,
+  /^\/users\/me\/solves$/,
   /^\/challenges\/\d+$/,
   /^\/challenges\/\d+\/hints$/,
   /^\/hints\/\d+$/,
