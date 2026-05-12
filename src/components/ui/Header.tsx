@@ -1,68 +1,42 @@
-import SplitText from "@/components/animation/SplitText";
-import ShinyText from "@/components/animation/ShinyText";
-import AnimatedContent from "@/components/animation/AnimatedContent";
+import { Link, useLocation } from "react-router-dom";
 import ProfileBadge from "@/components/ui/ProfileBadge";
 
 export default function Header() {
+  const location = useLocation();
+  const navItems = [
+    { to: "/challenges", label: "Quests" },
+    { to: "/scoreboard", label: "Scoreboard" },
+    { to: "/about", label: "About" },
+  ];
+
   return (
-    <header className="relative z-30 flex flex-col items-center pt-4 pb-6 px-4">
-      <div className="absolute right-4 top-4 z-40">
+    <header className="relative z-40 border-b border-amber-800/30 bg-stone-950/70 px-4 py-4 backdrop-blur-md">
+      <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4">
+        <Link to="/" className="font-display text-2xl italic text-amber-100 transition hover:text-amber-300">
+          FantasyCTF
+        </Link>
+
+        <nav className="flex items-center gap-2">
+          {navItems.map((item) => {
+            const active = location.pathname.startsWith(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`rounded-md px-3 py-1.5 text-sm transition ${
+                  active
+                    ? "border border-amber-700/50 bg-amber-900/30 font-display text-amber-200"
+                    : "font-body text-amber-400/70 hover:text-amber-200"
+                }`}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
         <ProfileBadge />
       </div>
-
-      {/* Banner image */}
-      <AnimatedContent
-        distance={30}
-        direction="vertical"
-        duration={1.2}
-        delay={0.1}
-      >
-        <div className="w-full max-w-4xl mb-4 overflow-hidden rounded-lg">
-          <img
-            src="/img/fantasy-ctf-banner.png"
-            alt="ISSessions Fantasy CTF Banner"
-            className="w-full h-auto object-cover opacity-90"
-            style={{ maxHeight: "180px" }}
-          />
-          <div className="h-1 bg-linear-to-r from-transparent via-amber-500/60 to-transparent" />
-        </div>
-      </AnimatedContent>
-
-      {/* Title */}
-      <AnimatedContent
-        distance={20}
-        direction="vertical"
-        duration={0.8}
-        delay={0.4}
-      >
-        <h1 className="text-center mb-2">
-          <SplitText
-            text="⚔️ GUILD QUEST BOARD 🛡️"
-            className="font-quintessential text-3xl md:text-4xl lg:text-5xl font-bold tracking-wide"
-            delay={60}
-            from={{ opacity: 0, y: 20 }}
-            to={{ opacity: 1, y: 0 }}
-            ease="power3.out"
-            threshold={0.1}
-            tag="span"
-          />
-        </h1>
-      </AnimatedContent>
-
-      {/* Subtitle */}
-      <AnimatedContent
-        distance={15}
-        direction="vertical"
-        duration={0.6}
-        delay={0.8}
-      >
-        <ShinyText
-          text="The Quest Giver is watching..."
-          disabled={false}
-          speed={4}
-          className="font-medievalsharp text-sm md:text-base tracking-widest text-amber-400/70"
-        />
-      </AnimatedContent>
     </header>
   );
 }

@@ -86,7 +86,7 @@ export default function AdventurersView({ teams, isMock }: AdventurersViewProps)
               <span
                 className={`
                   shrink-0 w-8 h-8 rounded-md flex items-center justify-center
-                  text-sm font-bold font-quintessential shadow-sm
+                  text-sm font-bold font-display shadow-sm
                   ${rankClass}
                 `}
               >

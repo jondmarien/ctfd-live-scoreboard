@@ -32,7 +32,7 @@ export default function FlagSubmissionForm({
         <button
           type="submit"
           disabled={submitting || !flag.trim()}
-          className="rounded-lg border-2 border-amber-600/60 bg-amber-900/30 px-6 py-2 font-quintessential text-amber-100 backdrop-blur-md transition hover:bg-amber-800/50 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-lg border-2 border-amber-600/60 bg-amber-900/30 px-6 py-2 font-display text-amber-100 backdrop-blur-md transition hover:bg-amber-800/50 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {submitting ? "Submitting..." : "Strike"}
         </button>
@@ -52,5 +52,5 @@ function FlagResult({ result }: { result: SubmitResult | null }) {
     error: { color: "text-red-400/80", text: `Error: ${"message" in result ? result.message : "unknown"}` },
   };
   const { color, text } = map[result.kind];
-  return <p className={`font-medievalsharp text-sm ${color}`}>{text}</p>;
+  return <p className={`font-body text-sm ${color}`}>{text}</p>;
 }

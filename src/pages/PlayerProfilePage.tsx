@@ -27,7 +27,7 @@ export default function PlayerProfilePage() {
   if (loading) {
     return (
       <Shell>
-        <p className="font-medievalsharp text-amber-300/70">Consulting the oracle...</p>
+        <p className="font-body text-amber-300/70">Consulting the oracle...</p>
       </Shell>
     );
   }
@@ -35,7 +35,7 @@ export default function PlayerProfilePage() {
   if (error || !profile) {
     return (
       <Shell>
-        <p className="font-medievalsharp text-red-400/70">No adventurer found.</p>
+        <p className="font-body text-red-400/70">No adventurer found.</p>
       </Shell>
     );
   }
@@ -43,14 +43,14 @@ export default function PlayerProfilePage() {
   return (
     <Shell>
       <header className="mb-8">
-        <h1 className="font-quintessential text-3xl text-amber-100">{profile.name}</h1>
-        <div className="mt-2 flex flex-wrap gap-6 font-medievalsharp text-amber-300/80">
+        <h1 className="font-display text-3xl text-amber-100">{profile.name}</h1>
+        <div className="mt-2 flex flex-wrap gap-6 font-body text-amber-300/80">
           <span>
-            <span className="font-quintessential text-amber-400">{profile.score}</span> GP
+            <span className="font-display text-amber-400">{profile.score}</span> GP
           </span>
           {profile.place !== null && (
             <span>
-              Rank <span className="font-quintessential text-amber-400">#{profile.place}</span>
+              Rank <span className="font-display text-amber-400">#{profile.place}</span>
             </span>
           )}
           {profile.country && <span>{profile.country}</span>}
@@ -61,7 +61,7 @@ export default function PlayerProfilePage() {
       <section>
         {awards.length > 0 && (
           <section className="mb-6">
-            <h2 className="mb-3 font-quintessential text-xl text-amber-200">
+            <h2 className="mb-3 font-display text-xl text-amber-200">
               Honours ({awards.length})
             </h2>
             <div className="flex flex-wrap gap-2">
@@ -70,9 +70,9 @@ export default function PlayerProfilePage() {
                   key={award.id}
                   className="rounded-lg border border-amber-600/60 bg-amber-900/30 px-3 py-1.5 backdrop-blur-md"
                 >
-                  <span className="font-quintessential text-sm text-amber-100">{award.name}</span>
+                  <span className="font-display text-sm text-amber-100">{award.name}</span>
                   {award.description && (
-                    <span className="ml-2 font-medievalsharp text-xs text-amber-300/70">
+                    <span className="ml-2 font-body text-xs text-amber-300/70">
                       — {award.description}
                     </span>
                   )}
@@ -82,11 +82,11 @@ export default function PlayerProfilePage() {
           </section>
         )}
 
-        <h2 className="mb-3 font-quintessential text-xl text-amber-200">
+        <h2 className="mb-3 font-display text-xl text-amber-200">
           Quest Log ({solves.length})
         </h2>
         {solves.length === 0 ? (
-          <p className="font-medievalsharp italic text-amber-500/60">No quests completed yet.</p>
+          <p className="font-body italic text-amber-500/60">No quests completed yet.</p>
         ) : (
           <ul className="space-y-2">
             {solves.map((solve) => (
@@ -98,13 +98,13 @@ export default function PlayerProfilePage() {
                   <span>{CATEGORY_ICONS[solve.challenge.category.toLowerCase()] ?? "•"}</span>
                   <Link
                     to={`/challenges/${slugify(solve.challenge.name)}`}
-                    className="font-medievalsharp text-amber-200 hover:text-amber-100"
+                    className="font-body text-amber-200 hover:text-amber-100"
                   >
                     {solve.challenge.name}
                   </Link>
                 </div>
                 <div className="flex gap-3 text-sm">
-                  <span className="font-quintessential text-amber-400">{solve.challenge.value} GP</span>
+                  <span className="font-display text-amber-400">{solve.challenge.value} GP</span>
                   <span className="text-xs text-amber-500/60">
                     {new Date(solve.date).toLocaleDateString()}
                   </span>
@@ -128,7 +128,7 @@ function Shell({ children }: { children: React.ReactNode }) {
       <div className="relative z-30 mx-auto max-w-3xl px-6 py-12">
         <Link
           to="/scoreboard"
-          className="font-medievalsharp text-sm text-amber-400/60 hover:text-amber-300"
+          className="font-body text-sm text-amber-400/60 hover:text-amber-300"
         >
           Scoreboard
         </Link>

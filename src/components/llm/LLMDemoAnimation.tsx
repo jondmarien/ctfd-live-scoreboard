@@ -38,7 +38,7 @@ export default function LLMDemoAnimation({ challengeSlug }: { challengeSlug: str
 
   if (!demo) {
     return (
-      <p className="mt-4 font-medievalsharp text-xs text-amber-500/40">
+      <p className="mt-4 font-body text-xs text-amber-500/40">
         (No demo available for this quest yet.)
       </p>
     );
@@ -47,20 +47,20 @@ export default function LLMDemoAnimation({ challengeSlug }: { challengeSlug: str
   return (
     <div className="mt-4 rounded-lg border border-amber-800/30 bg-stone-950/50 p-4 backdrop-blur-md">
       <div className="mb-3 flex items-center justify-between">
-        <span className="font-medievalsharp text-xs uppercase tracking-wider text-amber-400/60">
+        <span className="font-body text-xs uppercase tracking-wider text-amber-400/60">
           Successful Solve Replay
         </span>
         {playing ? (
           <button
             onClick={reset}
-            className="font-medievalsharp text-xs text-amber-400/60 hover:text-amber-300"
+            className="font-body text-xs text-amber-400/60 hover:text-amber-300"
           >
             Reset
           </button>
         ) : (
           <button
             onClick={start}
-            className="rounded border border-amber-700/40 px-2 py-1 font-medievalsharp text-xs text-amber-300 hover:text-amber-100"
+            className="rounded border border-amber-700/40 px-2 py-1 font-body text-xs text-amber-300 hover:text-amber-100"
           >
             Play
           </button>
@@ -70,7 +70,7 @@ export default function LLMDemoAnimation({ challengeSlug }: { challengeSlug: str
       {playing && (
         <div className="space-y-3 font-mono text-sm">
           <div>
-            <p className="mb-1 font-medievalsharp text-xs text-amber-500/50">PROMPT</p>
+            <p className="mb-1 font-body text-xs text-amber-500/50">PROMPT</p>
             <Typewriter
               text={demo.prompt}
               active={
@@ -84,7 +84,7 @@ export default function LLMDemoAnimation({ challengeSlug }: { challengeSlug: str
           </div>
           {(step === "response" || step === "done") && (
             <div>
-              <p className="mb-1 font-medievalsharp text-xs text-amber-500/50">RESPONSE</p>
+              <p className="mb-1 font-body text-xs text-amber-500/50">RESPONSE</p>
               <Typewriter
                 text={demo.response}
                 active
@@ -135,7 +135,7 @@ function Typewriter({
             <motion.span
               key={i}
               initial={{ opacity: 0 }}
-              animate={{ opacity: 1, color: isFlag ? "#FFD700" : undefined }}
+              animate={{ opacity: 1, color: isFlag ? "oklch(0.86 0.16 95)" : undefined }}
               transition={{ duration: 0.15 }}
               className={isFlag ? "font-bold" : ""}
             >

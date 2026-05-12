@@ -41,10 +41,10 @@ print(resp.json())`;
 
   return (
     <section className="mb-6 rounded-lg border border-amber-700/40 bg-stone-900/40 p-4 backdrop-blur-md">
-      <h3 className="mb-2 font-quintessential text-lg text-amber-200">
+      <h3 className="mb-2 font-display text-lg text-amber-200">
         How to Commune With the Familiar
       </h3>
-      <p className="mb-3 font-medievalsharp text-sm text-amber-300/80">
+      <p className="mb-3 font-body text-sm text-amber-300/80">
         Send POST requests to the challenge&apos;s{" "}
         <code className="text-amber-200">/chat</code> endpoint with your provider API key in the{" "}
         <code className="text-amber-200">X-Player-API-Key</code> header. The flag is hidden in the
@@ -52,7 +52,7 @@ print(resp.json())`;
       </p>
 
       {!storedKey && (
-        <p className="mb-3 font-medievalsharp text-xs italic text-amber-500/70">
+        <p className="mb-3 font-body text-xs italic text-amber-500/70">
           (Provide a key above to see it pre-filled in the examples below.)
         </p>
       )}
@@ -60,12 +60,12 @@ print(resp.json())`;
       <div className="space-y-3">
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <span className="font-medievalsharp text-xs uppercase tracking-wider text-amber-400/60">
+            <span className="font-body text-xs uppercase tracking-wider text-amber-400/60">
               curl
             </span>
             <button
               onClick={() => copy(curlExample, "curl")}
-              className="rounded border border-amber-700/40 px-2 py-0.5 font-medievalsharp text-xs text-amber-300 hover:bg-amber-900/30"
+              className="rounded border border-amber-700/40 px-2 py-0.5 font-body text-xs text-amber-300 hover:bg-amber-900/30"
             >
               <AnimatePresence mode="wait">
                 {copied === "curl" ? (
@@ -97,12 +97,12 @@ print(resp.json())`;
 
         <div>
           <div className="mb-1 flex items-center justify-between">
-            <span className="font-medievalsharp text-xs uppercase tracking-wider text-amber-400/60">
+            <span className="font-body text-xs uppercase tracking-wider text-amber-400/60">
               Python
             </span>
             <button
               onClick={() => copy(pythonExample, "python")}
-              className="rounded border border-amber-700/40 px-2 py-0.5 font-medievalsharp text-xs text-amber-300 hover:bg-amber-900/30"
+              className="rounded border border-amber-700/40 px-2 py-0.5 font-body text-xs text-amber-300 hover:bg-amber-900/30"
             >
               {copied === "python" ? "Copied" : "Copy"}
             </button>
@@ -113,7 +113,7 @@ print(resp.json())`;
         </div>
       </div>
 
-      <p className="mt-3 font-medievalsharp text-xs text-amber-500/50">
+      <p className="mt-3 font-body text-xs text-amber-500/50">
         Your key is never sent to this site&apos;s server, never logged, and is cleared when you close
         this tab.
       </p>

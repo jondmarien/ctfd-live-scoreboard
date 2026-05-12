@@ -47,7 +47,7 @@ export default function SolutionPage() {
   if (authLoading || solvesLoading) {
     return (
       <Shell>
-        <p className="text-center font-medievalsharp text-amber-300/70">Consulting the Oracle...</p>
+        <p className="text-center font-body text-amber-300/70">Consulting the Oracle...</p>
       </Shell>
     );
   }
@@ -55,7 +55,7 @@ export default function SolutionPage() {
   if (!isAuthenticated) {
     return (
       <Shell>
-        <p className="text-center font-medievalsharp text-amber-300/70">
+        <p className="text-center font-body text-amber-300/70">
           Only those who have signed in may view the writeup.
         </p>
         <p className="mt-4 text-center">
@@ -70,7 +70,7 @@ export default function SolutionPage() {
   if (!challenge) {
     return (
       <Shell>
-        <p className="text-center font-medievalsharp text-amber-300/70">Quest not found.</p>
+        <p className="text-center font-body text-amber-300/70">Quest not found.</p>
       </Shell>
     );
   }
@@ -78,10 +78,10 @@ export default function SolutionPage() {
   if (!hasSolved) {
     return (
       <Shell>
-        <h1 className="mb-4 text-center font-quintessential text-2xl text-amber-100">
+        <h1 className="mb-4 text-center font-display text-2xl text-amber-100">
           {challenge.name}
         </h1>
-        <p className="text-center font-medievalsharp text-amber-300/70">
+        <p className="text-center font-body text-amber-300/70">
           Complete this quest to unlock the writeup.
         </p>
         <p className="mt-4 text-center">
@@ -95,17 +95,17 @@ export default function SolutionPage() {
 
   return (
     <Shell>
-      <h1 className="mb-2 font-quintessential text-3xl text-amber-100">{challenge.name}</h1>
-      <p className="mb-6 font-medievalsharp text-xs text-amber-500/60">Writeup</p>
+      <h1 className="mb-2 font-display text-3xl text-amber-100">{challenge.name}</h1>
+      <p className="mb-6 font-body text-xs text-amber-500/60">Writeup</p>
       {markdown ? (
         <article
-          className="prose prose-invert max-w-none font-medievalsharp text-amber-200/80"
+          className="prose prose-invert max-w-none font-body text-amber-200/80"
           dangerouslySetInnerHTML={{ __html: renderMarkdown(markdown) }}
         />
       ) : error ? (
-        <p className="font-medievalsharp text-red-400/70">Could not load writeup: {error}</p>
+        <p className="font-body text-red-400/70">Could not load writeup: {error}</p>
       ) : (
-        <p className="font-medievalsharp text-amber-300/70">Loading writeup...</p>
+        <p className="font-body text-amber-300/70">Loading writeup...</p>
       )}
     </Shell>
   );
@@ -119,7 +119,7 @@ function Shell({ children }: { children: ReactNode }) {
         <ProfileBadge />
       </div>
       <div className="relative z-30 mx-auto max-w-3xl px-6 py-12">
-        <Link to="/challenges" className="font-medievalsharp text-sm text-amber-400/60 hover:text-amber-300">
+        <Link to="/challenges" className="font-body text-sm text-amber-400/60 hover:text-amber-300">
           Quest Hall
         </Link>
         <div className="mt-4">{children}</div>

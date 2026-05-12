@@ -39,13 +39,13 @@ export default function ChallengesPage() {
         <ProfileBadge />
       </div>
       <div className="relative z-30 mx-auto max-w-5xl px-6 py-12">
-        <h1 className="mb-8 text-center font-quintessential text-3xl text-amber-100 md:text-4xl">
+        <h1 className="mb-8 text-center font-display text-3xl text-amber-100 md:text-4xl">
           The Quest Hall
         </h1>
 
         {!isAuthenticated && (
           <div className="mb-8 rounded-lg border border-amber-700/40 bg-amber-950/30 p-4 text-center backdrop-blur-md">
-            <p className="font-medievalsharp text-amber-200/80">
+            <p className="font-body text-amber-200/80">
               Sign in to track your quest progress and submit flags.{" "}
               <Link to="/" className="text-amber-300 underline hover:text-amber-100">
                 Return to the gates
@@ -59,7 +59,7 @@ export default function ChallengesPage() {
           if (list.length === 0) return null;
           return (
             <section key={cat} className="mb-10">
-              <h2 className="mb-4 border-b border-amber-800/30 pb-2 font-quintessential text-2xl text-amber-300/90">
+              <h2 className="mb-4 border-b border-amber-800/30 pb-2 font-display text-2xl text-amber-300/90">
                 {CATEGORY_LABELS[cat] ?? cat}
               </h2>
               <ul className="grid gap-3 md:grid-cols-2">
@@ -77,15 +77,15 @@ export default function ChallengesPage() {
                         }`}
                       >
                         <div className="flex items-baseline justify-between">
-                          <h3 className="font-quintessential text-lg text-amber-100">
+                          <h3 className="font-display text-lg text-amber-100">
                             {solved ? "Solved: " : ""}
                             {c.name}
                           </h3>
-                          <span className="font-quintessential text-amber-400 font-bold">
+                          <span className="font-display text-amber-400 font-bold">
                             {c.value} GP
                           </span>
                         </div>
-                        <p className="mt-1 font-medievalsharp text-xs text-amber-500/60">
+                        <p className="mt-1 font-body text-xs text-amber-500/60">
                           {c.solves} {c.solves === 1 ? "adventurer has" : "adventurers have"} completed this quest
                         </p>
                       </Link>

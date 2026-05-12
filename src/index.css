@@ -1,31 +1,38 @@
-@import url("https://fonts.googleapis.com/css2?family=Quintessential&family=MedievalSharp&family=Rajdhani:wght@400;600;700&family=Inter:wght@300;400;600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400;1,600&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&family=MedievalSharp&family=JetBrains+Mono:wght@400;600&display=swap");
 @import "tailwindcss";
 
 @theme {
-  /* Tavern color palette */
-  --color-tavern-dark: #110a00;
-  --color-tavern-brown: #2a1a0a;
-  --color-tavern-amber: #8b4513;
-  --color-amber-gold: #ffd700;
-  --color-ember-orange: #ff8c42;
-  --color-parchment: #e8d5b0;
+  --color-tavern-pitch: oklch(0.12 0.015 60);
+  --color-tavern-ink: oklch(0.18 0.02 60);
+  --color-tavern-stone: oklch(0.28 0.025 60);
+  --color-tavern-leather: oklch(0.42 0.08 50);
+  --color-tavern-fire: oklch(0.72 0.18 55);
+  --color-tavern-gold: oklch(0.86 0.16 95);
+  --color-tavern-parchment: oklch(0.92 0.04 80);
+  --color-success: oklch(0.68 0.16 145);
+  --color-warning: oklch(0.74 0.16 70);
+  --color-danger: oklch(0.62 0.2 25);
+  --color-info: oklch(0.78 0.1 240);
+  --font-display: "Cormorant Garamond", "Quintessential", Georgia, serif;
+  --font-body: "Crimson Pro", "EB Garamond", Georgia, serif;
+  --font-flavor: "MedievalSharp", cursive;
+  --font-mono: "JetBrains Mono", "Fira Code", monospace;
 }
 
-/* Custom font families */
-@utility font-quintessential {
-  font-family: "Quintessential", serif;
+@utility font-display {
+  font-family: var(--font-display);
 }
 
-@utility font-medievalsharp {
-  font-family: "MedievalSharp", cursive;
+@utility font-body {
+  font-family: var(--font-body);
 }
 
-@utility font-rajdhani {
-  font-family: "Rajdhani", sans-serif;
+@utility font-flavor {
+  font-family: var(--font-flavor);
 }
 
-@utility font-inter {
-  font-family: "Inter", sans-serif;
+@utility font-mono {
+  font-family: var(--font-mono);
 }
 
 /* Global styles */
@@ -36,11 +43,15 @@ html {
 body {
   margin: 0;
   padding: 0;
-  background: #110a00;
-  color: #e8d5b0;
-  font-family: "MedievalSharp", cursive;
+  background: var(--color-tavern-pitch);
+  color: var(--color-tavern-parchment);
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.65;
   overflow-x: hidden;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Custom scrollbar */
@@ -49,16 +60,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a0c00;
+  background: var(--color-tavern-ink);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(139, 69, 19, 0.5);
+  background: color-mix(in oklch, var(--color-tavern-leather) 60%, transparent);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 69, 19, 0.8);
+  background: var(--color-tavern-leather);
 }
 
 /* Animation keyframes for entry */

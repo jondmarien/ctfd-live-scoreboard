@@ -1,5 +1,7 @@
 import { Link, useLocation, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import DOMPurify from "dompurify";
+import { marked } from "marked";
 import TavernBackground from "@/components/background/TavernBackground";
 import { useChallengeCache, type ChallengeInfo } from "@/hooks/useChallengeCache";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,8 +21,33 @@ interface ChallengeDetail extends ChallengeInfo {
   connection_info?: string | null;
 }
 
+marked.setOptions({
+  gfm: true,
+  breaks: false,
+});
+
 function slugify(name: string): string {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
+function renderChallengeDescription(input?: string): string {
+  if (!input) return "";
+  const raw = input.trim();
+  if (!raw) return "";
+
+  const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(raw);
+  if (looksLikeHtml) {
+    return DOMPurify.sanitize(raw, {
+      USE_PROFILES: { html: true },
+      FORBID_TAGS: ["style", "script", "iframe", "object", "embed", "form"],
+    });
+  }
+
+  const rendered = marked.parse(raw, { async: false }) as string;
+  return DOMPurify.sanitize(rendered, {
+    USE_PROFILES: { html: true },
+    FORBID_TAGS: ["style", "script", "iframe", "object", "embed", "form"],
+  });
 }
 
 export default function ChallengeDetailPage() {
@@ -62,7 +89,7 @@ export default function ChallengeDetailPage() {
       <div className="relative min-h-screen overflow-x-hidden">
         <TavernBackground />
         <div className="relative z-30 mx-auto max-w-3xl px-6 py-12 text-center">
-          <p className="font-medievalsharp text-amber-300/70">Quest not found.</p>
+          <p className="font-body text-amber-300/70">Quest not found.</p>
           <Link to="/challenges" className="text-amber-400 underline">
             Return to the Quest Hall
           </Link>
@@ -84,36 +111,38 @@ export default function ChallengeDetailPage() {
         <ProfileBadge />
       </div>
       <div className="relative z-30 mx-auto max-w-3xl px-6 py-12">
-        <Link to="/challenges" className="font-medievalsharp text-sm text-amber-400/60 hover:text-amber-300">
+        <Link to="/challenges" className="font-body text-sm text-amber-400/60 hover:text-amber-300">
           Quest Hall
         </Link>
 
         <header className="mb-6 mt-4">
           <div className="flex items-baseline justify-between">
-            <h1 className="font-quintessential text-3xl text-amber-100">{resolvedDetail.name}</h1>
-            <span className="font-quintessential text-2xl font-bold text-amber-400">{resolvedDetail.value} GP</span>
+            <h1 className="font-display text-3xl text-amber-100">{resolvedDetail.name}</h1>
+            <span className="font-display text-2xl font-bold text-amber-400">{resolvedDetail.value} GP</span>
           </div>
-          <p className="mt-1 font-medievalsharp text-xs text-amber-500/60">
+          <p className="mt-1 font-body text-xs text-amber-500/60">
             {resolvedDetail.category.toUpperCase()} · {resolvedDetail.solves} {resolvedDetail.solves === 1 ? "solve" : "solves"}
           </p>
         </header>
 
+        <SolvesPanel challengeId={challengeId} />
+
         {resolvedDetail.description && (
           <article
-            className="prose prose-invert mb-8 max-w-none font-medievalsharp text-amber-200/80 [&_a]:text-amber-400 [&_code]:rounded [&_code]:bg-stone-900/60 [&_code]:px-1 [&_code]:text-amber-300"
-            dangerouslySetInnerHTML={{ __html: resolvedDetail.description }}
+            className="prose prose-invert mb-8 max-w-none font-body text-amber-200/80 [&_a]:text-amber-400 [&_code]:rounded [&_code]:bg-stone-900/60 [&_code]:px-1 [&_code]:text-amber-300"
+            dangerouslySetInnerHTML={{ __html: renderChallengeDescription(resolvedDetail.description) }}
           />
         )}
 
         {connectionInfo && (
           <section className="mb-8 rounded-lg border border-amber-700/30 bg-stone-900/40 p-4 backdrop-blur-md">
-            <h2 className="mb-2 font-quintessential text-xl text-amber-200">Connection Info</h2>
+            <h2 className="mb-2 font-display text-xl text-amber-200">Connection Info</h2>
             {connectionUrl ? (
               <a
                 href={connectionUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="font-medievalsharp text-amber-400 underline hover:text-amber-200"
+                className="font-body text-amber-400 underline hover:text-amber-200"
               >
                 {connectionUrl}
               </a>
@@ -127,7 +156,7 @@ export default function ChallengeDetailPage() {
 
         {resolvedDetail.files && resolvedDetail.files.length > 0 && (
           <section className="mb-8">
-            <h2 className="mb-3 font-quintessential text-xl text-amber-200">Provisions</h2>
+            <h2 className="mb-3 font-display text-xl text-amber-200">Provisions</h2>
             <ul className="space-y-3">
               {resolvedDetail.files.map((f) => (
                 <li key={f}>
@@ -145,15 +174,15 @@ export default function ChallengeDetailPage() {
                         <div className="mr-3 flex min-w-0 items-center gap-3">
                           <span className="shrink-0 text-lg">📦</span>
                           <div className="min-w-0">
-                            <p className="truncate font-medievalsharp text-amber-100">
+                            <p className="truncate font-body text-amber-100">
                               {fileName}
                             </p>
-                            <p className="font-medievalsharp text-xs text-amber-500/60">
+                            <p className="font-body text-xs text-amber-500/60">
                               Challenge attachment
                             </p>
                           </div>
                         </div>
-                        <span className="shrink-0 rounded-md border border-amber-600/40 bg-amber-900/20 px-3 py-1 font-medievalsharp text-xs text-amber-300 transition group-hover:bg-amber-800/30 group-hover:text-amber-100">
+                        <span className="shrink-0 rounded-md border border-amber-600/40 bg-amber-900/20 px-3 py-1 font-body text-xs text-amber-300 transition group-hover:bg-amber-800/30 group-hover:text-amber-100">
                           Download
                         </span>
                       </a>
@@ -165,33 +194,32 @@ export default function ChallengeDetailPage() {
           </section>
         )}
 
-        <SolvesPanel challengeId={challengeId} />
-        <HintsPanel challengeId={challengeId} />
-
         {isLlm && (
           <section className="mb-8">
-            <h2 className="mb-3 font-quintessential text-xl text-amber-200">The Familiar Speaks</h2>
+            <h2 className="mb-3 font-display text-xl text-amber-200">The Familiar Speaks</h2>
             <BYOKeyForm />
             {llmEndpoint && <LLMUsageInstructions endpointUrl={llmEndpoint} />}
             <LLMDemoAnimation challengeSlug={slug ?? ""} />
           </section>
         )}
 
+        <HintsPanel challengeId={challengeId} />
+
         <section className="mb-8">
-          <h2 className="mb-3 font-quintessential text-xl text-amber-200">Submit a Flag</h2>
+          <h2 className="mb-3 font-display text-xl text-amber-200">Submit a Flag</h2>
           {isAuthenticated ? (
             <FlagSubmissionForm challengeId={challengeId} />
           ) : (
             <button
               onClick={() => login(`/challenges/${slug}`)}
-              className="rounded-lg border-2 border-amber-600/60 bg-stone-950/60 px-6 py-2 font-quintessential text-amber-200 backdrop-blur-md transition hover:bg-amber-900/30"
+              className="rounded-lg border-2 border-amber-600/60 bg-stone-950/60 px-6 py-2 font-display text-amber-200 backdrop-blur-md transition hover:bg-amber-900/30"
             >
               Sign in to submit flags
             </button>
           )}
         </section>
 
-        {error && <p className="mt-4 font-medievalsharp text-sm text-red-400/70">{error}</p>}
+        {error && <p className="mt-4 font-body text-sm text-red-400/70">{error}</p>}
       </div>
     </div>
   );

@@ -15,16 +15,16 @@ import { useTheme } from "@/contexts/ThemeContext";
 import type { ScoreboardMode } from "@/hooks/useScoreboard";
 
 const TEAM_COLORS = [
-  "#f59e0b", // amber
-  "#60a5fa", // blue
-  "#34d399", // green
-  "#f87171", // red
-  "#a78bfa", // purple
-  "#fb923c", // orange
-  "#38bdf8", // sky
-  "#4ade80", // lime
-  "#e879f9", // fuchsia
-  "#94a3b8", // slate
+  "oklch(0.72 0.18 55)", // tavern fire
+  "oklch(0.78 0.1 240)", // info
+  "oklch(0.68 0.16 145)", // success
+  "oklch(0.62 0.2 25)", // danger
+  "oklch(0.74 0.12 300)", // arcane
+  "oklch(0.76 0.14 70)", // warning
+  "oklch(0.7 0.12 220)", // cool accent
+  "oklch(0.64 0.14 165)", // verdant accent
+  "oklch(0.72 0.14 330)", // magenta accent
+  "oklch(0.62 0.03 80)", // neutral slate
 ];
 
 function formatTime(ts: number): string {

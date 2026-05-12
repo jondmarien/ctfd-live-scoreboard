@@ -1,4 +1,4 @@
-import { ThemeContext, SS_THEME } from "@/contexts/ThemeContext";
+import { ThemeContext, FANTASY_THEME } from "@/contexts/ThemeContext";
 import ClickSpark from "@/components/animation/ClickSpark";
 import SSBackground from "@/components/background/SSBackground";
 import SSHeader from "@/components/ui/SSHeader";
@@ -7,7 +7,7 @@ import Scoreboard from "@/components/ui/Scoreboard";
 
 export default function SkillsSheridanPage() {
   return (
-    <ThemeContext.Provider value={SS_THEME}>
+    <ThemeContext.Provider value={FANTASY_THEME}>
       <ClickSpark
         sparkColor="#f0c040"
         sparkSize={12}

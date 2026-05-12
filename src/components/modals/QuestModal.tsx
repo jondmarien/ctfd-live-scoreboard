@@ -104,7 +104,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
                     initial={{ x: -10, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="text-xl font-quintessential font-bold text-amber-100"
+                    className="text-xl font-display font-bold text-amber-100"
                   >
                     {quest.name}
                   </motion.h2>
@@ -119,7 +119,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
                     >
                       {quest.category}
                     </span>
-                    <span className="text-amber-500/40 text-xs font-medievalsharp">
+                    <span className="text-amber-500/40 text-xs font-body">
                       {quest.type}
                     </span>
                   </motion.div>
@@ -146,7 +146,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
             {/* Mock banner */}
             {isMock && (
               <div className="px-3 py-1.5 rounded-lg bg-amber-900/20 border border-amber-700/20 text-center">
-                <span className="font-medievalsharp text-[10px] text-amber-400/50 uppercase tracking-wider">
+                <span className="font-body text-[10px] text-amber-400/50 uppercase tracking-wider">
                   Sample quest — real data appears when the competition begins
                 </span>
               </div>
@@ -186,7 +186,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
                 className="flex items-center gap-2 px-3 py-2 rounded-lg bg-red-900/10 border border-red-800/20"
               >
                 <span className="text-sm">📉</span>
-                <span className="font-medievalsharp text-xs text-red-400/60">
+                <span className="font-body text-xs text-red-400/60">
                   Value decayed from {quest.initial_value} GP to {quest.value} GP ({quest.solves} solve{quest.solves !== 1 ? "s" : ""})
                 </span>
               </motion.div>
@@ -203,7 +203,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
                 {quest.tags.map((tag) => (
                   <span
                     key={tag}
-                    className="px-2 py-0.5 rounded-md text-[10px] font-medievalsharp text-amber-400/50 bg-stone-800/40 border border-amber-900/15"
+                    className="px-2 py-0.5 rounded-md text-[10px] font-body text-amber-400/50 bg-stone-800/40 border border-amber-900/15"
                   >
                     #{tag}
                   </span>
@@ -220,7 +220,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
                 className="flex items-center gap-2 px-3 py-2 rounded-lg bg-stone-800/30 border border-amber-900/10"
               >
                 <span className="text-sm">⚠️</span>
-                <span className="font-medievalsharp text-xs text-amber-400/50">
+                <span className="font-body text-xs text-amber-400/50">
                   Limited to {quest.max_attempts} attempt{quest.max_attempts !== 1 ? "s" : ""}
                 </span>
               </motion.div>
@@ -233,17 +233,17 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
               animate="visible"
               className="space-y-2"
             >
-              <h3 className="text-sm font-medievalsharp text-amber-500/60 uppercase tracking-wider flex items-center gap-2">
+              <h3 className="text-sm font-body text-amber-500/60 uppercase tracking-wider flex items-center gap-2">
                 <span className="w-1 h-3 bg-amber-500/50 rounded-full" />
                 Quest Description
               </h3>
               <div className="px-3 py-3 rounded-lg bg-stone-800/30 border border-amber-900/10">
                 {description ? (
-                  <p className="text-amber-200/60 font-medievalsharp text-sm leading-relaxed whitespace-pre-wrap">
+                  <p className="text-amber-200/60 font-body text-sm leading-relaxed whitespace-pre-wrap">
                     {description}
                   </p>
                 ) : (
-                  <p className="text-amber-500/30 font-medievalsharp text-sm italic">
+                  <p className="text-amber-500/30 font-body text-sm italic">
                     No description available for this quest.
                   </p>
                 )}
@@ -257,7 +257,7 @@ export default function QuestModal({ quest, isMock, onClose }: QuestModalProps) 
               animate="visible"
               className="text-center pt-2"
             >
-              <span className="font-medievalsharp text-[10px] text-amber-600/30 uppercase tracking-wider">
+              <span className="font-body text-[10px] text-amber-600/30 uppercase tracking-wider">
                 Submit flags and view hints on the CTFd platform
               </span>
             </motion.div>
@@ -291,13 +291,13 @@ function StatCard({
     >
       <div className="text-lg mb-0.5">{icon}</div>
       <div
-        className={`font-quintessential font-bold text-base ${
+        className={`font-display font-bold text-base ${
           highlight ? "text-red-300" : "text-amber-300"
         }`}
       >
         {value}
       </div>
-      <div className="text-amber-600/40 font-medievalsharp text-[10px] uppercase tracking-wider mt-0.5">
+      <div className="text-amber-600/40 font-body text-[10px] uppercase tracking-wider mt-0.5">
         {label}
       </div>
     </motion.div>

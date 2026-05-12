@@ -58,13 +58,13 @@ export default function NotificationsBar() {
       className="fixed left-1/2 top-2 z-50 w-full max-w-5xl -translate-x-1/2 border-b border-amber-700/40 bg-stone-950/80 backdrop-blur-md"
     >
       <div className="flex items-center justify-end gap-2 border-b border-amber-700/20 px-3 py-1">
-        <span className="cursor-move select-none font-medievalsharp text-[10px] uppercase tracking-widest text-amber-500/60">
+        <span className="cursor-move select-none font-body text-[10px] uppercase tracking-widest text-amber-500/60">
           drag
         </span>
         {moved && (
           <button
             onClick={() => savePosition(0, 0)}
-            className="font-medievalsharp text-[10px] uppercase tracking-widest text-amber-400/70 hover:text-amber-200"
+            className="font-body text-[10px] uppercase tracking-widest text-amber-400/70 hover:text-amber-200"
             title="Reset notification bar position"
           >
             reset
@@ -80,7 +80,7 @@ export default function NotificationsBar() {
             exit={{ opacity: 0, height: 0 }}
             className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-4 py-2"
           >
-            <div className="flex-1 font-medievalsharp text-sm text-amber-200/90">
+            <div className="flex-1 font-body text-sm text-amber-200/90">
               <strong className="text-amber-100">{notice.title}</strong>
               {notice.content && (
                 <span className="ml-2 text-amber-300/70">— {notice.content}</span>
@@ -88,7 +88,7 @@ export default function NotificationsBar() {
             </div>
             <button
               onClick={() => dismiss(notice.id)}
-              className="font-medievalsharp text-xs text-amber-500/60 hover:text-amber-300"
+              className="font-body text-xs text-amber-500/60 hover:text-amber-300"
               aria-label="Dismiss notification"
             >
               ✕

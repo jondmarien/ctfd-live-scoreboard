@@ -113,7 +113,7 @@ export default function TeamSummaryModal({ team, onClose }: TeamSummaryModalProp
                     initial={{ x: -10, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 0.1 }}
-                    className="text-xl font-quintessential font-bold text-amber-100"
+                    className="text-xl font-display font-bold text-amber-100"
                   >
                     {teamProfile?.name ?? team.name}
                   </motion.h2>
@@ -123,14 +123,14 @@ export default function TeamSummaryModal({ team, onClose }: TeamSummaryModalProp
                     transition={{ delay: 0.15 }}
                     className="flex items-center gap-2 mt-0.5"
                   >
-                    <span className="text-amber-400 font-quintessential font-bold text-lg">
+                    <span className="text-amber-400 font-display font-bold text-lg">
                       {team.score} GP
                     </span>
-                    <span className="text-amber-500/40 text-xs font-medievalsharp">
+                    <span className="text-amber-500/40 text-xs font-body">
                       • Rank #{team.pos}
                     </span>
                     {(teamProfile?.affiliation || team.affiliation) && (
-                      <span className="text-amber-500/40 text-xs font-medievalsharp">
+                      <span className="text-amber-500/40 text-xs font-body">
                         • {teamProfile?.affiliation ?? team.affiliation}
                       </span>
                     )}
@@ -183,7 +183,7 @@ export default function TeamSummaryModal({ team, onClose }: TeamSummaryModalProp
                     className="flex flex-wrap gap-3"
                   >
                     {teamProfile.country && (
-                      <span className="px-3 py-1 bg-stone-800/50 border border-amber-900/20 rounded-lg text-xs text-amber-300/60 font-medievalsharp">
+                      <span className="px-3 py-1 bg-stone-800/50 border border-amber-900/20 rounded-lg text-xs text-amber-300/60 font-body">
                         📍 {teamProfile.country}
                       </span>
                     )}
@@ -192,7 +192,7 @@ export default function TeamSummaryModal({ team, onClose }: TeamSummaryModalProp
                         href={teamProfile.website.startsWith("http") ? teamProfile.website : `https://${teamProfile.website}`}
                         target="_blank"
                         rel="noreferrer"
-                        className="px-3 py-1 bg-stone-800/50 border border-amber-900/20 rounded-lg text-xs text-amber-300/60 font-medievalsharp hover:text-amber-200 hover:border-amber-700/40 transition-colors"
+                        className="px-3 py-1 bg-stone-800/50 border border-amber-900/20 rounded-lg text-xs text-amber-300/60 font-body hover:text-amber-200 hover:border-amber-700/40 transition-colors"
                       >
                         🌐 {teamProfile.website}
                       </a>
@@ -203,7 +203,7 @@ export default function TeamSummaryModal({ team, onClose }: TeamSummaryModalProp
                 {/* Party members */}
                 {team.members && team.members.length > 0 && (
                   <div className="space-y-2">
-                    <h3 className="text-sm font-medievalsharp text-amber-500/60 uppercase tracking-wider flex items-center gap-2">
+                    <h3 className="text-sm font-body text-amber-500/60 uppercase tracking-wider flex items-center gap-2">
                       <span className="w-1 h-3 bg-purple-500/50 rounded-full" />
                       Party Members
                     </h3>
@@ -221,10 +221,10 @@ export default function TeamSummaryModal({ team, onClose }: TeamSummaryModalProp
                             variants={SLIDE_UP_VARIANTS}
                             className="flex items-center justify-between px-3 py-2 rounded-lg bg-stone-800/30 border border-amber-900/10"
                           >
-                            <span className="text-amber-200/70 font-medievalsharp text-sm truncate">
+                            <span className="text-amber-200/70 font-body text-sm truncate">
                               🗡️ {member.name}
                             </span>
-                            <span className="text-amber-400/50 font-quintessential text-sm ml-2 shrink-0">
+                            <span className="text-amber-400/50 font-display text-sm ml-2 shrink-0">
                               {member.score} GP
                             </span>
                           </motion.div>
@@ -238,7 +238,7 @@ export default function TeamSummaryModal({ team, onClose }: TeamSummaryModalProp
                   <EmptyState />
                 ) : (
                   <div className="space-y-4">
-                    <h3 className="text-sm font-medievalsharp text-amber-500/60 uppercase tracking-wider flex items-center gap-2">
+                    <h3 className="text-sm font-body text-amber-500/60 uppercase tracking-wider flex items-center gap-2">
                       <span className="w-1 h-3 bg-amber-500/50 rounded-full" />
                       Party Quest Log
                     </h3>
@@ -256,7 +256,7 @@ export default function TeamSummaryModal({ team, onClose }: TeamSummaryModalProp
                           >
                             {category}
                           </span>
-                          <span className="text-amber-600/30 text-xs font-medievalsharp">
+                          <span className="text-amber-600/30 text-xs font-body">
                             {catSolves.length} quest{catSolves.length !== 1 ? "s" : ""}
                           </span>
                         </div>
@@ -267,20 +267,20 @@ export default function TeamSummaryModal({ team, onClose }: TeamSummaryModalProp
                             className="flex items-center justify-between px-3 py-2 rounded-lg bg-stone-800/30 border border-amber-900/10 hover:bg-stone-800/50 transition-colors"
                           >
                             <div className="flex flex-col min-w-0 mr-3">
-                              <span className="text-amber-200/70 font-medievalsharp text-sm truncate">
+                              <span className="text-amber-200/70 font-body text-sm truncate">
                                 {solve.challenge_name}
                               </span>
                               {solve.user_name && (
-                                <span className="text-amber-500/30 font-medievalsharp text-[10px]">
+                                <span className="text-amber-500/30 font-body text-[10px]">
                                   Solved by {solve.user_name}
                                 </span>
                               )}
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
-                              <span className="text-amber-400/60 font-quintessential text-sm font-bold">
+                              <span className="text-amber-400/60 font-display text-sm font-bold">
                                 {solve.value} GP
                               </span>
-                              <span className="text-amber-600/30 text-[10px] font-medievalsharp">
+                              <span className="text-amber-600/30 text-[10px] font-body">
                                 {formatDate(solve.date)}
                               </span>
                             </div>
@@ -307,8 +307,8 @@ function StatCard({ label, value, icon }: { label: string; value: string; icon: 
       className="p-2.5 rounded-lg bg-stone-800/30 border border-amber-900/15 text-center"
     >
       <div className="text-base mb-0.5">{icon}</div>
-      <div className="text-amber-300 font-quintessential font-bold text-sm">{value}</div>
-      <div className="text-amber-600/40 font-medievalsharp text-[9px] uppercase tracking-wider mt-0.5">
+      <div className="text-amber-300 font-display font-bold text-sm">{value}</div>
+      <div className="text-amber-600/40 font-body text-[9px] uppercase tracking-wider mt-0.5">
         {label}
       </div>
     </motion.div>
@@ -319,7 +319,7 @@ function LoadingState() {
   return (
     <div className="flex flex-col items-center justify-center py-12 gap-3">
       <div className="w-6 h-6 border-2 border-amber-500/30 border-t-amber-400 rounded-full animate-spin" />
-      <p className="font-medievalsharp text-sm text-amber-400/50 tracking-wider">
+      <p className="font-body text-sm text-amber-400/50 tracking-wider">
         Gathering party intelligence...
       </p>
     </div>
@@ -330,7 +330,7 @@ function ErrorState({ message }: { message: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-8 gap-2">
       <span className="text-2xl">⚠️</span>
-      <p className="font-medievalsharp text-sm text-red-400/60 text-center">{message}</p>
+      <p className="font-body text-sm text-red-400/60 text-center">{message}</p>
     </div>
   );
 }
@@ -339,10 +339,10 @@ function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center py-8 gap-2">
       <span className="text-2xl">📜</span>
-      <p className="font-quintessential text-base text-amber-300/50 text-center">
+      <p className="font-display text-base text-amber-300/50 text-center">
         No Quests Completed Yet
       </p>
-      <p className="font-medievalsharp text-xs text-amber-500/30 text-center">
+      <p className="font-body text-xs text-amber-500/30 text-center">
         This party has yet to embark on their quest...
       </p>
     </div>

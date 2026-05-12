@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Analytics } from "@vercel/analytics/react";
 import { ThemeContext, FANTASY_THEME } from "@/contexts/ThemeContext";
 import NotificationsBar from "@/components/ui/NotificationsBar";
+import Header from "@/components/ui/Header";
 import AboutPage from "@/pages/AboutPage";
 
 const FantasyCtfPage = lazy(() => import("@/pages/FantasyCtfPage"));
@@ -19,10 +20,11 @@ export default function App() {
     <ThemeContext.Provider value={FANTASY_THEME}>
       <BrowserRouter>
         <NotificationsBar />
+        <Header />
         <Suspense
           fallback={
             <div className="flex min-h-screen items-center justify-center bg-stone-950 text-amber-300/70">
-              <p className="font-medievalsharp text-sm tracking-wider">Loading the realm...</p>
+              <p className="font-body text-sm tracking-wider">Loading the realm...</p>
             </div>
           }
         >

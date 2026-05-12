@@ -133,14 +133,12 @@ function EntryCard({ entry }: { entry: ChangelogEntry }) {
 export default function ChangelogView() {
   const theme = useTheme();
   const c = theme.classes;
-  const changelog = getChangelog(theme.id);
-  const headerColor = theme.id === "fantasy" ? "text-amber-300" : "text-[#f0c040]";
-  const subtitleColor = theme.id === "fantasy" ? "text-amber-500/40" : "text-[#a8c4e8]/50";
-  const headerIcon = theme.id === "fantasy" ? "📜" : "📋";
-  const headerTitle = theme.id === "fantasy" ? "Chronicle of Changes" : "Changelog";
-  const headerSubtitle = theme.id === "fantasy"
-    ? "A record of all that has transpired within the Guild Quest Board"
-    : "Version history and updates for the SkillsSheridan scoreboard";
+  const changelog = getChangelog();
+  const headerColor = "text-amber-300";
+  const subtitleColor = "text-amber-500/40";
+  const headerIcon = "📜";
+  const headerTitle = "Chronicle of Changes";
+  const headerSubtitle = "A record of all that has transpired within the Guild Quest Board";
 
   return (
     <div className="px-3 py-4">

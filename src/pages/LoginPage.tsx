@@ -36,15 +36,15 @@ export default function LoginPage() {
     <div className="relative min-h-screen overflow-x-hidden">
       <TavernBackground />
       <div className="relative z-30 mx-auto max-w-xl px-6 py-12">
-        <Link to="/" className="font-medievalsharp text-sm text-amber-400/60 hover:text-amber-300">
+        <Link to="/" className="font-body text-sm text-amber-400/60 hover:text-amber-300">
           Gates
         </Link>
 
-        <h1 className="mt-6 text-center font-quintessential text-3xl text-amber-100">
+        <h1 className="mt-6 text-center font-display text-3xl text-amber-100">
           Forge your sigil
         </h1>
 
-        <article className="mt-6 space-y-3 font-medievalsharp text-amber-200/80">
+        <article className="mt-6 space-y-3 font-body text-amber-200/80">
           <p>The Quest Hall recognizes you by a CTFd personal access token:</p>
           <ol className="list-inside list-decimal space-y-2">
             <li>
@@ -79,7 +79,7 @@ export default function LoginPage() {
 
         <form onSubmit={onSubmit} className="mt-8 space-y-3">
           <label className="block">
-            <span className="mb-1 block font-medievalsharp text-xs uppercase tracking-wider text-amber-400/70">
+            <span className="mb-1 block font-body text-xs uppercase tracking-wider text-amber-400/70">
               Token
             </span>
             <input
@@ -97,13 +97,13 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={validating || !token.trim()}
-            className="w-full rounded-lg border-2 border-amber-600/60 bg-amber-900/30 px-6 py-3 font-quintessential text-amber-100 transition hover:bg-amber-800/50 disabled:cursor-not-allowed disabled:opacity-50"
+            className="w-full rounded-lg border-2 border-amber-600/60 bg-amber-900/30 px-6 py-3 font-display text-amber-100 transition hover:bg-amber-800/50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {validating ? "Verifying..." : "Take the oath"}
           </button>
 
           {error && (
-            <p className="font-medievalsharp text-sm text-red-400/80">
+            <p className="font-body text-sm text-red-400/80">
               The Quest Giver did not recognize that sigil: {error}
             </p>
           )}

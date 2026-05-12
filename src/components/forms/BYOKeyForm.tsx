@@ -40,15 +40,15 @@ export default function BYOKeyForm() {
 
   return (
     <div className="mb-4 rounded-lg border-2 border-amber-700/40 bg-stone-900/40 p-4 backdrop-blur-md">
-      <h3 className="mb-2 font-quintessential text-lg text-amber-200">Provide a Familiar's Key</h3>
-      <p className="mb-3 font-medievalsharp text-xs text-amber-500/70">
+      <h3 className="mb-2 font-display text-lg text-amber-200">Provide a Familiar's Key</h3>
+      <p className="mb-3 font-body text-xs text-amber-500/70">
         Your API key stays in this browser tab only. Cleared when you close the tab.
         Never logged, never persisted, never echoed.
       </p>
 
       <div className="grid gap-3">
         <label className="block">
-          <span className="mb-1 block font-medievalsharp text-xs uppercase tracking-wider text-amber-400/70">
+          <span className="mb-1 block font-body text-xs uppercase tracking-wider text-amber-400/70">
             Provider
           </span>
           <select
@@ -61,7 +61,7 @@ export default function BYOKeyForm() {
                 return PROVIDERS.find((p) => p.id === nextProvider)?.defaultModel ?? "";
               });
             }}
-            className="w-full rounded border border-amber-700/40 bg-stone-950/70 px-3 py-2 font-medievalsharp text-amber-100"
+            className="w-full rounded border border-amber-700/40 bg-stone-950/70 px-3 py-2 font-body text-amber-100"
           >
             {PROVIDERS.map((p) => (
               <option key={p.id} value={p.id}>
@@ -72,7 +72,7 @@ export default function BYOKeyForm() {
         </label>
 
         <label className="block">
-          <span className="mb-1 block font-medievalsharp text-xs uppercase tracking-wider text-amber-400/70">
+          <span className="mb-1 block font-body text-xs uppercase tracking-wider text-amber-400/70">
             Model
           </span>
           <input
@@ -85,7 +85,7 @@ export default function BYOKeyForm() {
         </label>
 
         <label className="block">
-          <span className="mb-1 block font-medievalsharp text-xs uppercase tracking-wider text-amber-400/70">
+          <span className="mb-1 block font-body text-xs uppercase tracking-wider text-amber-400/70">
             API Key
           </span>
           <div className="flex gap-2">
@@ -102,7 +102,7 @@ export default function BYOKeyForm() {
               <button
                 type="button"
                 onClick={clear}
-                className="rounded border border-amber-700/30 px-3 py-2 font-medievalsharp text-xs text-amber-400/70 hover:text-amber-300"
+                className="rounded border border-amber-700/30 px-3 py-2 font-body text-xs text-amber-400/70 hover:text-amber-300"
               >
                 Clear
               </button>

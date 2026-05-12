@@ -22,13 +22,13 @@ export default function LoginCallbackPage() {
       <div className="relative z-30 flex min-h-screen items-center justify-center text-center">
         {error ? (
           <div>
-            <p className="mb-4 font-medievalsharp text-red-400/80">Sign-in failed: {error}</p>
+            <p className="mb-4 font-body text-red-400/80">Sign-in failed: {error}</p>
             <a href="/" className="text-amber-400 underline">
               Return to the gates
             </a>
           </div>
         ) : (
-          <p className="animate-pulse font-medievalsharp text-amber-300/70">Forging your sigil...</p>
+          <p className="animate-pulse font-body text-amber-300/70">Forging your sigil...</p>
         )}
       </div>
     </div>
