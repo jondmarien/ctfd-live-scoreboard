@@ -1,5 +1,6 @@
 import { Suspense, lazy } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Analytics } from "@vercel/analytics/react";
 import { ThemeContext, FANTASY_THEME } from "@/contexts/ThemeContext";
 import NotificationsBar from "@/components/ui/NotificationsBar";
 import AboutPage from "@/pages/AboutPage";
@@ -40,6 +41,7 @@ export default function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
+        <Analytics />
       </BrowserRouter>
     </ThemeContext.Provider>
   );
