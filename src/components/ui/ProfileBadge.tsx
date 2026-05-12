@@ -10,7 +10,7 @@ export default function ProfileBadge() {
     return (
       <button
         onClick={() => login(window.location.pathname)}
-        className="rounded-lg border border-amber-700/40 bg-stone-950/50 px-3 py-1 font-medievalsharp text-sm text-amber-400/80 backdrop-blur-md hover:text-amber-200"
+        className="rounded-lg border border-amber-700/40 bg-stone-950/50 px-4 py-2 font-medievalsharp text-base text-amber-300/90 backdrop-blur-md hover:text-amber-100"
       >
         Sign in
       </button>
@@ -18,17 +18,17 @@ export default function ProfileBadge() {
   }
 
   return (
-    <div className="flex items-center gap-3 font-medievalsharp text-sm">
-      <Link to={`/players/${me.id}`} className="text-amber-200 hover:text-amber-100">
+    <div className="flex items-center gap-4 rounded-lg border border-amber-700/30 bg-stone-950/45 px-4 py-2 font-medievalsharp text-base shadow-[0_0_12px_rgba(255,165,0,0.1)] backdrop-blur-md">
+      <Link to={`/players/${me.id}`} className="text-amber-100 hover:text-amber-50">
         {me.name}
       </Link>
-      <span className="font-quintessential text-amber-400">{me.score} GP</span>
+      <span className="font-quintessential text-xl text-amber-300">{me.score} GP</span>
       {me.place !== null && (
-        <span className="text-xs text-amber-500/70">#{me.place}</span>
+        <span className="text-sm text-amber-400/90">#{me.place}</span>
       )}
       <button
         onClick={logout}
-        className="text-xs text-amber-500/60 hover:text-amber-300"
+        className="text-base text-amber-400/80 hover:text-amber-200"
         title="Sign out"
       >
         ⎋
