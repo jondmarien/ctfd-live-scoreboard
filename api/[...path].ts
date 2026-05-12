@@ -176,8 +176,14 @@ function isPathAllowed(apiPath: string): boolean {
   return ALLOWED_PATHS.some((pattern) => pattern.test(apiPath));
 }
 
-function shouldUseClientToken(apiPath: string, hasClientToken: boolean): boolean {
-  return hasClientToken && CLIENT_TOKEN_PATHS.some((pattern) => pattern.test(apiPath));
+function shouldUseClientToken(
+  apiPath: string,
+  hasClientToken: boolean,
+): boolean {
+  return (
+    hasClientToken &&
+    CLIENT_TOKEN_PATHS.some((pattern) => pattern.test(apiPath))
+  );
 }
 
 function corsHeaders(origin: string | null): Record<string, string> {
