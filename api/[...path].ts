@@ -59,10 +59,7 @@ const CLIENT_TOKEN_PATHS = [
 
 const ENABLE_PROXY_DEBUG_LOGS = process.env.CTFD_PROXY_DEBUG === "1";
 
-function logProxyDebug(
-  event: string,
-  data: Record<string, unknown>,
-): void {
+function logProxyDebug(event: string, data: Record<string, unknown>): void {
   if (!ENABLE_PROXY_DEBUG_LOGS) return;
   console.log(
     JSON.stringify({
@@ -180,7 +177,10 @@ function stripSensitiveSolveFields(payload: unknown): unknown {
   const responseData = root.data;
 
   if (Array.isArray(responseData)) {
-    return { ...root, data: responseData.map((entry) => sanitizeSolveEntry(entry)) };
+    return {
+      ...root,
+      data: responseData.map((entry) => sanitizeSolveEntry(entry)),
+    };
   }
 
   if (responseData && typeof responseData === "object") {
