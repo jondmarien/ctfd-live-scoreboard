@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchWithRetry } from "@/lib/fetchWithRetry";
 import type { ScoreboardMode } from "@/hooks/useScoreboard";
+import { getLogger } from "@/lib/logging";
 
 export interface ScorePoint {
   time: number;
@@ -41,6 +42,7 @@ const MOCK_SERIES: TeamScoreSeries[] = (() => {
 const CACHE_TTL = 30_000;
 const ENABLE_MOCKS =
   import.meta.env.DEV && import.meta.env.VITE_ENABLE_MOCK_DATA === "true";
+const logger = getLogger("hooks:useScoreboardTop");
 
 interface ModeCache {
   data: TeamScoreSeries[];
@@ -115,7 +117,11 @@ async function fetchScoreboardTop(
     c.lastFetch = Date.now();
     return c.data;
   } catch (err) {
-    console.warn("ScoreboardTop fetch failed:", err);
+    logger.warn("Scoreboard top fetch failed", {
+      mode,
+      count,
+      error: err instanceof Error ? err.message : String(err),
+    });
     if (c.data.length === 0) {
       if (mode === "team" && ENABLE_MOCKS) {
         c.data = MOCK_SERIES;

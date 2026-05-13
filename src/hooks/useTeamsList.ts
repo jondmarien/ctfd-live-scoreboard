@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchWithRetry } from "@/lib/fetchWithRetry";
+import { getLogger } from "@/lib/logging";
 
 export interface TeamListEntry {
   id: number;
@@ -33,6 +34,7 @@ let _lastUpdateTime: Date | null = null;
 
 // Per-user profile cache — avoids re-fetching the same user across teams
 const _userProfileCache = new Map<number, TeamListMember>();
+const logger = getLogger("hooks:useTeamsList");
 
 // Concurrency limiter — CTFd rate-limits at ~60 req/min; cap parallel user fetches to 3
 const MAX_CONCURRENT_USER_FETCHES = 3;
@@ -88,9 +90,10 @@ async function fetchTeamsData(): Promise<TeamListEntry[]> {
                 : [];
             // Include captain_id — solo players may have an empty members array
             const captainId: number | null = teamJson.data?.captain_id ?? null;
-            const memberIds = captainId && !rawMemberIds.includes(captainId)
-              ? [...rawMemberIds, captainId]
-              : rawMemberIds;
+            const memberIds =
+              captainId && !rawMemberIds.includes(captainId)
+                ? [...rawMemberIds, captainId]
+                : rawMemberIds;
 
             // Fetch each user's profile with concurrency cap (avoids 420 rate limits)
             const tasks = memberIds.map((uid: number) => async () => {
@@ -142,7 +145,9 @@ async function fetchTeamsData(): Promise<TeamListEntry[]> {
     _lastUpdateTime = new Date();
     return enriched;
   } catch (err) {
-    console.warn("Teams list fetch failed:", err);
+    logger.warn("Teams list fetch failed", {
+      error: err instanceof Error ? err.message : String(err),
+    });
     throw err;
   } finally {
     _fetching = false;
@@ -158,7 +163,11 @@ export function useTeamsList(): TeamsListData & { refresh: () => void } {
 
   const load = useCallback(async (force = false) => {
     // If cache is fresh and not forced, use it
-    if (!force && _teamsCache.length > 0 && Date.now() - _lastFetch < CACHE_TTL) {
+    if (
+      !force &&
+      _teamsCache.length > 0 &&
+      Date.now() - _lastFetch < CACHE_TTL
+    ) {
       setTeams(_teamsCache);
       setLastUpdate(_lastUpdateTime);
       setLoading(false);
@@ -193,7 +202,9 @@ export function useTeamsList(): TeamsListData & { refresh: () => void } {
   useEffect(() => {
     mountedRef.current = true;
     load();
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, [load]);
 
   return { teams, loading, error, lastUpdate, refresh: () => load(true) };

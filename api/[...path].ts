@@ -1,5 +1,8 @@
+import { getLogger } from "../src/lib/logging";
+
 const CTFD_BASE_URL =
   process.env.CTFD_BASE_URL ?? "https://api.ctf.chron0.tech";
+const logger = getLogger("api:proxy");
 
 // ── Allowed hosts — validated via Vercel's x-forwarded-host header ──
 // Vercel edge overwrites x-forwarded-host so it can't be forged by external callers.
@@ -61,14 +64,11 @@ const ENABLE_PROXY_DEBUG_LOGS = process.env.CTFD_PROXY_DEBUG === "1";
 
 function logProxyDebug(event: string, data: Record<string, unknown>): void {
   if (!ENABLE_PROXY_DEBUG_LOGS) return;
-  console.log(
-    JSON.stringify({
-      scope: "ctfd-proxy",
-      event,
-      data,
-      timestamp: new Date().toISOString(),
-    }),
-  );
+  logger.debug("CTFd proxy debug event", {
+    scope: "ctfd-proxy",
+    event,
+    ...data,
+  });
 }
 
 function extractClientToken(authHeader: string | null): string | null {
@@ -586,7 +586,7 @@ export default {
         },
       });
     } catch (err) {
-      console.error("CTFd proxy error:", err);
+      logger.error("CTFd proxy error", err, { apiPath, targetUrl });
       return Response.json(
         { error: "Failed to reach CTFd API" },
         { status: 502, headers: corsHeaders(origin) },

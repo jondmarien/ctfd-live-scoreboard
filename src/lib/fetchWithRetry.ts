@@ -2,6 +2,10 @@
  * Fetch wrapper with exponential backoff for CTFd 420 rate limits.
  * Retries up to `maxRetries` times with increasing delays.
  */
+import { getLogger } from "@/lib/logging";
+
+const logger = getLogger("fetchWithRetry");
+
 export async function fetchWithRetry(
   url: string,
   options?: RequestInit,
@@ -16,9 +20,12 @@ export async function fetchWithRetry(
       // CTFd returns 420 for rate limits — back off and retry
       if (res.status === 420 && attempt < maxRetries) {
         const delay = 1000 * Math.pow(2, attempt) + Math.random() * 500;
-        console.warn(
-          `[fetchWithRetry] 420 on ${url}, retrying in ${Math.round(delay)}ms (attempt ${attempt + 1}/${maxRetries})`,
-        );
+        logger.warn("Received 420 rate limit; retrying", {
+          url,
+          delayMs: Math.round(delay),
+          attempt: attempt + 1,
+          maxRetries,
+        });
         await new Promise((r) => setTimeout(r, delay));
         continue;
       }
@@ -28,6 +35,13 @@ export async function fetchWithRetry(
       lastError = err instanceof Error ? err : new Error(String(err));
       if (attempt < maxRetries) {
         const delay = 1000 * Math.pow(2, attempt) + Math.random() * 500;
+        logger.warn("Network error; retrying fetch", {
+          url,
+          delayMs: Math.round(delay),
+          attempt: attempt + 1,
+          maxRetries,
+          message: lastError.message,
+        });
         await new Promise((r) => setTimeout(r, delay));
       }
     }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { fetchWithRetry } from "@/lib/fetchWithRetry";
+import { getLogger } from "@/lib/logging";
 
 export interface ChallengeInfo {
   id: number;
@@ -229,6 +230,7 @@ let _cache: Map<number, ChallengeInfo> = new Map();
 let _lastFetch = 0;
 let _fetching = false;
 let _isMock = false;
+const logger = getLogger("hooks:useChallengeCache");
 
 async function fetchSolveCounts(): Promise<Map<number, number>> {
   try {
@@ -303,7 +305,9 @@ async function fetchChallenges(): Promise<Map<number, ChallengeInfo>> {
     _lastFetch = Date.now();
     return _cache;
   } catch (err) {
-    console.warn("Challenge cache fetch failed:", err);
+    logger.warn("Challenge cache fetch failed", {
+      error: err instanceof Error ? err.message : String(err),
+    });
     if (_cache.size === 0 && ENABLE_MOCKS) {
       _cache = buildMockCache();
       _isMock = true;

@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ensureChallengeCache, type ChallengeInfo } from "@/hooks/useChallengeCache";
+import {
+  ensureChallengeCache,
+  type ChallengeInfo,
+} from "@/hooks/useChallengeCache";
+import { getLogger } from "@/lib/logging";
 
 export interface TeamProfile {
   id: number;
@@ -30,7 +34,11 @@ interface TeamDetailsData {
 }
 
 // Per-team cache
-const _teamCache = new Map<number, { team: TeamProfile; solves: TeamSolve[] }>();
+const _teamCache = new Map<
+  number,
+  { team: TeamProfile; solves: TeamSolve[] }
+>();
+const logger = getLogger("hooks:useTeamDetails");
 
 function toThemedPartyError(err: unknown): string {
   const message = err instanceof Error ? err.message : String(err);
@@ -74,8 +82,10 @@ export function useTeamDetails(teamId: number | null): TeamDetailsData {
         ensureChallengeCache(),
       ]);
 
-      if (!teamRes.ok) throw new Error(`Team fetch failed: HTTP ${teamRes.status}`);
-      if (!solvesRes.ok) throw new Error(`Team solves fetch failed: HTTP ${solvesRes.status}`);
+      if (!teamRes.ok)
+        throw new Error(`Team fetch failed: HTTP ${teamRes.status}`);
+      if (!solvesRes.ok)
+        throw new Error(`Team solves fetch failed: HTTP ${solvesRes.status}`);
 
       const teamData = await teamRes.json();
       const solvesData = await solvesRes.json();
@@ -93,7 +103,10 @@ export function useTeamDetails(teamId: number | null): TeamDetailsData {
       };
 
       const enrichedSolves: TeamSolve[] = [];
-      const rawSolves = solvesData.success && Array.isArray(solvesData.data) ? solvesData.data : [];
+      const rawSolves =
+        solvesData.success && Array.isArray(solvesData.data)
+          ? solvesData.data
+          : [];
 
       for (const s of rawSolves) {
         const challengeId = s.challenge_id ?? s.challenge?.id;
@@ -111,7 +124,9 @@ export function useTeamDetails(teamId: number | null): TeamDetailsData {
         });
       }
 
-      enrichedSolves.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      enrichedSolves.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
 
       _teamCache.set(id, { team: profile, solves: enrichedSolves });
 
@@ -122,7 +137,10 @@ export function useTeamDetails(teamId: number | null): TeamDetailsData {
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
-      console.warn("Team details fetch failed:", err);
+      logger.warn("Team details fetch failed", {
+        teamId: id,
+        error: err instanceof Error ? err.message : String(err),
+      });
       if (!controller.signal.aborted) {
         setError(toThemedPartyError(err));
       }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchWithRetry } from "@/lib/fetchWithRetry";
+import { getLogger } from "@/lib/logging";
 
 export interface TeamMember {
   id: number;
@@ -43,6 +44,7 @@ const scheduleIdle =
 
 const ENABLE_MOCKS =
   import.meta.env.DEV && import.meta.env.VITE_ENABLE_MOCK_DATA === "true";
+const logger = getLogger("hooks:useScoreboard");
 
 const MOCK_TEAMS: Team[] = [
   {
@@ -266,7 +268,10 @@ export function useScoreboard(mode: ScoreboardMode = "team"): ScoreboardData & {
       setLastUpdate(new Date());
       lastFetchRef.current = Date.now();
     } catch (err) {
-      console.warn("Scoreboard fetch failed:", err);
+      logger.warn("Scoreboard fetch failed", {
+        mode,
+        error: err instanceof Error ? err.message : String(err),
+      });
       if (mode === "team") {
         if (ENABLE_MOCKS) {
           setTeams(MOCK_TEAMS);

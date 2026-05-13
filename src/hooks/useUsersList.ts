@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { fetchWithRetry } from "@/lib/fetchWithRetry";
+import { getLogger } from "@/lib/logging";
 
 export interface UserListEntry {
   id: number;
@@ -23,6 +24,7 @@ let _usersCache: UserListEntry[] = [];
 let _lastFetch = 0;
 let _fetching = false;
 let _lastUpdateTime: Date | null = null;
+const logger = getLogger("hooks:useUsersList");
 
 async function fetchUsersData(): Promise<UserListEntry[]> {
   if (_fetching) return _usersCache;
@@ -38,7 +40,9 @@ async function fetchUsersData(): Promise<UserListEntry[]> {
     }
 
     const users: UserListEntry[] = json.data
-      .filter((u: { banned: boolean; hidden: boolean }) => !u.banned && !u.hidden)
+      .filter(
+        (u: { banned: boolean; hidden: boolean }) => !u.banned && !u.hidden,
+      )
       .map((u: Record<string, unknown>) => ({
         id: u.id as number,
         name: (u.name as string) ?? "Unknown",
@@ -56,7 +60,9 @@ async function fetchUsersData(): Promise<UserListEntry[]> {
     _lastUpdateTime = new Date();
     return users;
   } catch (err) {
-    console.warn("Users list fetch failed:", err);
+    logger.warn("Users list fetch failed", {
+      error: err instanceof Error ? err.message : String(err),
+    });
     throw err;
   } finally {
     _fetching = false;
@@ -72,7 +78,11 @@ export function useUsersList(): UsersListData & { refresh: () => void } {
 
   const load = useCallback(async (force = false) => {
     // If cache is fresh and not forced, use it
-    if (!force && _usersCache.length > 0 && Date.now() - _lastFetch < CACHE_TTL) {
+    if (
+      !force &&
+      _usersCache.length > 0 &&
+      Date.now() - _lastFetch < CACHE_TTL
+    ) {
       setUsers(_usersCache);
       setLastUpdate(_lastUpdateTime);
       setLoading(false);
@@ -107,7 +117,9 @@ export function useUsersList(): UsersListData & { refresh: () => void } {
   useEffect(() => {
     mountedRef.current = true;
     load();
-    return () => { mountedRef.current = false; };
+    return () => {
+      mountedRef.current = false;
+    };
   }, [load]);
 
   return { users, loading, error, lastUpdate, refresh: () => load(true) };

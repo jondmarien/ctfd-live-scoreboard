@@ -1,4 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
+import { getLogger } from "@/lib/logging";
 
 interface Props {
   children: ReactNode;
@@ -8,6 +9,8 @@ interface State {
   hasError: boolean;
   error: Error | null;
 }
+
+const logger = getLogger("components:ErrorBoundary");
 
 /**
  * Top-level error boundary. Catches render-phase errors anywhere in the React
@@ -31,7 +34,9 @@ export default class ErrorBoundary extends Component<Props, State> {
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     // Log so the error is visible in DevTools console even when the page
     // renders the fallback UI rather than crashing.
-    console.error("[ErrorBoundary] caught render error:", error, errorInfo);
+    logger.error("Error boundary caught render error", error, {
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   handleReload = (): void => {

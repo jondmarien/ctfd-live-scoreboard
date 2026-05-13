@@ -1,6 +1,8 @@
 import { createHmac, timingSafeEqual } from "crypto";
+import { getLogger } from "../../src/lib/logging";
 
 const CTFD_BASE_URL = "https://issessionsctf.ctfd.io";
+const logger = getLogger("api:webhook:firstblood");
 
 interface FirstBloodPayload {
   id: number;
@@ -69,7 +71,10 @@ function verifySignature(
     }
     const nowS = Math.floor(Date.now() / 1000);
     if (Math.abs(nowS - ts) > MAX_TIMESTAMP_AGE_S) {
-      return { valid: false, reason: `Timestamp too old or too far in the future (delta=${nowS - ts}s)` };
+      return {
+        valid: false,
+        reason: `Timestamp too old or too far in the future (delta=${nowS - ts}s)`,
+      };
     }
 
     const signedPayload = `${timestamp}.${payload}`;
@@ -188,8 +193,7 @@ async function sendDiscordFirstBlood(
 
   const body = {
     username: "The Quest Giver",
-    avatar_url:
-      "https://iss-ctfd-live-scoreboard.vercel.app/fantasy_ctf.png",
+    avatar_url: "https://iss-ctfd-live-scoreboard.vercel.app/fantasy_ctf.png",
     content: `🏆 A hero has claimed **First Blood**!`,
     embeds: [embed],
   };
@@ -202,7 +206,10 @@ async function sendDiscordFirstBlood(
 
   if (!res.ok) {
     const text = await res.text();
-    console.error(`Discord webhook failed (${res.status}):`, text);
+    logger.error("Discord webhook failed", undefined, {
+      status: res.status,
+      response: text,
+    });
   }
 
   return res.ok;
@@ -217,18 +224,22 @@ export default {
     // ── GET: CTFd endpoint validation ──
     if (request.method === "GET") {
       if (!secret) {
-        return Response.json({ error: "WEBHOOK_SECRET is not configured" }, { status: 500 });
+        return Response.json(
+          { error: "WEBHOOK_SECRET is not configured" },
+          { status: 500 },
+        );
       }
 
       const url = new URL(request.url);
       const token = url.searchParams.get("token");
       if (!token) {
-        return Response.json({ error: "Missing token parameter" }, { status: 400 });
+        return Response.json(
+          { error: "Missing token parameter" },
+          { status: 400 },
+        );
       }
 
-      const response = createHmac("sha256", secret)
-        .update(token)
-        .digest("hex");
+      const response = createHmac("sha256", secret).update(token).digest("hex");
 
       return Response.json({ response });
     }
@@ -237,13 +248,22 @@ export default {
     if (request.method === "POST") {
       // WEBHOOK_SECRET is required — refuse to process unsigned webhooks
       if (!secret) {
-        return Response.json({ error: "WEBHOOK_SECRET is not configured" }, { status: 500 });
+        return Response.json(
+          { error: "WEBHOOK_SECRET is not configured" },
+          { status: 500 },
+        );
       }
       if (!apiToken) {
-        return Response.json({ error: "CTFD_API_TOKEN is not configured" }, { status: 500 });
+        return Response.json(
+          { error: "CTFD_API_TOKEN is not configured" },
+          { status: 500 },
+        );
       }
       if (!discordWebhookUrl) {
-        return Response.json({ error: "WEBHOOK_URL is not configured" }, { status: 500 });
+        return Response.json(
+          { error: "WEBHOOK_URL is not configured" },
+          { status: 500 },
+        );
       }
 
       // Enforce payload size limit
@@ -260,25 +280,31 @@ export default {
       // Verify webhook signature (required)
       const signatureHeader = request.headers.get("ctfd-webhook-signature");
       if (!signatureHeader) {
-        console.warn("Missing CTFd-Webhook-Signature header");
+        logger.warn("Missing CTFd-Webhook-Signature header");
         return Response.json({ error: "Missing signature" }, { status: 401 });
       }
 
       const verification = verifySignature(secret, rawBody, signatureHeader);
       if (!verification.valid) {
-        console.warn(`Webhook signature verification failed: ${verification.reason}`);
+        logger.warn("Webhook signature verification failed", {
+          reason: verification.reason ?? "unknown",
+        });
         return Response.json({ error: "Invalid signature" }, { status: 401 });
       }
 
       const payload = JSON.parse(rawBody) as FirstBloodPayload;
 
       if (!payload.id) {
-        return Response.json({ error: "Missing submission id" }, { status: 400 });
+        return Response.json(
+          { error: "Missing submission id" },
+          { status: 400 },
+        );
       }
 
-      console.log(
-        `First Blood event received: submission=${payload.id}, challenge=${payload.challenge_id}`,
-      );
+      logger.info("First blood event received", {
+        submissionId: payload.id,
+        challengeId: payload.challenge_id,
+      });
 
       // Fetch full submission + challenge details from CTFd
       const [submission, challenge] = await Promise.all([
@@ -287,8 +313,13 @@ export default {
       ]);
 
       if (!submission) {
-        console.error(`Failed to fetch submission ${payload.id}`);
-        return Response.json({ error: "Failed to fetch submission" }, { status: 502 });
+        logger.error("Failed to fetch submission", undefined, {
+          submissionId: payload.id,
+        });
+        return Response.json(
+          { error: "Failed to fetch submission" },
+          { status: 502 },
+        );
       }
 
       const challengeName =

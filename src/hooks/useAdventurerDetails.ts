@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ensureChallengeCache, type ChallengeInfo } from "@/hooks/useChallengeCache";
+import {
+  ensureChallengeCache,
+  type ChallengeInfo,
+} from "@/hooks/useChallengeCache";
+import { getLogger } from "@/lib/logging";
 
 export interface UserProfile {
   id: number;
@@ -27,7 +31,11 @@ interface AdventurerDetailsData {
 }
 
 // Per-user cache
-const _userCache = new Map<number, { user: UserProfile; solves: UserSolve[] }>();
+const _userCache = new Map<
+  number,
+  { user: UserProfile; solves: UserSolve[] }
+>();
+const logger = getLogger("hooks:useAdventurerDetails");
 
 function toThemedAdventurerError(err: unknown): string {
   const message = err instanceof Error ? err.message : String(err);
@@ -40,7 +48,9 @@ function toThemedAdventurerError(err: unknown): string {
   return message || "Failed to load adventurer";
 }
 
-export function useAdventurerDetails(memberId: number | null): AdventurerDetailsData {
+export function useAdventurerDetails(
+  memberId: number | null,
+): AdventurerDetailsData {
   const [user, setUser] = useState<UserProfile | null>(null);
   const [solves, setSolves] = useState<UserSolve[]>([]);
   const [loading, setLoading] = useState(false);
@@ -73,8 +83,10 @@ export function useAdventurerDetails(memberId: number | null): AdventurerDetails
         ensureChallengeCache(),
       ]);
 
-      if (!userRes.ok) throw new Error(`User fetch failed: HTTP ${userRes.status}`);
-      if (!solvesRes.ok) throw new Error(`Solves fetch failed: HTTP ${solvesRes.status}`);
+      if (!userRes.ok)
+        throw new Error(`User fetch failed: HTTP ${userRes.status}`);
+      if (!solvesRes.ok)
+        throw new Error(`Solves fetch failed: HTTP ${solvesRes.status}`);
 
       const userData = await userRes.json();
       const solvesData = await solvesRes.json();
@@ -91,7 +103,10 @@ export function useAdventurerDetails(memberId: number | null): AdventurerDetails
       };
 
       const enrichedSolves: UserSolve[] = [];
-      const rawSolves = solvesData.success && Array.isArray(solvesData.data) ? solvesData.data : [];
+      const rawSolves =
+        solvesData.success && Array.isArray(solvesData.data)
+          ? solvesData.data
+          : [];
 
       for (const s of rawSolves) {
         const challengeId = s.challenge_id ?? s.challenge?.id;
@@ -100,7 +115,8 @@ export function useAdventurerDetails(memberId: number | null): AdventurerDetails
         enrichedSolves.push({
           challenge_id: challengeId,
           challenge_name: cached?.name ?? s.challenge?.name ?? "Unknown Quest",
-          category: cached?.category ?? s.challenge?.category ?? "Uncategorized",
+          category:
+            cached?.category ?? s.challenge?.category ?? "Uncategorized",
           value: cached?.value ?? s.challenge?.value ?? 0,
           type: cached?.type ?? "standard",
           date: s.date ?? "",
@@ -108,7 +124,9 @@ export function useAdventurerDetails(memberId: number | null): AdventurerDetails
       }
 
       // Sort by date descending (most recent first)
-      enrichedSolves.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      enrichedSolves.sort(
+        (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
+      );
 
       // Cache result
       _userCache.set(id, { user: profile, solves: enrichedSolves });
@@ -120,7 +138,10 @@ export function useAdventurerDetails(memberId: number | null): AdventurerDetails
       }
     } catch (err) {
       if (err instanceof DOMException && err.name === "AbortError") return;
-      console.warn("Adventurer details fetch failed:", err);
+      logger.warn("Adventurer details fetch failed", {
+        memberId: id,
+        error: err instanceof Error ? err.message : String(err),
+      });
       if (!controller.signal.aborted) {
         setError(toThemedAdventurerError(err));
       }
