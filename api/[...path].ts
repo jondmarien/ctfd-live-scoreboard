@@ -47,13 +47,32 @@ const ALLOWED_PATHS = [
 // User paths handled separately with validation
 const USER_PATH_RE = /^v1\/users\/(\d+)(\/(solves|awards))?$/;
 const USER_ME_PATH_RE = /^v1\/users\/me$/;
+const USER_ME_SOLVES_PATH_RE = /^v1\/users\/me\/solves$/;
+const USER_ID_SOLVES_PATH_RE = /^v1\/users\/\d+\/solves$/;
 const CLIENT_TOKEN_PATHS = [
   USER_ME_PATH_RE,
-  /^v1\/users\/me\/solves$/,
+  USER_ME_SOLVES_PATH_RE,
   /^v1\/challenges\/\d+$/,
   /^v1\/challenges\/\d+\/hints$/,
   /^v1\/hints\/\d+$/,
 ];
+
+const ENABLE_PROXY_DEBUG_LOGS = process.env.CTFD_PROXY_DEBUG === "1";
+
+function logProxyDebug(
+  event: string,
+  data: Record<string, unknown>,
+): void {
+  if (!ENABLE_PROXY_DEBUG_LOGS) return;
+  console.log(
+    JSON.stringify({
+      scope: "ctfd-proxy",
+      event,
+      data,
+      timestamp: new Date().toISOString(),
+    }),
+  );
+}
 
 function extractClientToken(authHeader: string | null): string | null {
   if (!authHeader) return null;
@@ -127,6 +146,48 @@ function stripSensitiveUserFields(data: unknown): unknown {
     return { ...d, data: user };
   }
   return data;
+}
+
+function sanitizeSolveEntry(entry: unknown): Record<string, unknown> {
+  if (!entry || typeof entry !== "object") return {};
+  const solve = entry as Record<string, unknown>;
+  const challenge =
+    solve.challenge && typeof solve.challenge === "object"
+      ? (solve.challenge as Record<string, unknown>)
+      : null;
+
+  const sanitized: Record<string, unknown> = {};
+  if (typeof solve.id !== "undefined") sanitized.id = solve.id;
+  if (typeof solve.challenge_id !== "undefined")
+    sanitized.challenge_id = solve.challenge_id;
+  if (typeof solve.type !== "undefined") sanitized.type = solve.type;
+  if (typeof solve.date !== "undefined") sanitized.date = solve.date;
+  if (challenge) {
+    sanitized.challenge = {
+      id: challenge.id,
+      name: challenge.name,
+      category: challenge.category,
+      value: challenge.value,
+      type: challenge.type,
+    };
+  }
+  return sanitized;
+}
+
+function stripSensitiveSolveFields(payload: unknown): unknown {
+  if (!payload || typeof payload !== "object") return payload;
+  const root = payload as Record<string, unknown>;
+  const responseData = root.data;
+
+  if (Array.isArray(responseData)) {
+    return { ...root, data: responseData.map((entry) => sanitizeSolveEntry(entry)) };
+  }
+
+  if (responseData && typeof responseData === "object") {
+    return { ...root, data: sanitizeSolveEntry(responseData) };
+  }
+
+  return payload;
 }
 
 // ── IP-based token bucket rate limiter (in-memory, per serverless instance) ──
@@ -280,6 +341,11 @@ export default {
     const clientToken = extractClientToken(
       request.headers.get("authorization"),
     );
+    logProxyDebug("request.parsed", {
+      method: request.method,
+      apiPath,
+      hasClientToken: !!clientToken,
+    });
     // #region agent log
     fetch("http://127.0.0.1:7769/ingest/a24d95a2-737a-46d2-8df1-240ca668cb60", {
       method: "POST",
@@ -306,6 +372,17 @@ export default {
     // ── User endpoint: validate team membership server-side ──
     const userMatch = USER_PATH_RE.exec(apiPath);
     if (userMatch) {
+      const userSubPath = userMatch[3] ?? null;
+      if (userSubPath === "solves" || USER_ID_SOLVES_PATH_RE.test(apiPath)) {
+        logProxyDebug("route.blocked", {
+          apiPath,
+          reason: "numeric-user-solves-blocked",
+        });
+        return Response.json(
+          { error: "Endpoint not allowed" },
+          { status: 403, headers: corsHeaders(origin) },
+        );
+      }
       const requestedId = parseInt(userMatch[1], 10);
       // #region agent log
       fetch(
@@ -334,13 +411,27 @@ export default {
       // #endregion
       const allowed = await isValidUser(requestedId, serverToken);
       if (!allowed) {
+        logProxyDebug("route.blocked", {
+          apiPath,
+          reason: "user-validation-failed",
+          requestedId,
+        });
         return Response.json(
           { error: "Endpoint not allowed" },
           { status: 403, headers: corsHeaders(origin) },
         );
       }
+      logProxyDebug("route.allowed", {
+        apiPath,
+        requestedId,
+        reason: "user-validation-passed",
+      });
     } else if (!isPathAllowed(apiPath)) {
       // Enforce general endpoint allowlist
+      logProxyDebug("route.blocked", {
+        apiPath,
+        reason: "path-not-allowlisted",
+      });
       return Response.json(
         { error: "Endpoint not allowed" },
         { status: 403, headers: corsHeaders(origin) },
@@ -464,6 +555,27 @@ export default {
           },
         ).catch(() => {});
         // #endregion
+      }
+
+      if (USER_ME_SOLVES_PATH_RE.test(apiPath)) {
+        data = stripSensitiveSolveFields(data);
+        const root = data as Record<string, unknown>;
+        const responseData = root?.data;
+        const firstSolve =
+          Array.isArray(responseData) && responseData.length > 0
+            ? (responseData[0] as Record<string, unknown>)
+            : null;
+        logProxyDebug("response.sanitized.me-solves", {
+          apiPath,
+          count: Array.isArray(responseData) ? responseData.length : null,
+          firstSolveKeys: firstSolve ? Object.keys(firstSolve) : [],
+          challengeKeys:
+            firstSolve &&
+            firstSolve.challenge &&
+            typeof firstSolve.challenge === "object"
+              ? Object.keys(firstSolve.challenge as Record<string, unknown>)
+              : [],
+        });
       }
 
       return Response.json(data, {
