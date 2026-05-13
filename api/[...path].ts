@@ -79,6 +79,29 @@ async function isValidUser(userId: number, token: string): Promise<boolean> {
       success?: boolean;
       data?: { banned?: boolean; hidden?: boolean };
     };
+    // #region agent log
+    fetch("http://127.0.0.1:7769/ingest/a24d95a2-737a-46d2-8df1-240ca668cb60", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "7bb2c6",
+      },
+      body: JSON.stringify({
+        sessionId: "7bb2c6",
+        runId: "pre-fix",
+        hypothesisId: "H5",
+        location: "api/[...path].ts:isValidUser",
+        message: "validated user visibility payload",
+        data: {
+          userId,
+          ok: res.ok,
+          success: json.success === true,
+          dataKeys: json.data ? Object.keys(json.data) : [],
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
     if (json.success !== true || !json.data) return false;
     return !json.data.banned && !json.data.hidden;
   } catch {
@@ -257,11 +280,58 @@ export default {
     const clientToken = extractClientToken(
       request.headers.get("authorization"),
     );
+    // #region agent log
+    fetch("http://127.0.0.1:7769/ingest/a24d95a2-737a-46d2-8df1-240ca668cb60", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "7bb2c6",
+      },
+      body: JSON.stringify({
+        sessionId: "7bb2c6",
+        runId: "pre-fix",
+        hypothesisId: "H2",
+        location: "api/[...path].ts:request-parsed",
+        message: "incoming API request path parsed",
+        data: {
+          method: request.method,
+          apiPath,
+          hasClientToken: !!clientToken,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
 
     // ── User endpoint: validate team membership server-side ──
     const userMatch = USER_PATH_RE.exec(apiPath);
     if (userMatch) {
       const requestedId = parseInt(userMatch[1], 10);
+      // #region agent log
+      fetch(
+        "http://127.0.0.1:7769/ingest/a24d95a2-737a-46d2-8df1-240ca668cb60",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-Debug-Session-Id": "7bb2c6",
+          },
+          body: JSON.stringify({
+            sessionId: "7bb2c6",
+            runId: "pre-fix",
+            hypothesisId: "H1",
+            location: "api/[...path].ts:user-endpoint-match",
+            message: "user endpoint pattern matched",
+            data: {
+              requestedId,
+              subPath: userMatch[3] ?? null,
+              isBaseUserPath: !userMatch[2],
+            },
+            timestamp: Date.now(),
+          }),
+        },
+      ).catch(() => {});
+      // #endregion
       const allowed = await isValidUser(requestedId, serverToken);
       if (!allowed) {
         return Response.json(
@@ -280,6 +350,28 @@ export default {
     const outboundToken = shouldUseClientToken(apiPath, !!clientToken)
       ? (clientToken as string)
       : serverToken;
+    // #region agent log
+    fetch("http://127.0.0.1:7769/ingest/a24d95a2-737a-46d2-8df1-240ca668cb60", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Debug-Session-Id": "7bb2c6",
+      },
+      body: JSON.stringify({
+        sessionId: "7bb2c6",
+        runId: "pre-fix",
+        hypothesisId: "H4",
+        location: "api/[...path].ts:outbound-token-choice",
+        message: "selected outbound token source",
+        data: {
+          apiPath,
+          usesClientToken: outboundToken !== serverToken,
+          hasClientToken: !!clientToken,
+        },
+        timestamp: Date.now(),
+      }),
+    }).catch(() => {});
+    // #endregion
 
     const targetUrl = `${CTFD_BASE_URL}/api/${apiPath}${url.search}`;
 
@@ -293,10 +385,85 @@ export default {
       });
 
       let data = await response.json();
+      if (userMatch) {
+        const root = data as Record<string, unknown>;
+        const responseData = root?.data;
+        const listFirstItem =
+          Array.isArray(responseData) && responseData.length > 0
+            ? (responseData[0] as Record<string, unknown>)
+            : null;
+        // #region agent log
+        fetch(
+          "http://127.0.0.1:7769/ingest/a24d95a2-737a-46d2-8df1-240ca668cb60",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Debug-Session-Id": "7bb2c6",
+            },
+            body: JSON.stringify({
+              sessionId: "7bb2c6",
+              runId: "pre-fix",
+              hypothesisId: "H1",
+              location: "api/[...path].ts:user-response-shape",
+              message: "observed user endpoint response shape",
+              data: {
+                apiPath,
+                status: response.status,
+                topLevelKeys:
+                  data && typeof data === "object"
+                    ? Object.keys(data as Record<string, unknown>)
+                    : [],
+                dataType: Array.isArray(responseData)
+                  ? "array"
+                  : typeof responseData,
+                dataKeys:
+                  responseData &&
+                  typeof responseData === "object" &&
+                  !Array.isArray(responseData)
+                    ? Object.keys(responseData as Record<string, unknown>)
+                    : [],
+                firstItemKeys: listFirstItem ? Object.keys(listFirstItem) : [],
+              },
+              timestamp: Date.now(),
+            }),
+          },
+        ).catch(() => {});
+        // #endregion
+      }
 
       // Strip sensitive fields from user profile responses
       if (userMatch && !userMatch[2]) {
         data = stripSensitiveUserFields(data);
+        const root = data as Record<string, unknown>;
+        const sanitized = root?.data;
+        // #region agent log
+        fetch(
+          "http://127.0.0.1:7769/ingest/a24d95a2-737a-46d2-8df1-240ca668cb60",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "X-Debug-Session-Id": "7bb2c6",
+            },
+            body: JSON.stringify({
+              sessionId: "7bb2c6",
+              runId: "pre-fix",
+              hypothesisId: "H3",
+              location: "api/[...path].ts:user-response-sanitized",
+              message: "applied base user response sanitization",
+              data: {
+                apiPath,
+                sanitizedKeys:
+                  sanitized && typeof sanitized === "object"
+                    ? Object.keys(sanitized as Record<string, unknown>)
+                    : [],
+              },
+              timestamp: Date.now(),
+            }),
+          },
+        ).catch(() => {});
+        // #endregion
       }
 
       return Response.json(data, {
