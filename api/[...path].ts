@@ -61,6 +61,21 @@ const CLIENT_TOKEN_PATHS = [
 ];
 
 const ENABLE_PROXY_DEBUG_LOGS = process.env.CTFD_PROXY_DEBUG === "1";
+const HSTS_VALUE = "max-age=31536000; includeSubDomains; preload";
+const CLICKJACKING_CSP_VALUE = "frame-ancestors 'none'";
+const PUBLIC_CACHE_CONTROL = "s-maxage=30, stale-while-revalidate=60";
+const PRIVATE_NO_STORE_CACHE_CONTROL =
+  "no-store, no-cache, must-revalidate, private";
+const PRIVATE_NO_STORE_HEADERS = {
+  "Cache-Control": PRIVATE_NO_STORE_CACHE_CONTROL,
+  Pragma: "no-cache",
+  Expires: "0",
+};
+const SENSITIVE_PATH_PATTERNS = [
+  /^v1\/notifications$/,
+  USER_ME_PATH_RE,
+  USER_ME_SOLVES_PATH_RE,
+];
 
 function logProxyDebug(event: string, data: Record<string, unknown>): void {
   if (!ENABLE_PROXY_DEBUG_LOGS) return;
@@ -281,23 +296,66 @@ function corsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
+function securityHeaders(): Record<string, string> {
+  return {
+    "Strict-Transport-Security": HSTS_VALUE,
+    "X-Frame-Options": "DENY",
+    "Content-Security-Policy": CLICKJACKING_CSP_VALUE,
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+  };
+}
+
+function isSensitivePath(apiPath: string): boolean {
+  return SENSITIVE_PATH_PATTERNS.some((pattern) => pattern.test(apiPath));
+}
+
+function cacheHeadersForPath(apiPath: string): Record<string, string> {
+  if (isSensitivePath(apiPath)) {
+    return PRIVATE_NO_STORE_HEADERS;
+  }
+  return { "Cache-Control": PUBLIC_CACHE_CONTROL };
+}
+
+function responseHeaders(
+  origin: string | null,
+  apiPath: string,
+  extraHeaders?: Record<string, string>,
+): Record<string, string> {
+  return {
+    ...corsHeaders(origin),
+    ...securityHeaders(),
+    ...cacheHeadersForPath(apiPath),
+    ...(extraHeaders ?? {}),
+  };
+}
+
 export default {
   async fetch(request: Request) {
     const origin = request.headers.get("Origin");
+    const url = new URL(request.url);
+    const pathParts = url.pathname.split("/").filter(Boolean);
+    const apiPath = pathParts.slice(1).join("/"); // Remove "api" prefix
 
     // Handle CORS preflight — only check Origin (browser always sends it for preflight)
     if (request.method === "OPTIONS") {
       if (!isOriginAllowed(origin)) {
-        return Response.json({ error: "Origin not allowed" }, { status: 403 });
+        return Response.json(
+          { error: "Origin not allowed" },
+          { status: 403, headers: responseHeaders(origin, apiPath) },
+        );
       }
-      return new Response(null, { status: 204, headers: corsHeaders(origin) });
+      return new Response(null, {
+        status: 204,
+        headers: responseHeaders(origin, apiPath),
+      });
     }
 
     // Only allow GET — this proxy is read-only
     if (request.method !== "GET") {
       return Response.json(
         { error: "Method not allowed" },
-        { status: 405, headers: corsHeaders(origin) },
+        { status: 405, headers: responseHeaders(origin, apiPath) },
       );
     }
 
@@ -310,7 +368,10 @@ export default {
       if (origin && isOriginAllowed(origin)) {
         // Cross-origin from an allowed origin — permit
       } else {
-        return Response.json({ error: "Forbidden" }, { status: 403 });
+        return Response.json(
+          { error: "Forbidden" },
+          { status: 403, headers: responseHeaders(origin, apiPath) },
+        );
       }
     }
 
@@ -321,7 +382,7 @@ export default {
         { error: "Too many requests" },
         {
           status: 429,
-          headers: { ...corsHeaders(origin), "Retry-After": "60" },
+          headers: responseHeaders(origin, apiPath, { "Retry-After": "60" }),
         },
       );
     }
@@ -330,14 +391,9 @@ export default {
     if (!serverToken) {
       return Response.json(
         { error: "CTFD_API_TOKEN is not configured" },
-        { status: 500, headers: corsHeaders(origin) },
+        { status: 500, headers: responseHeaders(origin, apiPath) },
       );
     }
-
-    // Extract path from URL: /api/v1/teams -> v1/teams
-    const url = new URL(request.url);
-    const pathParts = url.pathname.split("/").filter(Boolean);
-    const apiPath = pathParts.slice(1).join("/"); // Remove "api" prefix
     const clientToken = extractClientToken(
       request.headers.get("authorization"),
     );
@@ -380,7 +436,7 @@ export default {
         });
         return Response.json(
           { error: "Endpoint not allowed" },
-          { status: 403, headers: corsHeaders(origin) },
+          { status: 403, headers: responseHeaders(origin, apiPath) },
         );
       }
       const requestedId = parseInt(userMatch[1], 10);
@@ -418,7 +474,7 @@ export default {
         });
         return Response.json(
           { error: "Endpoint not allowed" },
-          { status: 403, headers: corsHeaders(origin) },
+          { status: 403, headers: responseHeaders(origin, apiPath) },
         );
       }
       logProxyDebug("route.allowed", {
@@ -434,7 +490,7 @@ export default {
       });
       return Response.json(
         { error: "Endpoint not allowed" },
-        { status: 403, headers: corsHeaders(origin) },
+        { status: 403, headers: responseHeaders(origin, apiPath) },
       );
     }
 
@@ -580,16 +636,13 @@ export default {
 
       return Response.json(data, {
         status: response.status,
-        headers: {
-          ...corsHeaders(origin),
-          "Cache-Control": "s-maxage=30, stale-while-revalidate=60",
-        },
+        headers: responseHeaders(origin, apiPath),
       });
     } catch (err) {
       logger.error("CTFd proxy error", err, { apiPath, targetUrl });
       return Response.json(
         { error: "Failed to reach CTFd API" },
-        { status: 502, headers: corsHeaders(origin) },
+        { status: 502, headers: responseHeaders(origin, apiPath) },
       );
     }
   },
